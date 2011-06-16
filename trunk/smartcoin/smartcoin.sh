@@ -35,7 +35,7 @@ screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%
 )%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %d/%m %{W}%c %{g}]'
 screen -r $sessionName -X screen -t monitor
 screen -r $sessionName -X screen -t control $HOME/smartcoin/smartcoin_control.sh
-screen -r $sessionName -X screen -t bitcoind ./bitcoin-0.3.22/bin/32/bitcoind
+screen -r $sessionName -X screen -t bitcoind ./bitcoin-0.3.22/bin/32/bitcoind  --daemon
 screen -r $sessionName -X screen -t namecoind 
 
 

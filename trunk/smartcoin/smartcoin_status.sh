@@ -178,10 +178,9 @@ screen -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
 #screen -p status -X hardcopy .smart.status
 }
 
-
-clear
-echo "INITIALIZING SMARTCOIN....."
-sleep 10
+cclear
+#echo "INITIALIZING SMARTCOIN....."
+#sleep 10
 
 clear
 while true; do
