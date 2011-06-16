@@ -38,6 +38,11 @@ screen -r $sessionName -X screen -t control $HOME/smartcoin/smartcoin_control.sh
 screen -r $sessionName -X screen -t bitcoind ./bitcoin-0.3.22/bin/32/bitcoind
 screen -r $sessionName -X screen -t namecoind 
 
+
+UseDB "smartcoin"
+Q="SELECT value FROM settings WHERE data=\"current_profile\";"
+R=$(RunSQL "$Q")
+CURRENT_PROFILE=$(Field 1 "$R")
 startMiners $CURRENT_PROFILE
 
 GotoStatus
