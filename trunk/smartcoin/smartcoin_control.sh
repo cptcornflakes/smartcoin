@@ -3,11 +3,6 @@
 . $HOME/smartcoin/smartcoin_ops.sh
 
 
-AddMenuItem()
-{
-	menuItem=$(Field_Prepare "$1")
-	echo "$menuItem "
-}
 DisplayMenu()
 {	#clear
 	#ShowHeader
@@ -82,6 +77,7 @@ GetAEDSelection()
 
 # Profile Menu
 Do_Profile() {
+	GenAutoProfile
 	clear
 	ShowHeader
 
@@ -89,13 +85,13 @@ Do_Profile() {
 	M=""
 	i=0
 	UseDB "smartcoin"
-	Q="SELECT * FROM profile where pk_profile>=0;"
+	Q="SELECT * FROM profile where pk_profile>=\"-1\" ORDER BY pk_profile ASC;"
 	R=$(RunSQL "$Q")
 	for Row in $R; do
 		let i++
 		PK=$(Field 1 "$Row")
 		profileName=$(Field 2 "$Row")
-		M=$M$(AddMenuItem "$PK	$i	$profileName")
+		M=$M$(FieldArrayAdd "$PK	$i	$profileName")
 	done
 	DisplayMenu "$M"
 
@@ -190,7 +186,7 @@ Edit_Miners()
 		let i++
 		PK=$(Field 1 "$Row")
 		minerName=$(Field 2 "$Row")
-		M=$M$(AddMenuItem "$PK	$i	$minerName")
+		M=$M$(FieldArrayAdd "$PK	$i	$minerName")
 	done
 	DisplayMenu "$M"
 	PK=$(GetMenuSelection "$M")
@@ -243,7 +239,7 @@ Delete_Miners()
 		let i++
 		PK=$(Field 1 "$Row")
 		minerName=$(Field 2 "$Row")
-		M=$M$(AddMenuItem "$PK	$i	$minerName")
+		M=$M$(FieldArrayAdd "$PK	$i	$minerName")
 	done
 	DisplayMenu "$M"
 	PK=$(GetMenuSelection "$M")
