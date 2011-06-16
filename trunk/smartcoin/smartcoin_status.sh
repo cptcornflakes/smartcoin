@@ -23,7 +23,7 @@ ShowStatus() {
 	status=$status"$cpu\n"
 
 	# Next lines are to check your balance if solo mining
-        BALANCE=$(/home/jondecker76/bitcoin-0.3.21/bin/32/bitcoind getbalance)
+        BALANCE=`$HOME/bitcoin-0.3.212bin/32/bitcoind getbalance 2> /dev/null`
         status=$status"Local Bitcoin balance : $BALANCE\n\n"
         
 
