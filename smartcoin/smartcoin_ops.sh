@@ -47,33 +47,6 @@ RunSQL()
 	        fi
 }
 
-RunCSQL()
-{
-        local Q Q_id
-        Q="$*"
-
-        if [[ "$CSQL_ID" == "" ]] ;then
-                RunSQL "$Q"
-                return
-        fi
-	
-        Q_id=$(echo "$Q" | sha1sum - | cut -d' ' -f1)
-        if [[ ! -f "$CSQL_DIR/$CSQL_ID/$Q_id" ]] ;then
-                RunSQL "$Q" > "$CSQL_DIR/$CSQL_ID/$Q_id"
-        fi
-
-        cat "$CSQL_DIR/$CSQL_ID/$Q_id"
-}
-
-PurgeCSQL() {
-        CSQL_ID="$1"
-        rm -rf "$CSQL_DIR/$CSQL_ID/"*
-}
-
-InitCSQL() {
-        CSQL_ID="$1"
-        mkdir -p "$CSQL_DIR/$CSQL_ID"
-}
 
 #Usage:
 #  Field=$(Field 1 "<SQL row>")
@@ -106,7 +79,11 @@ Field_Translate()
 Field_Prepare(){
 	echo -ne "$1" | Field_Translate
 }
-
+FieldArrayAdd()
+{
+	menuItem=$(Field_Prepare "$1")
+	echo "$menuItem "
+}
 
 
 UseDB "smartcoin"
@@ -121,6 +98,13 @@ export CURRENT_PROFILE
 startMiners() {
 	local profile=$1
 	
+	# I don't think the commented section below is needed.
+	# Only generate an auto profile IF A) you selct it in the "choose profile" section
+	# Or B) you add a card, or worker AND the autoprofile is the current profile(in which case, KillMiners is called, the new profile generated, then StartMiners if called)
+	#if [[ "$profile" == "-1" ]]; then
+	#	GenAutoProfile
+	#fi
+
 	UseDB "smartcoin"
 	Q="SELECT pk_map, fk_card, fk_miner, fk_worker from map WHERE fk_profile=$profile;"
 	R=$(RunSQL "$Q")
@@ -139,6 +123,8 @@ startMiners() {
 killMiners() {
 	local profile=$1
 
+	DeleteTemporaryFiles
+
 	UseDB "smartcoin"
 	Q="SELECT pk_map from map WHERE fk_profile=$profile;"
 	R=$(RunSQL "$Q")
@@ -146,28 +132,76 @@ killMiners() {
 
 	for Row in $R; do
 		local PK=$(Field 1 "$Row")
-		screen -x $sessionName -p "smartcoin.$PK" -X kill
+		screen -d -r $sessionName -p "smartcoin.$PK" -X kill
 	done
 }
 
 GotoStatus() {
-	screen -r $sessionName -p status 
+	attached=`screen -ls | grep $sessionName | grep Attached`
+
+	if [[ "$attached" != "" ]]; then
+		screen -p status 
+	else
+		screen -r $sessionName -p status
+	fi
+	
 }
 
 GenAutoProfile() {
+	local card
+	local miner
+	local worker
+	local R
+	local R2
+	local R3
+	
+	# Has the auto profile been added to the database yet?
+	Q="INSERT IGNORE INTO profile (pk_profile,name,auto_allow) values (-1, \"Automatic\",1)";
+	R=$(RunSQL "$Q")
 
-#make sure the auto profile (special primary key -1) exists...
-Q="SELECT pk_profile FROM profile where pk_profile=-1;"
-R=$(RunSQL "$Q")
-if [[ "$R" == "" ]]; then
-     Q="INSERT INTO profile (pk_profile, name, disabled) values (-1,\"Automatic\",0);"
-     R=$(RunSQL "$Q")
+	# Next, erase any old autoprofile information from map
+	Q="DELETE FROM map WHERE fk_profile=-1;"
+	R=$(RunSQL "$Q")
 
-fi
+	Q="SELECT COUNT(*) from card;"
+	R=$(RunSQL "$Q")
+	local rows=$(Field 1 "$R")
+	if [[ "$rows" != "0" ]]; then
+		# There is at least one card
+		Q="SELECT COUNT(*) from miner;"
+		R=$(RunSQL "$Q")
+		rows=$(Field 1 "$R")
+		if [[ "$rows" != "0" ]]; then
+			# There is at least one miner, and one card
+			Q="SELECT COUNT(*) FROM worker;"
+			R=$(RunSQL "$Q")
+			rows=$(Field 1 "$R")
+			if [[ "$rows" != "0" ]]; then
+				# There is at least one worker, one miner and one card
+				# Lets do the Automatic profile!  It works with the first
+				# set up miner TODO: Make the miner selectable?
 
-# populate the map table///  First, erase any old autoprofile information from map
-Q="DELETE FROM map WHERE fk_profile=-1;"
-R=$(RunSQL "$Q")
+				Q="SELECT pk_miner FROM miner ORDER BY pk_miner ASC LIMIT 1;"
+				R=$(RunSQL "$Q")
+				miner=$(Field 1 "$R")
+				
+				Q="SELECT pk_card FROM card;"
+				R=$(RunSQL "$Q")
+				for row in $R; do
+					card=$(Field 1 "$row")
+					Q="SELECT pk_worker FROM worker WHERE auto_allow;"
+					R2=$(RunSQL "$Q")
+					for row2 in $R2; do
+						worker=$(Field 1 "$row2")
+						Q="INSERT INTO map (fk_Card, fk_miner, fk_worker, fk_profile) values ($card,$miner,$worker,-1);"
+						R3=$(RunSQL "$Q")
+					done
+				done
+			fi
+		fi
+	fi
+}
 
-# TODO:  Generate map...  Need to consider how to handle it. Must have at least one  miner (use first miner)
+DeleteTemporaryFiles() {
+	rm $HOME/smartcoin/.smartcoin*
 }

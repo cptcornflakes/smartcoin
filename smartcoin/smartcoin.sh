@@ -16,13 +16,13 @@
 #LD_LIBRARY_PATH=/home/jondecker76/phoenix/kernels/:$LD_LIBRARY_PATH  
 
 . $HOME/smartcoin/smartcoin_ops.sh
-
-
+DeleteTemporaryFiles
 
 running=`screen -ls | grep $sessionName`
 
 if [[ "$running" ]]; then
-	screen -x $sessionName -p status
+	echo "Re-attaching to smartcoin..."
+	screen -r $sessionName -p status
 	exit
 fi
 

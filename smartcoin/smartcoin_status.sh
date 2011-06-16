@@ -57,7 +57,11 @@ ShowStatus() {
 compositeAccepted="0"
 compositeRejected="0"
 
-
+UseDB "smartcoin"
+Q="SELECT name FROM profile WHERE pk_profile=$CURRENT_PROFILE;"
+R=$(RunSQL "$Q")
+profileName=$(Field 1 "$R")
+status=$status"Profile: $profileName\n"
 
 UseDB "smartcoin"
 Q="SELECT map.pk_map,map.fk_card, map.fk_miner, map.fk_worker,worker.fk_pool,card.name from map LEFT JOIN worker on map.fk_worker = worker.pk_worker LEFT JOIN card on map.fk_card = card.pk_card WHERE map.fk_profile=$CURRENT_PROFILE ORDER BY fk_pool,fk_card ASC;"
