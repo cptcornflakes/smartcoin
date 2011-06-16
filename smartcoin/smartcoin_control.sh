@@ -89,7 +89,7 @@ Do_Profile() {
 	M=""
 	i=0
 	UseDB "smartcoin"
-	Q="SELECT * FROM profile where pk_profile>0;"
+	Q="SELECT * FROM profile where pk_profile>=0;"
 	R=$(RunSQL "$Q")
 	for Row in $R; do
 		let i++
@@ -107,7 +107,6 @@ Do_Profile() {
 		return 0
 	fi
 	
-
 	# Now load in the profile!
 	#get the current profile
 	UseDB "smartcoin"
@@ -115,12 +114,12 @@ Do_Profile() {
 	R=$(RunSQL "$Q")
 	CURRENT_PROFILE=$(Field 1 "$R")
 
-	killMiners $CURRENT_PROFILE
+	killMiners "$CURRENT_PROFILE"
 	Q="UPDATE settings set value=$PK where data=\"current_profile\";"
 	R=$(RunSQL "$Q")
 	
 
-	startMiners $PK
+	startMiners "$PK"
 	GotoStatus
 
 }
@@ -260,7 +259,7 @@ Delete_Miners()
 
 # Configure Pools Menu
 Do_Pools() {
- echo "Hello"
+ echo "Not Yet Implemented."
 }
 
 
