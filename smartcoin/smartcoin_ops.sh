@@ -164,4 +164,20 @@ GotoStatus() {
 	screen -r $sessionName -p status 
 }
 
+GenAutoProfile() {
 
+#make sure the auto profile (special primary key -1) exists...
+Q="SELECT pk_profile FROM profile where pk_profile=-1;"
+R=$(RunSQL "$Q")
+if [[ "$R" == "" ]]; do
+     Q="INSERT INTO profile (pk_profile, name, disabled) values (-1,\"Automatic\",0);"
+     R=$(RunSQL "$Q")
+
+fi
+
+# populate the map table///  First, erase any old autoprofile information from map
+Q="DELETE FROM map WHERE fk_profile=-1;"
+R=$(RunSQL "$Q")
+
+# TODO:  Generate map...  Need to consider how to handle it. Must have at least one  miner (use first miner)
+}
