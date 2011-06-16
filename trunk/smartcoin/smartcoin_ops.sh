@@ -118,46 +118,36 @@ export CURRENT_PROFILE
 
 
 
-startMiners()
-{
-
-profile=$1
-
-UseDB "smartcoin"
-Q="SELECT pk_map, fk_card, fk_miner, fk_worker from map WHERE fk_profile=$profile;
-"
-R=$(RunSQL "$Q")
-
+startMiners() {
+	local profile=$1
+	
+	UseDB "smartcoin"
+	Q="SELECT pk_map, fk_card, fk_miner, fk_worker from map WHERE fk_profile=$profile;"
+	R=$(RunSQL "$Q")
 
 	for Row in $R; do
-		PK=$(Field 1 "$Row")
-		card=$(Field 2 "$Row")
-		miner=$(Field 3 "$Row")
-		worker=$(Field 4 "$Row")
+		local PK=$(Field 1 "$Row")
+		local card=$(Field 2 "$Row")
+		local miner=$(Field 3 "$Row")
+		local worker=$(Field 4 "$Row")
 
-		cmd="$HOME/smartcoin/smartcoin_launcher.sh $card $miner $worker"
-		screen -d -r $sessionName -X screen -t "smartcoin.$PK" $cmd
-
-
+		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $card $miner $worker"
+		screen  -x $sessionName -X screen -t "smartcoin.$PK" $cmd
 	done
-
-
 }
 
 killMiners() {
-	profile=$1
+	local profile=$1
+
 	UseDB "smartcoin"
 	Q="SELECT pk_map from map WHERE fk_profile=$profile;"
 	R=$(RunSQL "$Q")
 
 
 	for Row in $R; do
-		PK=$(Field 1 "$Row")
-
-		screen -d -r $sessionName -p "smartcoin.$PK" -X kill
-
+		local PK=$(Field 1 "$Row")
+		screen -x $sessionName -p "smartcoin.$PK" -X kill
 	done
-!
 }
 
 GotoStatus() {
@@ -169,7 +159,7 @@ GenAutoProfile() {
 #make sure the auto profile (special primary key -1) exists...
 Q="SELECT pk_profile FROM profile where pk_profile=-1;"
 R=$(RunSQL "$Q")
-if [[ "$R" == "" ]]; do
+if [[ "$R" == "" ]]; then
      Q="INSERT INTO profile (pk_profile, name, disabled) values (-1,\"Automatic\",0);"
      R=$(RunSQL "$Q")
 
