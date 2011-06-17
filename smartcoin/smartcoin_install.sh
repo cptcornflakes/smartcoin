@@ -47,9 +47,9 @@ echo "done."
 echo ""
 
 # Populate the database with default pools
-Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('DeepDit','deepbit.net',NULL,8332,60,0);"
+Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('DeepBit','deepbit.net',NULL,8332,60,0);"
 RunSQL "$Q"
-Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('Ditcoin.cz (slush)','mining.bitcoin.cz',NULL,8332,60,0);"
+Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('Bitcoin.cz (slush)','mining.bitcoin.cz',NULL,8332,60,0);"
 RunSQL "$Q"
 Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('BTCGuild','btcguild.com',NULL,8332,60,0);"
 RunSQL "$Q"
