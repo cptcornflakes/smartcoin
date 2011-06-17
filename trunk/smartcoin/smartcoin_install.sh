@@ -87,7 +87,8 @@ Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES (
 RunSQL "$Q"
 Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('BitLottoPool','bitcoinpool.com',NULL,8337,60,0);"
 RunSQL "$Q"
-
+Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('X8S','pit.x8s.de',8337,60,0);"                              
+RunSQL "$Q" 
 # Tell the user what to do
 echo "Installation is complete.  You can now start SmartCoin at any time by typing the command smartcoin at the terminal."
 echo "You will need to go to the control page to set up miners, mining devices, pools and workers."
