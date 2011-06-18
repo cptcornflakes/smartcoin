@@ -185,7 +185,7 @@ GenAutoProfile() {
 				R=$(RunSQL "$Q")
 				miner=$(Field 1 "$R")
 				
-				Q="SELECT pk_card FROM card;"
+				Q="SELECT pk_card FROM card WHERE disabled=0;"
 				R=$(RunSQL "$Q")
 				for row in $R; do
 					card=$(Field 1 "$row")
