@@ -17,6 +17,7 @@
 
 . $HOME/smartcoin/smartcoin_ops.sh
 DeleteTemporaryFiles
+echo "Starting SmartCoin..."
 
 running=`screen -ls | grep $sessionName`
 

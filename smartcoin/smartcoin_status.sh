@@ -97,7 +97,7 @@ R=$(RunSQL "$Q")
 		fi
 
 		screen -p smartcoin.$PK -X hardcopy "$HOME/smartcoin/.smartcoin.$PK"
-		cmd=`cat  "$HOME/smartcoin/.smartcoin.$PK" | grep hash`
+		cmd=`cat  "$HOME/smartcoin/.smartcoin.$PK" | grep Mhash`
 		if [ -z "$cmd" ]; then
 			cmd="<<<DOWN>>>"
 		fi
