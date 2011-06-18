@@ -8,7 +8,7 @@
 ShowStatus() {
 	status=""
 	UseDB "smartcoin"
-	Q="Select device from card WHERE NOT disabled ORDER BY device ASC";
+	Q="Select device from card WHERE disabled=0 ORDER BY device ASC";
 	R=$(RunSQL "$Q")
 
 
