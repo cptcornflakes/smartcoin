@@ -10,7 +10,7 @@ HEADER_smartcoin_config="included"
 sessionName="smartcoin"
 export sessionName
 
-statusRefresh="2"
+statusRefresh="5"
 
 MySqlHost="127.0.0.1"
 MySqlPort=""

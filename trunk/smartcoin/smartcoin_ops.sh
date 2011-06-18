@@ -116,7 +116,8 @@ startMiners() {
 		local worker=$(Field 4 "$Row")
 
 		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $card $miner $worker"
-		screen  -x $sessionName -X screen -t "smartcoin.$PK" $cmd
+		screen  -r $sessionName -X screen -t "smartcoin.$PK" $cmd
+		sleep 1
 	done
 }
 
@@ -134,13 +135,14 @@ killMiners() {
 		local PK=$(Field 1 "$Row")
 		screen -d -r $sessionName -p "smartcoin.$PK" -X kill
 	done
+	sleep 1
 }
 
 GotoStatus() {
 	attached=`screen -ls | grep $sessionName | grep Attached`
 
 	if [[ "$attached" != "" ]]; then
-		screen -p status 
+		screen -r $sessionName -p status
 	else
 		screen -r $sessionName -p status
 	fi
