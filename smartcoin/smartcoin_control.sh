@@ -260,6 +260,102 @@ Do_Pools() {
 
 
 
+# Configure Workers Menu
+Do_Workers() {
+        clear
+        ShowHeader
+        #Add/Edit/Delete?
+        AddEditDelete "workers"
+        action=$(GetAEDSelection)
+                
+        case "$action" in
+        ADD)
+                Add_Workers
+                ;;
+        DELETE)
+                Delete_Workers
+                ;;
+
+        EDIT)
+                Edit_Workers
+                ;;
+        *)
+                DisplayError "Invalid selection!" "5"
+                ;;      
+
+        esac
+
+
+        
+}
+
+Add_Workers()
+{
+        #table:miner fields:pk_miner, name, launch, path
+        local M
+	local Q
+	local R
+	local PK
+
+	clear
+        ShowHeader
+        echo "ADDING WORKER"
+        echo "-------------"
+        echo "Give this worker a nickname"
+        read workerName
+	echo ""
+	Q="SELECT pk_pool, name FROM pool;"
+	R=$(RunSQL "$Q")
+	i=0
+	M=""
+	for row in $R; do
+		let i++
+		PK=$(Field 1 "$row")
+		poolName=$(Field 2 "$row")
+		M=$M$(FieldArrayAdd "$PK	$i	$poolName")
+
+	done
+
+	DisplayMenu "$M"
+	echo "What pool listed above is this worker associated with?"
+	PK=$(GetMenuSelection "$M")
+        if [[ "$PK" == "ERROR" ]]; then
+                DisplayError "Invalid selection!" "5"
+                return 0
+        fi
+
+
+        echo "Enter the username for this worker"
+        read userName
+        echo "Enter the password for this worker"
+        read password
+	echo "Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
+
+	resp="-1"
+	until [[ "$resp" != "-1" ]]; do
+		read available
+		
+		available=`echo $available | tr '[A-Z]' '[a-z]'`
+		if [[ "$available" == "y" ]]; then
+			resp="1"
+		elif [[ "$available" == "n" ]]; then
+			resp="0"
+		else
+			echo "Invalid response!"
+
+
+		fi
+	done
+
+
+        echo "Adding Worker..."
+        Q="INSERT INTO worker (fk_pool, name, user, pass,auto_allow, disable) VALUES ($PK,\"$workerName\",\"$userName\",\"password\",$resp,0);"
+	
+        RunSQL "$Q"
+
+
+
+}
 
 
 while true
@@ -292,6 +388,7 @@ do
 			Do_Miners
 			;;
 		6)
+			Do_Workers
 			;;
 
 		7)
