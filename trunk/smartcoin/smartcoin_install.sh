@@ -89,6 +89,25 @@ Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES (
 RunSQL "$Q"
 Q="INSERT INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES ('X8S','pit.x8s.de',8337,60,0);"                              
 RunSQL "$Q" 
+
+# Autodetect cards
+echo "Adding available devices..."
+D=`./smartcoin_devices.py`
+D=$(Field_Prepare "$D")
+for device in $D; do
+	id=$(Field 1 "$device")
+	devName=$(Field 2 "$device")
+	devDisable=$(Field 3 "$device")
+
+	Q="INSERT IGNORE INTO card (name,device,disabled) VALUES ($id,'$devName',$devDisable);"
+done
+echo "done."
+echo ""
+
+# Autodetect miners
+
+
+
 # Tell the user what to do
 echo "Installation is complete.  You can now start SmartCoin at any time by typing the command smartcoin at the terminal."
 echo "You will need to go to the control page to set up miners, mining devices, pools and workers."
