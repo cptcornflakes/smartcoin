@@ -30,7 +30,7 @@ screen -d -m -S $sessionName -t status "$HOME/smartcoin/smartcoin_status.sh"
 screen -r $sessionName -X zombie ko
 screen -r $sessionName -X chdir
 screen -r $sessionName -X hardstatus on
-screen -r $sessionNamer -X hardstatus alwayslastline
+screen -r $sessionName -X hardstatus alwayslastline
 screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u
 )%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %d/%m %{W}%c %{g}]'
 screen -r $sessionName -X screen -t monitor
