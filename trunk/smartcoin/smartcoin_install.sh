@@ -1,4 +1,4 @@
-r!/bin/bash
+#!/bin/bash
 
 # SmartCoin installer script
 
