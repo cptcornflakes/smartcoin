@@ -351,7 +351,7 @@ Add_Workers()
         echo "Adding Worker..."
         Q="INSERT INTO worker (fk_pool, name, user, pass,auto_allow, disable) VALUES ($PK,\"$workerName\",\"$userName\",\"password\",$resp,0);"
 	
-        RunSQL "$Q"
+        R=$(RunSQL "$Q")
 
 
 
