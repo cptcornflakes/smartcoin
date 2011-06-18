@@ -14,9 +14,8 @@ statusRefresh="2"
 
 MySqlHost="127.0.0.1"
 MySqlPort=""
-MySqlUser="jondecker76"
-MySqlPassword="ohio98yo"
-
+MySqlUser="smartcoin"
+MySqlPassword="smartcoin"
 # END USER CONFIGURABLE OPTIONS
 
 
