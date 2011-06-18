@@ -30,7 +30,7 @@ ShowStatus() {
 
 
 	#MT GOX
-	#mtgox_balance=`wget -q --no-check-certificate --no-proxy -O - "https://www.mtgox.com/code/getFunds.php" --post-data="name=jondecker76&pass=ohio98yo"`
+	#mtgox_balance=`wget -q --no-check-certificate --no-proxy -O - "https://www.mtgox.com/code/getFunds.php" --post-data user=username&pass=password"`
 	#mtgox_balance=${mtgox_balance//\"/}
 	#mtgox_balance=${mtgox_balance//\{/}
 	#mtgox_balance=${mtgox_balance//\}/}
