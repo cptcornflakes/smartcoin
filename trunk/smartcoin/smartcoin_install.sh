@@ -28,7 +28,7 @@ echo ""
 
 # Install dependencies
 echo  "Installing dependencies, please be patient..."
-sudo apt-get install -f  -y mysql-server mysql-client open-ssh-server 2> /dev/null
+sudo apt-get install -f  -y systat mysql-server mysql-client open-ssh-server 2> /dev/null
 echo "done."
 echo ""
 
@@ -128,6 +128,10 @@ if [[ "$phoenixMiner" != "" ]]; then
 	Q="INSERT IGNORE INTO miner (name,launch,path,disabled) VALUES (\"poclbm\",\"poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0\",\"$poclbmMiner\",0);"
 	R=$(RunSQL "$Q")
 fi
+
+Q="INSERT INTO settings SET value=\"-1\", data=\"current_profile\";"
+R=$(RunSQL "$Q")
+
 
 # Tell the user what to do
 echo "Installation is complete.  You can now start SmartCoin at any time by typing the command smartcoin at the terminal."
