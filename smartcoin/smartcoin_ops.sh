@@ -120,6 +120,12 @@ startMiners() {
 		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $card $miner $worker"
 		if [[ "$i" == "1" ]]; then
 		screen -d -m -S $minerSession -t "smartcoin.$PK" $cmd
+		screen -r $minerSession -X zombie ko
+		screen -r $minerSession -X chdir
+		screen -r $minerSession -X hardstatus on
+		screen -r $minerSession -X hardstatus alwayslastline
+		screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u
+		)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %d/%m %{W}%c %{g}]'
 		else
 		screen  -d -r $minerSession -X screen -t "smartcoin.$PK" $cmd
 
