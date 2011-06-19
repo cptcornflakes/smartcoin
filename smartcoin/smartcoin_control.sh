@@ -498,7 +498,7 @@ Add_Profile()
 		clear
 		ShowHeader
 		profileProgress="Profile: $profileName using $minerName\n"
-		profileProgress=$profileProgress"--------------------\n\n"
+		profileProgress="$profileProgress--------------------\n\n"
 		echo -e $profileProgress
 
 		Q="SELECT card.name, worker.name FROM map LEFT JOIN card on map.fk_card = card.pk_card LEFT JOIN worker on map.fk_worker = worker.pk_worker WHERE fk_profile = $profileID ORDER BY pk_map ASC"
