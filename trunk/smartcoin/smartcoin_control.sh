@@ -77,7 +77,7 @@ GetAEDSelection()
 
 # Profile Menu
 Do_Profile() {
-	GenAutoProfile
+
 	clear
 	ShowHeader
 
@@ -110,9 +110,10 @@ Do_Profile() {
 	R=$(RunSQL "$Q")
 	CURRENT_PROFILE=$(Field 1 "$R")
 
-	killMiners "$CURRENT_PROFILE"
+	killMiners
 	Q="UPDATE settings set value=$PK where data=\"current_profile\";"
 	R=$(RunSQL "$Q")
+	GenAutoProfile
 	
 
 	startMiners "$PK"

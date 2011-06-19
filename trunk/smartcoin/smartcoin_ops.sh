@@ -136,19 +136,10 @@ startMiners() {
 
 killMiners() {
 	local profile=$1
-
 	DeleteTemporaryFiles
 	screen -d -r $minerSession -X quit
 
-	#UseDB "smartcoin"
-	#Q="SELECT pk_map from map WHERE fk_profile=$profile;"
-	#R=$(RunSQL "$Q")
 
-
-	#for Row in $R; do
-	#	local PK=$(Field 1 "$Row")
-#		screen -d -r $minerSession -p "smartcoin.$PK" -X kill
-#	done
 	sleep 1
 }
 
