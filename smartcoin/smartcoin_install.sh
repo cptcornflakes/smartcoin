@@ -28,7 +28,7 @@ echo ""
 
 # Install dependencies
 echo  "Installing dependencies, please be patient..."
-sudo apt-get install -f  -y sysstat mysql-server mysql-client open-ssh-server 2> /dev/null
+sudo apt-get install -f  -y sysstat mysql-server mysql-client open-ssh-server #2> /dev/null
 echo "done."
 echo ""
 
