@@ -9,6 +9,8 @@ HEADER_smartcoin_config="included"
 # BEGIN USER CONFIGURABLE OPTIONS
 sessionName="smartcoin"
 export sessionName
+minerSession="miner"
+export minerSession
 
 statusRefresh="5"
 
