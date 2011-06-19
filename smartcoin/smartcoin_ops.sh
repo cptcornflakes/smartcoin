@@ -149,6 +149,12 @@ GotoStatus() {
 	
 }
 
+Log() {
+	local line
+	line="$1"
+	echo -e "$line\n" >> ~/smartcoin.log
+}
+
 GenAutoProfile() {
 	local card
 	local miner
@@ -156,15 +162,16 @@ GenAutoProfile() {
 	local R
 	local R2
 	local R3
-	
+	Log "Generating Automatic Profile..."
+
 	# Has the auto profile been added to the database yet?
 	Q="INSERT IGNORE INTO profile (pk_profile,name,auto_allow) values (-1, \"Automatic\",1)";
 	R=$(RunSQL "$Q")
-
+	Log "$Q"
 	# Next, erase any old autoprofile information from map
 	Q="DELETE FROM map WHERE fk_profile=-1;"
 	R=$(RunSQL "$Q")
-
+	Log "$Q"
 	Q="SELECT COUNT(*) from card;"
 	R=$(RunSQL "$Q")
 	local rows=$(Field 1 "$R")
@@ -199,8 +206,14 @@ GenAutoProfile() {
 						R3=$(RunSQL "$Q")
 					done
 				done
+			else
+				Log "No Workers Found!"
 			fi
+		else
+			Log "No miners found!"
 		fi
+	else
+		Log "No Cards Found!"
 	fi
 }
 
