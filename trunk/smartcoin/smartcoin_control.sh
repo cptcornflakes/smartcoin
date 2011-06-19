@@ -429,12 +429,13 @@ Add_Profile()
 	echo ""
 	
 	
-	
+	profileProgress=""
 	finished=""
 	until [[ "$finished" == "1" ]]; do
 		let instance++
 		clear
 		ShowHeader
+		echo -e $profileProgress
 		echo "Adding miner instance #$instance of profile $profileName..."
 		echo "-------------------------------------------------------"
 		Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
@@ -496,8 +497,10 @@ Add_Profile()
 
 		clear
 		ShowHeader
-		echo "Profile: $profileName using $minerName"
-		echo "--------------------"
+		profileProgress="Profile: $profileName using $minerName\n"
+		profileProgress=$profileProgress "--------------------\n"
+		echo -e $profileProgress
+
 		Q="SELECT card.name, worker.name FROM map LEFT JOIN card on map.fk_card = card.pk_card LEFT JOIN worker on map.fk_worker = worker.pk_worker WHERE fk_profile = $profileID ORDER BY pk_map ASC"
 		R=$(RunSQL "$Q")
 		for row in $R; do
