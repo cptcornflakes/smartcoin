@@ -126,7 +126,7 @@ compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l)
 status=$status"Grand Total:\t[$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$compositeStales% Stales]"
 
 echo  $status
-screen -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
+screen -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
 
 
 
