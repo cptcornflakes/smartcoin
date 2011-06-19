@@ -108,15 +108,22 @@ startMiners() {
 	UseDB "smartcoin"
 	Q="SELECT pk_map, fk_card, fk_miner, fk_worker from map WHERE fk_profile=$profile;"
 	R=$(RunSQL "$Q")
+	i=0
 
-	for Row in $R; do
+	for Row in $R; do	
+		let i++
 		local PK=$(Field 1 "$Row")
 		local card=$(Field 2 "$Row")
 		local miner=$(Field 3 "$Row")
 		local worker=$(Field 4 "$Row")
 
 		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $card $miner $worker"
+		if [[ "$i" == "1" ]]; then
+		screen -d -m -S $minerSession -t "smartcoin.$PK" $cmd
+		else
 		screen  -d -r $minerSession -X screen -t "smartcoin.$PK" $cmd
+
+		fi
 		sleep 1
 	done
 }
@@ -125,16 +132,17 @@ killMiners() {
 	local profile=$1
 
 	DeleteTemporaryFiles
+	screen -d -r $minerSession -X quit
 
-	UseDB "smartcoin"
-	Q="SELECT pk_map from map WHERE fk_profile=$profile;"
-	R=$(RunSQL "$Q")
+	#UseDB "smartcoin"
+	#Q="SELECT pk_map from map WHERE fk_profile=$profile;"
+	#R=$(RunSQL "$Q")
 
 
-	for Row in $R; do
-		local PK=$(Field 1 "$Row")
-		screen -d -r $minerSession -p "smartcoin.$PK" -X kill
-	done
+	#for Row in $R; do
+	#	local PK=$(Field 1 "$Row")
+#		screen -d -r $minerSession -p "smartcoin.$PK" -X kill
+#	done
 	sleep 1
 }
 
@@ -142,9 +150,9 @@ GotoStatus() {
 	attached=`screen -ls | grep $sessionName | grep Attached`
 
 	if [[ "$attached" != "" ]]; then
-		screen -r $sessionName -p status
+		screen  -d -r -p status
 	else
-		screen -p status
+		screen  -r $sessionName -p status
 	fi
 	
 }
