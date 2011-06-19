@@ -76,7 +76,7 @@ GetAEDSelection()
 }
 
 # Profile Menu
-Do_Profile() {
+Do_ChangeProfile() {
 
 	clear
 	ShowHeader
@@ -113,7 +113,7 @@ Do_Profile() {
 	killMiners
 	Q="UPDATE settings set value=$PK where data=\"current_profile\";"
 	R=$(RunSQL "$Q")
-	GenAutoProfile
+	#GenAutoProfile
 	
 
 	startMiners "$PK"
@@ -358,6 +358,185 @@ Add_Workers()
 
 }
 
+# Configure Profiles Menu
+Do_Profile() {
+	clear
+	ShowHeader
+	#Add/Edit/Delete?
+	AddEditDelete "profiles"
+	action=$(GetAEDSelection)
+              
+	case "$action" in
+	ADD)
+		Add_Profile
+		;;
+	DELETE)
+		#Delete_Profile
+		;;
+	EDIT)
+		#Edit_Profile
+		;;
+	*)
+		DisplayError "Invalid selection!" "5"
+		;;      
+
+	esac       
+}
+
+Add_Profile()
+{
+	# Add A Profile
+	echo "Enter a name for this profile"
+	read profileName
+	echo ""
+	Q="INSERT INTO profile set name=\"$profileName\";"
+	R=$(RunSQL "$Q")
+		
+	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
+	R=$(RunSQL "$Q")
+	profileID=$(Field 1 "$R")
+
+	instance=0
+
+
+
+
+
+	Q="Select pk_miner, name from miner;"
+	R=$(RunSQL "$Q")
+	i=0
+	M=""
+	for row in $R; do
+		let i++
+		PK=$(Field 1 "$row")
+		minerName=$(Field 2 "$row")
+		M=$M$(FieldArrayAdd "$PK	$i	$minerName")
+	done
+	DisplayMenu "$M"
+
+	echo "Please select the miner from the list above to use with this profile"
+
+	selection=""
+	until [[ "$selection" != "" ]]; do
+		# Process Menu Selection
+		selection=$(GetMenuSelection "$M")
+		if [[ "$selection" == "ERROR" ]]; then
+			DisplayError "Error! Invalid selection!" "5"
+			selection=""
+		fi
+	done
+	minerSelection=$selection
+	echo ""
+	
+	
+	
+	finished=""
+	until [[ "$finished" == "1" ]]; do
+		let instance++
+		clear
+		ShowHeader
+		echo "Adding miner instance #$instance of profile $profileName..."
+		echo "-------------------------------------------------------"
+		Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+		R=$(RunSQL "$Q")
+		i=0
+		M=""
+		for row in $R; do
+			let i++
+			PK=$(Field 1 "$row")
+			workerName=$(Field 2 "$row")
+			M=$M$(FieldArrayAdd "$PK	$i	$workerName")
+		done
+		DisplayMenu "$M"
+		
+		echo "Please select the pool worker from the list above to use with this profile"
+		
+		selection=""
+		until [[ "$selection" != "" ]]; do
+			# Process Menu Selection
+			selection=$(GetMenuSelection "$M")
+			if [[ "$selection" == "ERROR" ]]; then
+				DisplayError "Error! Invalid selection!" "5"
+				selection=""
+			fi
+		done
+		workerSelection=$selection
+		echo ""
+	
+	
+	
+	
+		Q="SELECT pk_card, name FROM card WHERE disabled=0;"
+		R=$(RunSQL "$Q")
+		i=0
+		M=""
+		for row in $R; do
+			let i++
+			PK=$(Field 1 "$row")
+			deviceName=$(Field 2 "$row")
+			M=$M$(FieldArrayAdd "$PK	$i	$deviceName")
+		done
+		DisplayMenu "$M"
+		
+		echo "Please select the device from the list above to use with this profile"
+		
+		selection=""
+		until [[ "$selection" != "" ]]; do
+			# Process Menu Selection
+			selection=$(GetMenuSelection "$M")
+			if [[ "$selection" == "ERROR" ]]; then
+				DisplayError "Error! Invalid selection!" "5"
+				selection=""
+			fi
+		done
+		deviceSelection=$selection
+		
+		Q="INSERT INTO map (fk_card,fk_miner,fk_worker,fk_profile) VALUES ($deviceSelection,$minerSelection,$workerSelection,$profileID);"
+		R=$(RunSQL "$Q")
+
+		clear
+		ShowHeader
+		echo "Profile: $profileName using $minerName"
+		echo "--------------------"
+		Q="SELECT card.name, worker.name FROM map LEFT JOIN card on map.fk_card = card.pk_card LEFT JOIN worker on map.fk_worker = worker.pk_worker WHERE fk_profile = $profileID ORDER BY pk_map ASC"
+		R=$(RunSQL "$Q")
+		for row in $R; do
+			thisDevice=$(Field 1 "$row")
+			thisWorker=$(Field 2 "$row")
+			echo "$thisDevice - $thisWorker"
+		done
+		
+		echo ""
+		echo "Above is an overview of your current profile. Would you like to continue adding instances to it? (y)es or (n)o?"
+		
+		resp=""
+		until [[ "$resp" != "" ]]; do
+			read available
+	                
+			available=`echo $available | tr '[A-Z]' '[a-z]'`
+			if [[ "$available" == "y" ]]; then
+				resp="1"
+			elif [[ "$available" == "n" ]]; then
+				resp="0"
+			else
+				echo "Invalid response!"
+		
+	
+			fi
+		done
+
+
+		if [[ "$resp" == "0" ]]; then
+			finished=1
+		fi
+	done	
+	clear
+	ShowHeader
+	echo " Your profile is now finished. You can activate it at any time now in the profiles menu."
+	sleep 5
+}
+
+
 
 while true
 do
@@ -365,14 +544,15 @@ do
 	ShowHeader
 	echo "1) Reboot Computer"
 	echo "2) Restart smartcoin"
-	echo "3) Select Profile"
-	echo "4) Configure Miners"
-	echo "5) Configure Pools"
+	echo "3) Regenerate Automatic Profile"
+	echo "4) Select Profile"
+	echo "5) Configure Miners"
 	echo "6) Configure Workers"
-	echo "7) Configure GPU(s)"
-	echo "8) Configure Mappings"
-	echo "9) Go To Status screen"
-	echo "10) Go To Miner screens"
+	echo "7) Configure Profiles"
+	echo "8) Configure Devices"
+	echo "9) Configure Pools"
+	echo "10) Go To Status screen"
+	echo "11) Go To Miner screens"
 
 	read selection
 
@@ -383,9 +563,12 @@ do
 		2)
 			;;
 		3)
-			Do_Profile
+			GenAutoProfile
 			;;
-		4)	
+		4)
+			Do_ChangeProfile
+			;;
+		5)	
 			Do_Miners
 			;;
 		6)
@@ -393,18 +576,24 @@ do
 			;;
 
 		7)
+			Do_Profile
 			;;
 	
 		8)
-
+			
 			;;
 
 		9)
-		
+			
 			;;
 
 		10)
-			screen -d -r $minerSession
+
+#			Q="SELECT pk_map  FROM map WHERE fk_profile=$CURRENT_PROFILE ORDER BY pk_map ASC LIMIT 1"
+#			R=$(RunSQL "$Q")
+#			PK=$(Field 1 "$R")
+
+			exec screen -d $sessionName  && screen -d -r $minerSession
 
 			;;
 		*)
