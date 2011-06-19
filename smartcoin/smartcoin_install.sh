@@ -108,6 +108,8 @@ echo "done."
 echo ""
 
 # Autodetect miners
+sudo updatedb
+
 #detect phoenix install location
 phoenixMiner=`locate phoenix.py | grep -vi svn`
 phoenixMiner=${phoenixMiner%"phoenix.py"}
