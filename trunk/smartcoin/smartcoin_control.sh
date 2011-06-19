@@ -563,7 +563,12 @@ do
 		2)
 			;;
 		3)
+			clear
+			ShowHeader
+			echo "Generating new Automatic profile..."
 			GenAutoProfile
+			echo "done."
+			sleep 3		
 			;;
 		4)
 			Do_ChangeProfile
