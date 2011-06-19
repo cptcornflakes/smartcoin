@@ -15,8 +15,10 @@ ShowStatus() {
 	for card in $R                                              
 	do 
 		cardID=$(Field 1 "$card")
-	        temperature=` DISPLAY=:0 aticonfig --adapter=$cardID --odgt | awk '/Temperature/ { print $5 }';`
-		usage=`DISPLAY=:0 aticonfig --adapter=$cardID --odgc | awk '/GPU\ load/ { print $4 }';`
+		sleep 0.1 # aticonfig seems to get upset sometimes if it is called very quickly in succession
+	        temperature=`aticonfig --adapter=$cardID --odgt | awk '/Temperature/ { print $5 }';`
+		sleep 0.1 # aticonfig seems to get upset sometimes if it is called very quickly in succession
+		usage=`aticonfig --adapter=$cardID --odgc | awk '/GPU\ load/ { print $4 }';`
 		status=$status"GPU $cardID: Temp: $temperature load: $usage\n"
 	done
 	cpu=`iostat | awk '{if(NR==4) {print "CPU Load : " $1 "%"}}'`
