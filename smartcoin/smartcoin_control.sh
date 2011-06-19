@@ -372,7 +372,7 @@ do
 	echo "7) Configure GPU(s)"
 	echo "8) Configure Mappings"
 	echo "9) Go To Status screen"
-	echo "10) Go To Monitor screen"
+	echo "10) Go To Miner screens"
 
 	read selection
 
@@ -404,6 +404,7 @@ do
 			;;
 
 		10)
+			screen -d -r $minerSession
 
 			;;
 		*)
