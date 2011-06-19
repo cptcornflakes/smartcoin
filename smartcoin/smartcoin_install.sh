@@ -28,7 +28,7 @@ echo ""
 
 # Install dependencies
 echo  "Installing dependencies, please be patient..."
-sudo apt-get install -f  -y systat mysql-server mysql-client open-ssh-server 2> /dev/null
+sudo apt-get install -f  -y sysstat mysql-server mysql-client open-ssh-server 2> /dev/null
 echo "done."
 echo ""
 
@@ -65,7 +65,7 @@ Q="INSERT IGNORE INTO pool (name,server,alternateServer,port,timeout,disabled) V
 R=$(RunSQL "$Q")
 Q="INSERT IGNORE INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES (\"MineCo\",\"mineco.in\",NULL,3000,60,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES (\"Eligius\",\"i also mining.eligius.st\",NULL,8337,60,0);"
+Q="INSERT IGNORE INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES (\"Eligius\",\"mining.eligius.st\",NULL,8337,60,0);"
 R=$(RunSQL "$Q")
 Q="INSERT IGNORE INTO pool (name,server,alternateServer,port,timeout,disabled) VALUES (\"CoinMiner\",\"173.0.52.116\",NULL,8347,60,0);"
 R=$(RunSQL "$Q")
