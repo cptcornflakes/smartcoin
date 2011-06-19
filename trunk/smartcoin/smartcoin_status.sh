@@ -126,7 +126,8 @@ compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l)
 status=$status"Grand Total:\t[$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$compositeStales% Stales]"
 
 echo  $status
-screen -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
+screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
+
 
 
 
@@ -196,7 +197,7 @@ while true; do
 	UI=$(ShowStatus)
 	clear
 	ShowHeader
-	echo -e $UI
+	echo -ne $UI
 	sleep $statusRefresh
 done
 
