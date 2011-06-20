@@ -54,20 +54,20 @@ ShowStatus() {
 	#echo ""
 	#echo "DeepBit : ${db_stats}"
 
-#SMARTMINER MONITOR
+	#SMARTMINER MONITOR
 
-compositeAccepted="0"
-compositeRejected="0"
+	compositeAccepted="0"
+	compositeRejected="0"
 
-UseDB "smartcoin"
-Q="SELECT name FROM profile WHERE pk_profile=$CURRENT_PROFILE;"
-R=$(RunSQL "$Q")
-profileName=$(Field 1 "$R")
-status=$status"Profile: $profileName\n"
+	UseDB "smartcoin"
+	Q="SELECT name FROM profile WHERE pk_profile=$CURRENT_PROFILE;"
+	R=$(RunSQL "$Q")
+	profileName=$(Field 1 "$R")
+	status=$status"Profile: $profileName\n"
 
-UseDB "smartcoin"
-Q="SELECT map.pk_map,map.fk_card, map.fk_miner, map.fk_worker,worker.fk_pool,card.name from map LEFT JOIN worker on map.fk_worker = worker.pk_worker LEFT JOIN card on map.fk_card = card.pk_card WHERE map.fk_profile=$CURRENT_PROFILE ORDER BY fk_pool,fk_card ASC;"
-R=$(RunSQL "$Q")
+	UseDB "smartcoin"
+	Q="SELECT map.pk_map,map.fk_card, map.fk_miner, map.fk_worker,worker.fk_pool,card.name from map LEFT JOIN worker on map.fk_worker = worker.pk_worker LEFT JOIN card on map.fk_card = card.pk_card WHERE map.fk_profile=$CURRENT_PROFILE ORDER BY fk_pool,fk_card ASC;"
+	R=$(RunSQL "$Q")
 
 	oldPool=""
 	hashes="0.00"
@@ -134,75 +134,24 @@ R=$(RunSQL "$Q")
 
 
 	done
-status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
-compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
-compositeAccepted=`expr $compositeAccepted + $totalAccepted`
-compositeRejected=`expr $compositeRejected + $totalRejected`
-percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted" | bc -l)
-status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejection]"
+	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
+	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
+	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
+	compositeRejected=`expr $compositeRejected + $totalRejected`
+	percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted" | bc -l)
+	status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejection]"
 
-echo  $status
-screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
-
-
+	echo  $status
+	screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
 
 
-#for pool in $R                                                          
-#do                         
-	#echo ""
-#	poolID=$(Field 1 "$pool")
-#	poolName=$(Field 2 "$pool")
 
-#	totalHashes="0.00" 
-#	totalAccepted="0"
-#	totalRejected="0"
-        
-#	Q="SELECT pk_card, device FROM card"
-#	R2=$(RunSQL "$Q")    
-                                        
- #       for card in $R2                                                  
-  #      do   
-#		cardID=$(Field 1 "$card")
-#		cardName=$(Field 2 "$card")
 
-                                                                   
-#        	screen -p $card-$pool -X hardcopy .smart.$card-$pool
-#		cmd=`cat  .smart.$card-$pool | grep Mhash`
-#		if [ -z "$cmd" ]; then
-#			cmd="<<<DOWN>>>"
-#		fi
-#		status=$status"$pool-$card:\t$cmd\n"                    
- #               hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
-#		if [ -z "$hashes" ]; then
-#			hashes="0.00"
-#		fi
-#		accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
-#		if [ -z "$accepted" ]; then
-#			accepted="0"
-#		fi
-#		rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
-#		if [ -z "$rejected" ]; then
-#			rejected="0"
-#		fi
-#
-#	totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)                          
-#	totalAccepted=$(echo "scale=2; $totalAccepted+$accepted" | bc -l) 
-#	totalRejected=$(echo "scale=2; $totalRejected+$rejected" | bc -l) 
- #       done    
-#	status=$status"$pool-T:\t[$totalHashes Mhash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"                                                          
-#compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
-#compositeAccepted=$(echo "scale=2; $compositeAccepted+$totalAccepted" | bc -l)
-#compositeRejected=$(echo "scale=2; $compositeRejected+$totalRejected" | bc -l)
-#done  
-#compositeStales=$(echo "scale=2; $compositeRejected*100/$CompositeAccepted*100" | bc -l)                    
-#status=$status"Grand Total:\t[$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$compositeStales% Stales]"
-#echo -e $status
-#screen -p status -X hardcopy .smart.status
+
 }
 
-cclear
-#echo "INITIALIZING SMARTCOIN....."
-#sleep 10
+clear
+echo "INITIALIZING SMARTCOIN....."
 
 clear
 while true; do

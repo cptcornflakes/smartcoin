@@ -574,7 +574,26 @@ do
 
 	case "$selection" in
 		1)
-			NotImplemented	
+			echo "Are you sure you want to reboot? (y)es or (n)o?"
+			resp=""
+			until [[ "$resp" != "" ]]; do
+				read available
+			        
+				available=`echo $available | tr '[A-Z]' '[a-z]'`
+				if [[ "$available" == "y" ]]; then
+					resp="1"
+				elif [[ "$available" == "n" ]]; then
+					resp="0"
+				else
+					echo "Invalid response!"
+		
+	
+				fi
+			done	
+			if [[ "$resp" == "1" ]]; then
+				echo " Going down for a reboot!"
+				sudo reboot
+			fi
 			;;
 		2)
 			NotImplemented
