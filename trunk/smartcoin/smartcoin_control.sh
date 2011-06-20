@@ -3,6 +3,14 @@
 . $HOME/smartcoin/smartcoin_ops.sh
 
 
+
+NotImplemented()
+{
+	clear
+	ShowHeader
+	echo "This feature has not been implemented yet!"
+	sleep 3
+}
 DisplayMenu()
 {	#clear
 	#ShowHeader
@@ -430,14 +438,19 @@ Add_Profile()
 	
 	
 	profileProgress=""
+	addedInstances=""
 	finished=""
 	until [[ "$finished" == "1" ]]; do
 		let instance++
 		clear
 		ShowHeader
-		echo -e $profileProgress
-		echo "Adding miner instance #$instance of profile $profileName..."
-		echo "-------------------------------------------------------"
+		profileProgress="Profile: $profileName using device $minerName (adding miner instance #$instance)\n"
+		#profileProgress="$profileProgress--------------------------------------------------------------------------------\n"
+
+
+
+		echo -e "$profileProgress"
+		echo -e "$addedInstances"
 		Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 		R=$(RunSQL "$Q")
 		i=0
@@ -497,20 +510,21 @@ Add_Profile()
 
 		clear
 		ShowHeader
-		profileProgress="Profile: $profileName using $minerName\n"
-		profileProgress="$profileProgress--------------------\n\n"
-		echo -e $profileProgress
-
-		Q="SELECT card.name, worker.name FROM map LEFT JOIN card on map.fk_card = card.pk_card LEFT JOIN worker on map.fk_worker = worker.pk_worker WHERE fk_profile = $profileID ORDER BY pk_map ASC"
+		Q="SELECT card.name, CONCAT(pool.name,\".\",worker.name) FROM map LEFT JOIN card on map.fk_card = card.pk_card LEFT JOIN worker on map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_map ASC;
+"
 		R=$(RunSQL "$Q")
+		addedInstances=""
 		for row in $R; do
 			thisDevice=$(Field 1 "$row")
 			thisWorker=$(Field 2 "$row")
-			echo "$thisDevice - $thisWorker"
+			addedInstances="$addedInstances $thisDevice - $thisWorker\n"
 		done
-		
+		addedInstances="$addedInstances\n"
+		echo -e "$profileProgress"
+		echo -e "$addedInstances"
 		echo ""
-		echo "Above is an overview of your current profile. Would you like to continue adding instances to it? (y)es or (n)o?"
+		echo "Your current progress on this profile is listed above."
+		echo "Would you like to continue adding instances to this profile? (y)es or (n)o?"
 		
 		resp=""
 		until [[ "$resp" != "" ]]; do
@@ -554,16 +568,16 @@ do
 	echo "7) Configure Profiles"
 	echo "8) Configure Devices"
 	echo "9) Configure Pools"
-	echo "10) Go To Status screen"
-	echo "11) Go To Miner screens"
+	echo "10) Disconnect from smartcoin"
 
 	read selection
 
 	case "$selection" in
 		1)
-
+			NotImplemented	
 			;;
 		2)
+			NotImplemented
 			;;
 		3)
 			clear
@@ -588,22 +602,15 @@ do
 			;;
 	
 		8)
-			
+			NotImplemented
 			;;
 
 		9)
-			
+			NotImplemented
 			;;
-
 		10)
-
-#			Q="SELECT pk_map  FROM map WHERE fk_profile=$CURRENT_PROFILE ORDER BY pk_map ASC LIMIT 1"
-#			R=$(RunSQL "$Q")
-#			PK=$(Field 1 "$R")
-
-			exec screen -d $sessionName  && screen -d -r $minerSession
-
-			;;
+			screen -d $sessionName
+			;;			
 		*)
 
 			;;

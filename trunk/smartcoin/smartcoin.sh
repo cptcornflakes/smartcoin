@@ -22,8 +22,14 @@ echo "Starting SmartCoin..."
 running=`screen -ls | grep $sessionName`
 
 if [[ "$running" ]]; then
+	attached=`screen -ls | grep -i attached`
 	echo "Re-attaching to smartcoin..."
-	screen -r $sessionName -p status
+	if [[ "$attached" != "" ]]; then
+		screen -x $sessionName -p status
+	else
+		screen -r $sessionName -p status
+	fi
+	
 	exit
 fi
 
@@ -34,8 +40,8 @@ screen -r $sessionName -X hardstatus on
 screen -r $sessionName -X hardstatus alwayslastline
 screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u
 )%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %d/%m %{W}%c %{g}]'
-screen -r $sessionName -X screen -t monitor
 screen -r $sessionName -X screen -t control $HOME/smartcoin/smartcoin_control.sh
+screen -r $sessionName -X screen -t monitor
 screen -r $sessionName -X screen -t bitcoind ./bitcoin-0.3.22/bin/32/bitcoind  --daemon
 screen -r $sessionName -X screen -t namecoind 
 
