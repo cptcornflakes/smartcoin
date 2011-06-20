@@ -139,7 +139,7 @@ compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l)
 compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 compositeRejected=`expr $compositeRejected + $totalRejected`
 percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted" | bc -l)
-status=$status"Grand Total:\t[$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejected]"
+status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejection]"
 
 echo  $status
 screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
