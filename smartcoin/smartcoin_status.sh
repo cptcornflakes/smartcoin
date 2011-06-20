@@ -73,6 +73,13 @@ R=$(RunSQL "$Q")
 	hashes="0.00"
 	totalHashes="0.00"
 	compositeHashes="0.00"
+	accepted="0"
+	totalAccepted="0"
+	compositeAccepted="0"
+	rejected="0"
+	totalRejected="0"
+	compositeRejected="0"
+
 	for Row in $R; do
 		PK=$(Field 1 "$Row")
 		card=$(Field 2 "$Row")
@@ -85,9 +92,13 @@ R=$(RunSQL "$Q")
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-			status=$status"Total: $totalHashes MHash/sec\n"
+			status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
 			compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
+			compositeAccepted=`expr $compositeAccepted + $totalAccepted`
+			compositeRejected=`expr $compositeRejected + $totalRejected`
 			totalHashes="0.00"
+			totalAccepted="0"
+			totalRejected="0"
 			fi
 
 			oldPool=$pool
@@ -114,16 +125,21 @@ R=$(RunSQL "$Q")
 		if [ -z "$accepted" ]; then
 			accepted="0"
 		fi
+		totalAccepted=`expr $totalAccepted + $accepted`
 		rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		if [ -z "$rejected" ]; then
 			rejected="0"
 		fi
+		totalRejected=`expr $totalRejected + $rejected`
 
 
 	done
-status=$status"Total: [$totalHashes MHash/sec]\n\n"
+status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
 compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
-status=$status"Grand Total:\t[$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$compositeStales% Stales]"
+compositeAccepted=`expr $compositeAccepted + $totalAccepted`
+compositeRejected=`expr $compositeRejected + $totalRejected`
+percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted" | bc -l)
+status=$status"Grand Total:\t[$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejected]"
 
 echo  $status
 screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
