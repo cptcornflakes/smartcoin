@@ -6,6 +6,8 @@ fi
 HEADER_smartcoin_ops="included"
 
 . $HOME/smartcoin/smartcoin_config.sh
+# Define the command pipe to the backend
+commPipe=$HOME/smartcoin/.smartcoin.cmd
 
 ShowHeader() {
 	echo "smartcoin Management System "    $(date)

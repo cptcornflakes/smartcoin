@@ -560,15 +560,16 @@ do
 	clear
 	ShowHeader
 	echo "1) Reboot Computer"
-	echo "2) Restart smartcoin"
-	echo "3) Regenerate Automatic Profile"
-	echo "4) Select Profile"
-	echo "5) Configure Miners"
-	echo "6) Configure Workers"
-	echo "7) Configure Profiles"
-	echo "8) Configure Devices"
-	echo "9) Configure Pools"
-	echo "10) Disconnect from smartcoin"
+	echo "2) Kill smartcoin (exit)"
+	echo "3) Disconnect from smartcoin (leave running)"
+	echo "4) Regenerate Automatic Profile"
+	echo "5) Select Profile"
+	echo "6) Configure Miners"
+	echo "7) Configure Workers"
+	echo "8) Configure Profiles"
+	echo "9) Configure Devices"
+	echo "10) Configure Pools"
+	#echo "11) View Miner session"
 
 	read selection
 
@@ -596,9 +597,12 @@ do
 			fi
 			;;
 		2)
-			NotImplemented
+			echo "exit" >$commPipe
 			;;
 		3)
+			echo "detach" >$commPipe
+			;;
+		4)
 			clear
 			ShowHeader
 			echo "Generating new Automatic profile..."
@@ -606,30 +610,28 @@ do
 			echo "done."
 			sleep 3		
 			;;
-		4)
+		5)
 			Do_ChangeProfile
 			;;
-		5)	
+		6)	
 			Do_Miners
 			;;
-		6)
+		7)
 			Do_Workers
 			;;
 
-		7)
+		8)
 			Do_Profile
 			;;
 	
-		8)
-			NotImplemented
-			;;
-
 		9)
 			NotImplemented
 			;;
+
 		10)
-			screen -d $sessionName
-			;;			
+			NotImplemented
+			;;
+			
 		*)
 
 			;;
