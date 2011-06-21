@@ -16,34 +16,80 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `card`
+-- Table structure for table `current_profile`
 --
 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `card` (
-  `pk_card` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(32) DEFAULT NULL,
+CREATE TABLE `current_profile` (
+  `fk_machine` int(11) DEFAULT NULL,
+  `fk_profile` int(11) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `device`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `device` (
+  `pk_device` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_machine` int(11) DEFAULT NULL,
+  `name` varchar(30) DEFAULT NULL,
   `device` int(11) DEFAULT NULL,
+  `type` varchar(30) DEFAULT NULL,
+  `auto_allow` tinyint(1) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`pk_card`)
+  PRIMARY KEY (`pk_device`),
+  UNIQUE KEY `fk_machine` (`fk_machine`,`name`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `map`
+-- Table structure for table `machine`
 --
 
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `map` (
-  `pk_map` int(11) NOT NULL AUTO_INCREMENT,
-  `fk_card` int(11) DEFAULT NULL,
-  `fk_miner` int(11) DEFAULT NULL,
-  `fk_worker` int(11) DEFAULT NULL,
-  `fk_profile` int(11) DEFAULT NULL,
-  PRIMARY KEY (`pk_map`)
+CREATE TABLE `machine` (
+  `pk_machine` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(30) DEFAULT NULL,
+  `server` varchar(100) DEFAULT NULL,
+  `ssh_port` int(11) DEFAULT NULL,
+  `username` varchar(30) DEFAULT NULL,
+  `auto_allow` tinyint(1) DEFAULT NULL,
+  `disabled` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`pk_machine`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `macro`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `macro` (
+  `pk_macro` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(30) DEFAULT NULL,
+  `auto_allow` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`pk_macro`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `macro_map`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `macro_map` (
+  `pk_macro_map` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_macro` int(11) DEFAULT NULL,
+  `fk_profile` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk_macro_map`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -54,11 +100,13 @@ CREATE TABLE `map` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `miner` (
   `pk_miner` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_machine` int(11) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
   `launch` varchar(255) DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`pk_miner`)
+  PRIMARY KEY (`pk_miner`),
+  UNIQUE KEY `fk_machine` (`fk_machine`,`name`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -75,8 +123,10 @@ CREATE TABLE `pool` (
   `alternateServer` varchar(32) DEFAULT NULL,
   `port` int(11) DEFAULT NULL,
   `timeout` int(11) DEFAULT NULL,
+  `auto_allow` tinyint(1) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`pk_pool`)
+  PRIMARY KEY (`pk_pool`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -88,9 +138,27 @@ CREATE TABLE `pool` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `profile` (
   `pk_profile` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_machine` int(11) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
   `auto_allow` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`pk_profile`)
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `profile_map`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `profile_map` (
+  `pk_profile_map` int(11) NOT NULL AUTO_INCREMENT,
+  `fk_device` int(11) DEFAULT NULL,
+  `fk_miner` int(11) DEFAULT NULL,
+  `fk_worker` int(11) DEFAULT NULL,
+  `fk_profile` int(11) DEFAULT NULL,
+  `fk_machine` int(11) DEFAULT NULL,
+  PRIMARY KEY (`pk_profile_map`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -104,6 +172,7 @@ CREATE TABLE `settings` (
   `pk_settings` int(11) NOT NULL AUTO_INCREMENT,
   `data` varchar(32) DEFAULT NULL,
   `value` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`pk_settings`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -120,6 +189,7 @@ CREATE TABLE `worker` (
   `name` varchar(32) DEFAULT NULL,
   `user` varchar(100) DEFAULT NULL,
   `pass` varchar(100) DEFAULT NULL,
+  `priority` int(11) DEFAULT NULL,
   `auto_allow` tinyint(1) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`pk_worker`)
@@ -135,4 +205,4 @@ CREATE TABLE `worker` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2011-06-16  3:50:08
+-- Dump completed on 2011-06-21 18:58:56
