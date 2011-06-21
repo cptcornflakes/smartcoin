@@ -16,10 +16,14 @@
 #LD_LIBRARY_PATH=/home/jondecker76/phoenix/kernels/:$LD_LIBRARY_PATH  
 
 . $HOME/smartcoin/smartcoin_ops.sh
+
+# Start the backend service
+$HOME/smartcoin/smartcoin_backend.sh &
+
 DeleteTemporaryFiles
 echo "Starting SmartCoin..."
 
-running=`screen -ls | grep $sessionName`
+running=`screen -ls 2> /dev/null | grep $sessionName`
 
 if [[ "$running" ]]; then
 	attached=`screen -ls | grep -i attached`
@@ -32,6 +36,7 @@ if [[ "$running" ]]; then
 	
 	exit
 fi
+
 
 screen -d -m -S $sessionName -t status "$HOME/smartcoin/smartcoin_status.sh"
 screen -r $sessionName -X zombie ko
@@ -51,7 +56,8 @@ Q="SELECT value FROM settings WHERE data=\"current_profile\";"
 R=$(RunSQL "$Q")
 CURRENT_PROFILE=$(Field 1 "$R")
 startMiners $CURRENT_PROFILE
-
+#$HOME/smartcoin/smartcoin_backend.sh
+clear
 GotoStatus
 
 
