@@ -288,6 +288,39 @@ clear
                                                                                 
         esac      
 }
+Add_Pool() 
+{
+	clear
+	ShowHeader
+	echo "ADDING POOL"
+	echo "-----------"
+
+	echo "Give this pool a nickname"
+	read poolName
+	echo ""
+
+	echo "Enter the main server address for this pool"
+	read  poolServer
+	echo ""
+
+	echo "Enter an optional alternate server address for this pool"
+	read poolAlternate
+	echo ""
+        
+	echo "Enter the port number to connect to this pool"
+	read poolPort
+	echo ""
+	
+	echo "Enter a disconnection timeout for this pool"
+	read poolTimeout
+	echo ""
+
+        echo "Adding Pool..."
+
+        Q="INSERT INTO pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout'"
+        RunSQL "$Q"
+
+}
 Edit_Pool()
 {
 	clear
@@ -861,7 +894,183 @@ Delete_Profile()
 	RunSQL "$Q"
 }
 
+onfigure Devices Menu
+Do_Devices() {
+	clear
+	ShowHeader
+	#Add/Edit/Delete?
+	AddEditDelete "devices"
+	action=$(GetAEDSelection)
+                
+	case "$action" in
+	ADD)
+		Add_Device
+		;;
+	DELETE)
+		Delete_Device
+		;;
+	EDIT)
+		Edit_Device
+		;;
+	*)
+		DisplayError "Invalid selection!" "5"
+		;;      
+	esac     
+}
+Add_Device() 
+{
+	clear
+	ShowHeader
+	echo "ADDING DEVICE"
+	echo "-------------"
 
+	echo "Give this device a nickname"
+	read deviceName
+	echo ""
+
+	echo "Enter the OpenCL device number"
+	read  deviceDevice
+	echo ""
+
+	
+	echo "Do you want to disable this device?"
+	# TODO: needs auto_allow field!
+	resp=""
+	until [[ "$resp" != "" ]]; do
+		read deviceDisabled
+                        
+		available=`echo $deviceDisabled | tr '[A-Z]' '[a-z]'`
+		if [[ "$deviceDisabled" == "y" ]]; then
+			resp="1"
+		elif [[ "$deviceDisabled" == "n" ]]; then
+			resp="0"
+		else
+			echo "Invalid response!"
+		fi
+	done
+	deviceDisabled=$resp
+
+        echo "Adding Device..."
+
+        Q="INSERT INTO card SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled'"
+        RunSQL "$Q"
+
+}
+Edit_Device() 
+{
+	clear
+	ShowHeader
+	echo "SELECT DEVICE TO EDIT"
+	M=""
+	i=0
+	UseDB "smartcoin"
+	Q="SELECT * FROM card;"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		deviceName=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$deviceName")
+	done
+	DisplayMenu "$M"
+	echo "Please select the device from the list above to edit"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	EditPK=$PK
+        
+	Q="SELECT * FROM card WHERE pk_card=$PK;"
+	R=$(RunSQL "$Q")
+	cname=$(Field 2 "$R")
+	cdevice=$(Field 3 "$R")
+	cdisabled=$(Field 4 "$R")
+	if [[ "$cdisabled" == "1" ]]; then
+		cdisabled="y"
+	else
+		cdisabled="n"
+	fi
+
+	clear
+	ShowHeader
+	echo "EDITING DEVICE"
+	echo "--------------"
+
+	echo "Give this device a nickname"
+	read -e -i "$cname" deviceName
+	echo ""
+
+	D=`$HOME/smartcoin/smartcoin_devices.py`
+	echo "$D"
+	echo "Enter the OpenCL device number"
+	echo "(The list above is what is detected as available)"
+	read  -e -i "$cdevice" deviceDevice
+	echo ""
+
+	
+	echo "Do you want to disable this device?"
+	# TODO: needs auto_allow field!
+	resp=""
+	until [[ "$resp" != "" ]]; do
+		read -e -i "$cdisabled" deviceDisabled
+                        
+		deviceDisabled=`echo $deviceDisabled | tr '[A-Z]' '[a-z]'`
+		if [[ "$deviceDisabled" == "y" ]]; then
+			resp="1"
+		elif [[ "$deviceDisabled" == "n" ]]; then
+			resp="0"
+		else
+			echo "Invalid response!"
+		fi
+	done
+	deviceDisabled=$resp
+
+        echo "Adding Device..."
+
+        Q="UPDATE card SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled' WHERE pk_card=$EditPK"
+        RunSQL "$Q"
+
+}
+Delete_Device()
+{
+	clear
+	ShowHeader
+	echo "SELECT DEVICE TO DELETE"
+	M=""
+	i=0
+	UseDB "smartcoin"
+	Q="SELECT * FROM card;"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		deviceName=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$deviceName")
+	done
+	DisplayMenu "$M"
+	echo "Please select the device from the list above to delete"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+
+	echo "Deleting device..."
+
+
+	# Delete entries from the profile map that use this device!
+	Q="DELETE from map where fk_card=$PK;"
+	RunSQL "$Q"
+
+	# And finally, delete the device!
+	Q="DELETE FROM card WHERE pk_card=$PK;"
+	RunSQL "$Q"
+}
 
 while true
 do
@@ -933,11 +1142,11 @@ do
 			;;
 	
 		9)
-			NotImplemented
+			Do_Devices
 			;;
 
 		10)
-			NotImplemented
+			Do_Pools
 			;;
 			
 		*)
