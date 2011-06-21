@@ -60,7 +60,8 @@ CREATE TABLE `machine` (
   `username` varchar(30) DEFAULT NULL,
   `auto_allow` tinyint(1) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`pk_machine`)
+  PRIMARY KEY (`pk_machine`),
+  UNIQUE KEY `name` (`name`,`server`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -127,7 +128,7 @@ CREATE TABLE `pool` (
   `disabled` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`pk_pool`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
