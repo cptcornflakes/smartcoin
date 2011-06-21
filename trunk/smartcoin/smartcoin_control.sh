@@ -28,8 +28,9 @@ GetMenuSelection()
 {
 	fieldArray=$1
 
+	default=$2
 
-	read chosen
+	read -e -i "$default" chosen
 
 	for item in $fieldArray; do
 		choice=$(Field 2 "$item")
@@ -264,7 +265,142 @@ Delete_Miners()
 
 # Configure Pools Menu
 Do_Pools() {
- echo "Not Yet Implemented."
+clear                                                                   
+        ShowHeader                                                              
+        #Add/Edit/Delete?                                                       
+        AddEditDelete "pools"                                                 
+        action=$(GetAEDSelection)                                               
+                                                                                
+        case "$action" in                                                       
+        ADD)                                                                    
+                Add_Pool                                                     
+                ;;                                                              
+        DELETE)                                                                 
+                Delete_Pool                                                  
+                ;;                                                              
+                                                                                
+        EDIT)                                                                   
+                Edit_Pool                                                    
+                ;;                                                              
+        *)                                                                      
+                DisplayError "Invalid selection!" "5"                           
+                ;;                                                              
+                                                                                
+        esac      
+}
+Edit_Pool()
+{
+	clear
+	ShowHeader
+	echo "SELECT POOL TO EDIT"
+	M=""
+	i=0
+	UseDB "smartcoin"
+	Q="SELECT * FROM pool;"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		poolName=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$poolName")
+	done
+	DisplayMenu "$M"
+	echo "Please select the pool from the list above to edit"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	EditPK=$PK
+        
+	Q="SELECT * FROM pool WHERE pk_pool=$PK;"
+	R=$(RunSQL "$Q")
+	cname=$(Field 2 "$R")
+	cserver=$(Field 3 "$R")
+	calternate=$(Field 4 "$R")
+	cport=$(Field 5 "$R")
+	ctimeout=$(FIeld 6 "$R")
+
+
+	clear
+	ShowHeader
+	echo "EDITING POOL"
+	echo "------------"
+
+	echo "Give this pool a nickname"
+	read -e -i "$cname" poolName
+	echo ""
+
+	echo "Enter the main server address for this pool"
+	read -e -i "$cserver" poolServer
+	echo ""
+
+	echo "Enter an optional alternate server address for this pool"
+	read -e -i "$calternate" poolAlternate
+	echo ""
+        
+	echo "Enter the port number to connect to this pool"
+	read -e -i "$cport" poolPort
+	echo ""
+	
+	echo "Enter a disconnection timeout for this pool"
+	read -e -i "$ctimeout" poolTimeout
+	echo ""
+
+        echo "Updating Pool..."
+
+        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$EditPK"
+        RunSQL "$Q"
+
+}
+Delete_Pool()
+{
+	clear
+	ShowHeader
+	echo "SELECT POOL TO DELETE"
+	M=""
+	i=0
+	UseDB "smartcoin"
+	Q="SELECT * FROM pool;"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		poolName=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$poolName")
+	done
+	DisplayMenu "$M"
+	echo "Please select the pool from the list above to delete"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+
+	echo "Deleting pool..."
+
+	
+	# Get a list of the workers that reference the pool...
+	Q="SELECT * FROM worker WHERE fk_pool=$PK"
+	R=$(RunSQL "$Q")
+	for row in $R; do
+		thisWorker=$(Field 1 "$row")
+	
+		# We have to delete all workers that refer to this pool!
+		# And delete the map entries that refer to those workers
+		Q="DELETE FROM map WHERE fk_worker=$thisWorker;"
+		RunSQL "$Q"
+	done
+
+	Q="DELETE FROM worker WHERE fk_pool=$PK;"
+	RunSQL "$Q"
+	# And finally, delete the pool!
+	Q="DELETE FROM pool WHERE pk_pool=$PK;"
+	RunSQL "$Q"
 }
 
 
@@ -366,6 +502,142 @@ Add_Workers()
 
 }
 
+
+Edit_Workers()
+{
+        clear
+        ShowHeader
+        echo "SELECT WORKER TO EDIT"
+        M=""
+        i=0
+        UseDB "smartcoin"
+        Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+
+        R=$(RunSQL "$Q")
+        for Row in $R; do
+                let i++
+                PK=$(Field 1 "$Row")
+                workerName=$(Field 2 "$Row")
+                M=$M$(FieldArrayAdd "$PK	$i	$workerName")
+        done
+        DisplayMenu "$M"
+	echo "Please select the worker from the list above to edit"
+        PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	EditPK=$PK
+        
+        Q="SELECT * FROM worker WHERE pk_worker=$PK;"
+        R=$(RunSQL "$Q")
+	cpool=$(Field 2 "$R")
+        cname=$(Field 3 "$R")
+        cuser=$(Field 4 "$R")
+        cpass=$(Field 5 "$R")
+	callow=$(FIeld 6 "$R")
+
+
+        clear
+        ShowHeader
+        echo "EDITING WORKER"
+        echo "------------"
+	Q="SELECT * FROM pool"
+	R=$(RunSQL "$Q")
+	M=""
+	i=0
+	for Row in $R; do
+                let i++
+                PK=$(Field 1 "$Row")
+                poolName=$(Field 2 "$Row")
+                M=$M$(FieldArrayAdd "$PK	$i	$poolName")
+        done
+	DisplayMenu "$M"
+	echo "Which pool does this worker belong to?"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M" "$cpool")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	workerPool=$PK
+	echo ""
+
+        echo "Give this worker a nickname"
+        read -e -i "$cname" workerName
+        echo ""
+
+        echo "Enter the user name for this worker"
+        read -e -i "$cuser" workerUser
+	echo ""
+
+ 	echo "Enter the password for this worker"
+        read -e -i "$cpass" workerPass
+	echo ""
+        
+	echo "Do you want to allow this worker to be added to the automatic profile?"
+	resp=""
+	until [[ "$resp" != "" ]]; do
+		read -e -i "$callow" workerAllow
+                        
+		available=`echo $available | tr '[A-Z]' '[a-z]'`
+		if [[ "$available" == "y" ]]; then
+			resp="1"
+		elif [[ "$available" == "n" ]]; then
+			resp="0"
+		else
+			echo "Invalid response!"
+		fi
+	done
+	callow=$resp
+
+        echo "Updating Worker..."
+
+        Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
+        RunSQL "$Q"
+
+}
+
+
+
+Delete_Workers()
+{
+	clear
+	ShowHeader
+	echo "SELECT WORKER TO DELETE"
+	M=""
+	i=0
+	UseDB "smartcoin"
+	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		workerName=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$workerName")
+	done
+	DisplayMenu "$M"
+	echo "Please select the worker from the list above to delete"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+
+	echo "Deleting Worker..."
+	Q="DELETE FROM worker WHERE pk_worker=$PK;"
+	RunSQL "$Q"
+	# We also have to delete the map entries that refer to this worker!
+	Q="DELETE FROM map WHERE fk_worker=$PK;"
+	RunSQL "$Q"
+}
+
+
 # Configure Profiles Menu
 Do_Profile() {
 	clear
@@ -379,7 +651,7 @@ Do_Profile() {
 		Add_Profile
 		;;
 	DELETE)
-		#Delete_Profile
+		Delete_Profile
 		;;
 	EDIT)
 		#Edit_Profile
@@ -551,6 +823,42 @@ Add_Profile()
 	ShowHeader
 	echo " Your profile is now finished. You can activate it at any time now in the profiles menu."
 	sleep 5
+}
+Delete_Profile()
+{
+	clear
+	ShowHeader
+	echo "SELECT PROFILE TO DELETE"
+	M=""
+	i=0
+	UseDB "smartcoin"
+	Q="SELECT * FROM profile;"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		profileName=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$profileName")
+	done
+	DisplayMenu "$M"
+	echo "Please select the profile from the list above to delete"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+
+	echo "Deleting profile..."
+
+	
+	# Get a list of the map entries that reference the profile...
+	Q="DELETE FROM map WHERE fk_profile=$PK;"
+
+	# And finally, delete the profile!
+	Q="DELETE FROM profile WHERE pk_profile=$PK;"
+	RunSQL "$Q"
 }
 
 
