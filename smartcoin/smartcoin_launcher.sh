@@ -4,18 +4,18 @@
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
-
-card=$1
-miner=$2
-worker=$3
+machine=$1
+device=$2
+miner=$3
+worker=$4
 
 
 UseDB "smartcoin"
 
-# Get additional information on the card
-Q="SELECT name,device from card WHERE pk_card=$card;"
+# Get additional information on the device
+Q="SELECT name,device from device WHERE pk_device=$device;"
 R2=$(RunSQL "$Q")
-device=$(Field 2 "$R2")
+thisDevice=$(Field 2 "$R2")
 # Get the miner information
 Q="SELECT name, path,launch FROM miner WHERE pk_miner=$miner;"
 R2=$(RunSQL "$Q")
@@ -35,7 +35,7 @@ minerLaunch=${minerLaunch//<#user#>/$workerUser}
 minerLaunch=${minerLaunch//<#pass#>/$workerPass}
 minerLaunch=${minerLaunch//<#server#>/$workerServer}
 minerLaunch=${minerLaunch//<#port#>/$workerPort}
-minerLaunch=${minerLaunch//<#device#>/$device}
+minerLaunch=${minerLaunch//<#device#>/$thisDevice}
 
 pushd $minerPath
 cd $minerPath && ./$minerLaunch

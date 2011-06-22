@@ -102,24 +102,24 @@ startMiners() {
 	
 	# I don't think the commented section below is needed.
 	# Only generate an auto profile IF A) you selct it in the "choose profile" section
-	# Or B) you add a card, or worker AND the autoprofile is the current profile(in which case, KillMiners is called, the new profile generated, then StartMiners if called)
+	# Or B) you add a device, or worker AND the autoprofile is the current profile(in which case, KillMiners is called, the new profile generated, then StartMiners if called)
 	#if [[ "$profile" == "-1" ]]; then
 	#	GenAutoProfile
 	#fi
 
 	UseDB "smartcoin"
-	Q="SELECT pk_map, fk_card, fk_miner, fk_worker from map WHERE fk_profile=$profile;"
+	Q="SELECT pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$profile;"
 	R=$(RunSQL "$Q")
 	i=0
 
 	for Row in $R; do	
 		let i++
 		local PK=$(Field 1 "$Row")
-		local card=$(Field 2 "$Row")
+		local device=$(Field 2 "$Row")
 		local miner=$(Field 3 "$Row")
 		local worker=$(Field 4 "$Row")
 
-		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $card $miner $worker"
+		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $device $miner $worker"
 		if [[ "$i" == "1" ]]; then
 		screen -d -m -S $minerSession -t "smartcoin.$PK" $cmd
 		screen -r $minerSession -X zombie ko
@@ -163,7 +163,7 @@ Log() {
 }
 
 GenAutoProfile() {
-	local card
+	local device
 	local miner
 	local worker
 	local R
@@ -175,25 +175,25 @@ GenAutoProfile() {
 	Q="INSERT IGNORE INTO profile (pk_profile,name,auto_allow) values (-1, \"Automatic\",1)";
 	R=$(RunSQL "$Q")
 	Log "$Q"
-	# Next, erase any old autoprofile information from map
-	Q="DELETE FROM map WHERE fk_profile=-1;"
+	# Next, erase any old autoprofile information from profile_map
+	Q="DELETE FROM profile_map WHERE fk_profile=-1;"
 	R=$(RunSQL "$Q")
 	Log "$Q"
-	Q="SELECT COUNT(*) from card;"
+	Q="SELECT COUNT(*) from device;"
 	R=$(RunSQL "$Q")
 	local rows=$(Field 1 "$R")
 	if [[ "$rows" != "0" ]]; then
-		# There is at least one card
+		# There is at least one device
 		Q="SELECT COUNT(*) from miner;"
 		R=$(RunSQL "$Q")
 		rows=$(Field 1 "$R")
 		if [[ "$rows" != "0" ]]; then
-			# There is at least one miner, and one card
+			# There is at least one miner, and one device
 			Q="SELECT COUNT(*) FROM worker;"
 			R=$(RunSQL "$Q")
 			rows=$(Field 1 "$R")
 			if [[ "$rows" != "0" ]]; then
-				# There is at least one worker, one miner and one card
+				# There is at least one worker, one miner and one device
 				# Lets do the Automatic profile!  It works with the first
 				# set up miner TODO: Make the miner selectable?
 
@@ -201,15 +201,15 @@ GenAutoProfile() {
 				R=$(RunSQL "$Q")
 				miner=$(Field 1 "$R")
 				
-				Q="SELECT pk_card FROM card WHERE disabled=0;"
+				Q="SELECT pk_device FROM device WHERE disabled=0;"
 				R=$(RunSQL "$Q")
 				for row in $R; do
-					card=$(Field 1 "$row")
+					device=$(Field 1 "$row")
 					Q="SELECT pk_worker FROM worker WHERE auto_allow;"
 					R2=$(RunSQL "$Q")
 					for row2 in $R2; do
 						worker=$(Field 1 "$row2")
-						Q="INSERT INTO map (fk_Card, fk_miner, fk_worker, fk_profile) values ($card,$miner,$worker,-1);"
+						Q="INSERT INTO profile_map (fk_device, fk_miner, fk_worker, fk_profile) values ($device,$miner,$worker,-1);"
 						R3=$(RunSQL "$Q")
 					done
 				done
@@ -220,8 +220,51 @@ GenAutoProfile() {
 			Log "No miners found!"
 		fi
 	else
-		Log "No Cards Found!"
+		Log "No devices Found!"
 	fi
+}
+
+GenerateDonationProfile() {
+	thisMachine=$1
+
+	# Make the special donation profile
+	Q="INSERT INTO profile (pk_profile,fk_machine,name,auto_allow) VALUES (-100,$thisMachine,'Donating!',1);"
+	RunSQL "$Q"
+
+	# Deepbit Donation Worker
+	Q="INSERT INTO worker (pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (-1,1,'Donate','jondecker76@gmail.com_donate','donate',1,0);"
+	RunSQL "$Q"
+
+	# Bitcoin.cz Donation Worker
+	Q="INSERT INTO worker (-2,pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (2,'Donate','jondecker76.donate','donate',1,0);"
+	RunSQL "$Q"	
+
+	# BTCGuild Donation Worker
+	Q="INSERT INTO worker (-3,pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (3,'Donate','jondecker76_donate','donate',1,0);"
+	RunSQL "$Q"
+
+	# BTCMine Donation Worker	
+	Q="INSERT INTO worker (-4,pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (4,'Donate','jondecker76@donate','donate',1,0);"
+	RunSQL "$Q"	
+
+	# Update the profile_map
+	Q="DELETE FROM profile_map WHERE fk_profile=-100 AND fk_machine=$thisMachine"
+	RunSQL "$Q"
+
+	Q="SELECT * FROM device WHERE disabled=0;"
+	R=$(RunSQL "$Q")
+	
+	for row in $R; do
+		thisDevice=$(Field 1 "$row")
+		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
+		RunSQL "$Q"
+		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
+		RunSQL "$Q"
+		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
+		RunSQL "$Q"
+		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
+		RunSQL "$Q"	
+	done
 }
 
 DeleteTemporaryFiles() {
