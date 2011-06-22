@@ -424,8 +424,8 @@ Delete_Pool()
 		thisWorker=$(Field 1 "$row")
 	
 		# We have to delete all workers that refer to this pool!
-		# And delete the map entries that refer to those workers
-		Q="DELETE FROM map WHERE fk_worker=$thisWorker;"
+		# And delete the profile_map entries that refer to those workers
+		Q="DELETE FROM profile_map WHERE fk_worker=$thisWorker;"
 		RunSQL "$Q"
 	done
 
@@ -665,8 +665,8 @@ Delete_Workers()
 	echo "Deleting Worker..."
 	Q="DELETE FROM worker WHERE pk_worker=$PK;"
 	RunSQL "$Q"
-	# We also have to delete the map entries that refer to this worker!
-	Q="DELETE FROM map WHERE fk_worker=$PK;"
+	# We also have to delete the profile_map entries that refer to this worker!
+	Q="DELETE FROM profile_map WHERE fk_worker=$PK;"
 	RunSQL "$Q"
 }
 
@@ -785,7 +785,7 @@ Add_Profile()
 	
 	
 	
-		Q="SELECT pk_card, name FROM card WHERE disabled=0;"
+		Q="SELECT pk_device, name FROM device WHERE disabled=0;"
 		R=$(RunSQL "$Q")
 		i=0
 		M=""
@@ -810,12 +810,12 @@ Add_Profile()
 		done
 		deviceSelection=$selection
 		
-		Q="INSERT INTO map (fk_card,fk_miner,fk_worker,fk_profile) VALUES ($deviceSelection,$minerSelection,$workerSelection,$profileID);"
+		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile) VALUES ($deviceSelection,$minerSelection,$workerSelection,$profileID);"
 		R=$(RunSQL "$Q")
 
 		clear
 		ShowHeader
-		Q="SELECT card.name, CONCAT(pool.name,\".\",worker.name) FROM map LEFT JOIN card on map.fk_card = card.pk_card LEFT JOIN worker on map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_map ASC;
+		Q="SELECT device.name, CONCAT(pool.name,\".\",worker.name) FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
 "
 		R=$(RunSQL "$Q")
 		addedInstances=""
@@ -886,8 +886,8 @@ Delete_Profile()
 	echo "Deleting profile..."
 
 	
-	# Get a list of the map entries that reference the profile...
-	Q="DELETE FROM map WHERE fk_profile=$PK;"
+	# Get a list of the profile_map entries that reference the profile...
+	Q="DELETE FROM profile_map WHERE fk_profile=$PK;"
 
 	# And finally, delete the profile!
 	Q="DELETE FROM profile WHERE pk_profile=$PK;"
@@ -952,9 +952,9 @@ Add_Device()
 
         echo "Adding Device..."
 
-        Q="INSERT INTO card SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled'"
+        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled'"
         RunSQL "$Q"
-
+	screen -r $sessionName -X wall "Device Added!"
 }
 Edit_Device() 
 {
@@ -964,7 +964,7 @@ Edit_Device()
 	M=""
 	i=0
 	UseDB "smartcoin"
-	Q="SELECT * FROM card;"
+	Q="SELECT * FROM device;"
 	R=$(RunSQL "$Q")
 	for Row in $R; do
 		let i++
@@ -983,7 +983,7 @@ Edit_Device()
 	done
 	EditPK=$PK
         
-	Q="SELECT * FROM card WHERE pk_card=$PK;"
+	Q="SELECT * FROM device WHERE pk_device=$PK;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 2 "$R")
 	cdevice=$(Field 3 "$R")
@@ -1030,7 +1030,7 @@ Edit_Device()
 
         echo "Adding Device..."
 
-        Q="UPDATE card SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled' WHERE pk_card=$EditPK"
+        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled' WHERE pk_device=$EditPK"
         RunSQL "$Q"
 
 }
@@ -1042,7 +1042,7 @@ Delete_Device()
 	M=""
 	i=0
 	UseDB "smartcoin"
-	Q="SELECT * FROM card;"
+	Q="SELECT * FROM device;"
 	R=$(RunSQL "$Q")
 	for Row in $R; do
 		let i++
@@ -1063,12 +1063,12 @@ Delete_Device()
 	echo "Deleting device..."
 
 
-	# Delete entries from the profile map that use this device!
-	Q="DELETE from map where fk_card=$PK;"
+	# Delete entries from the profile profile_map that use this device!
+	Q="DELETE from profile_map where fk_device=$PK;"
 	RunSQL "$Q"
 
 	# And finally, delete the device!
-	Q="DELETE FROM card WHERE pk_card=$PK;"
+	Q="DELETE FROM device WHERE pk_device=$PK;"
 	RunSQL "$Q"
 }
 
