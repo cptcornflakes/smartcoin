@@ -87,26 +87,28 @@ FieldArrayAdd()
 	echo "$menuItem "
 }
 
+GetCurrentProfile() {
+	local thisMachine=$1
 
-UseDB "smartcoin"
-Q="SELECT value from settings where data=\"current_profile\";"
-R=$(RunSQL "$Q")
-CURRENT_PROFILE=$(Field 1 "$R")
-export CURRENT_PROFILE
-
+	UseDB "smartcoin"
+	Q="SELECT fk_profile from current_profile WHERE fk_machine=$thisMachine;"
+	R=$(RunSQL "$Q")
+	echo $(Field 1 "$R")
+}
 
 
 
 startMiners() {
+	# TODO: Should we pass in the machine PK, then use that to get the current_profile?
 	local profile=$1
-	
-	# I don't think the commented section below is needed.
-	# Only generate an auto profile IF A) you selct it in the "choose profile" section
-	# Or B) you add a device, or worker AND the autoprofile is the current profile(in which case, KillMiners is called, the new profile generated, then StartMiners if called)
-	#if [[ "$profile" == "-1" ]]; then
-	#	GenAutoProfile
-	#fi
 
+	# Get the machine number associated with the profile
+	Q="SELECT fk_machine FROM profile WHERE pk_profile=$profile;"
+	R=$(RunSQL "$Q")
+	local machine=$(Feild 1 "$R")
+	
+	# TODO: since any profile_map with a defined fk_profile already limits to teh correct machine,
+	# the $machine var will be used to invoke ssh for remote machines
 	UseDB "smartcoin"
 	Q="SELECT pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$profile;"
 	R=$(RunSQL "$Q")
@@ -163,6 +165,8 @@ Log() {
 }
 
 GenAutoProfile() {
+	#TODO: SHould this be dynamic??
+	local machine=$1 #TODO: not used yet
 	local device
 	local miner
 	local worker
@@ -171,20 +175,22 @@ GenAutoProfile() {
 	local R3
 	Log "Generating Automatic Profile..."
 
+	#TODO: auto_profile primary keys will be -1000-$machinePK when multi-machine support is in
 	# Has the auto profile been added to the database yet?
-	Q="INSERT IGNORE INTO profile (pk_profile,name,auto_allow) values (-1, \"Automatic\",1)";
+	Q="INSERT IGNORE INTO profile (pk_profile,name,fk_machine,auto_allow) values (-1, 'Automatic',1,1)";
 	R=$(RunSQL "$Q")
 	Log "$Q"
 	# Next, erase any old autoprofile information from profile_map
+	# TODO: shouled entries be stored in the negative range?
 	Q="DELETE FROM profile_map WHERE fk_profile=-1;"
 	R=$(RunSQL "$Q")
 	Log "$Q"
-	Q="SELECT COUNT(*) from device;"
+	Q="SELECT COUNT(*) from device WHERE fk_machine=1;"
 	R=$(RunSQL "$Q")
 	local rows=$(Field 1 "$R")
 	if [[ "$rows" != "0" ]]; then
 		# There is at least one device
-		Q="SELECT COUNT(*) from miner;"
+		Q="SELECT COUNT(*) from miner WHERE fk_machine=1;"
 		R=$(RunSQL "$Q")
 		rows=$(Field 1 "$R")
 		if [[ "$rows" != "0" ]]; then
@@ -197,11 +203,11 @@ GenAutoProfile() {
 				# Lets do the Automatic profile!  It works with the first
 				# set up miner TODO: Make the miner selectable?
 
-				Q="SELECT pk_miner FROM miner ORDER BY pk_miner ASC LIMIT 1;"
+				Q="SELECT pk_miner FROM miner WHERE fk_machine=1 ORDER BY pk_miner ASC LIMIT 1;"
 				R=$(RunSQL "$Q")
 				miner=$(Field 1 "$R")
 				
-				Q="SELECT pk_device FROM device WHERE disabled=0;"
+				Q="SELECT pk_device FROM device WHERE fk_machine=1 AND disabled=0;"
 				R=$(RunSQL "$Q")
 				for row in $R; do
 					device=$(Field 1 "$row")
@@ -268,5 +274,6 @@ GenerateDonationProfile() {
 }
 
 DeleteTemporaryFiles() {
+	# TODO: don't delete the commpipe!
 	rm $HOME/smartcoin/.smartcoin*
 }
