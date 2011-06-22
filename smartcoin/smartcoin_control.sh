@@ -12,9 +12,8 @@ NotImplemented()
 	sleep 3
 }
 DisplayMenu()
-{	#clear
-	#ShowHeader
-	fieldArray="$1"
+{	
+	local fieldArray="$1"
 
 	for item in $fieldArray; do
 	num=$(Field 2 "$item")
@@ -24,11 +23,11 @@ DisplayMenu()
 
 
 }
+#var=$(GetMenuSelection "$M" "default value")
 GetMenuSelection()
 {
-	fieldArray=$1
-
-	default=$2
+	local fieldArray=$1
+	local default=$2
 
 	read -e -i "$default" chosen
 
@@ -41,6 +40,63 @@ GetMenuSelection()
 	done
 	echo "ERROR"
 }
+
+# GetPrimaryKeySelection var "$Q" "$E" "default value"
+GetPrimaryKeySelection()
+{
+	local _ret=$1
+	local Q=$2
+	local msg=$3
+	local default=$4
+
+	local PK	#Primary key of name (not shown in menu)
+	local Name	#Name displayed in menu
+	local M=""	#Menu FieldArray
+	i=0		#Index count
+
+	UseDB "smartcoin"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		Name=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$Name")
+	done
+	DisplayMenu "$M"
+	echo "$msg"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M" "$default")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	eval $_ret="'$PK'"
+}
+#GetYesNoSelection var "$E" "default value"
+	GetYesNoSelection() {                                                                                
+		local resp="-1"  
+		local available
+
+		local _ret=$1
+                local msg=$2
+		local default=$3
+
+		echo "$msg"                                             
+		until [[ "$resp" != "-1" ]]; do                                         
+			read -e -i available                                                  
+                                                                                
+			available=`echo $available | tr '[A-Z]' '[a-z]'`                
+			if [[ "$available" == "y" ]]; then                              
+				resp="1"                                                
+			elif [[ "$available" == "n" ]]; then                            
+				resp="0"                                                
+			else                                                            
+				echo "Invalid response!"                                
+			fi                                                              
+		done    
+		eval $_ret="'$resp'"
+	}
 DisplayError()
 {
 	msg=$1
@@ -55,6 +111,7 @@ DisplayError()
 
 AddEditDelete()
 {
+	# TODO: Add view option
 	msg=$1
 	clear
 	ShowHeader
@@ -65,7 +122,7 @@ AddEditDelete()
 }
 GetAEDSelection()
 {
-	
+	# TODO: Add view option
 	read chosen
 	chosen=`echo $chosen | tr '[A-Z]' '[a-z]'`
 	case "$chosen" in
@@ -84,6 +141,8 @@ GetAEDSelection()
 	esac
 }
 
+# ### END UI HELPER FUNCTIONS ###
+
 # Profile Menu
 Do_ChangeProfile() {
 
@@ -91,40 +150,21 @@ Do_ChangeProfile() {
 	ShowHeader
 
 	# Display menu
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM profile where pk_profile>=\"-1\" ORDER BY pk_profile ASC;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		profileName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$profileName")
-	done
-	DisplayMenu "$M"
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine you wish to change the profile on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
-	
-	# Process Menu Selection
-	PK=$(GetMenuSelection "$M")
-	if [[ "$PK" == "ERROR" ]]; then
-		DisplayError "Invalid selection!" "5"
-		return 0
-	fi
+	Q="SELECT pk_profile, name FROM profile where pk_profile>=-1 AND fk_machine=$thisMachine ORDER BY pk_profile ASC;"
+	E="Select the profile from the list above that you wish to switch to"
+	GetPrimaryKeySelection thisProfile "$Q" "$E"
 	
 	# Now load in the profile!
 	#get the current profile
-	UseDB "smartcoin"
-	Q="SELECT value from settings where data=\"current_profile\";"
-	R=$(RunSQL "$Q")
-	CURRENT_PROFILE=$(Field 1 "$R")
+	CURRENT_PROFILE=$(GetCurrentProfile "$thisMachine")
 
 	killMiners
-	Q="UPDATE settings set value=$PK where data=\"current_profile\";"
-	R=$(RunSQL "$Q")
+	SetCurrentProfile "$PK"
 	#GenAutoProfile
-	
-
 	startMiners "$PK"
 	GotoStatus
 
@@ -165,6 +205,9 @@ Add_Miners()
 	ShowHeader
 	echo "ADDING MINER"
 	echo "------------"
+	Q="SELEECT pk_machine, name from machine;"
+	E="Please select the machine from the list above that is hosting this miner"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
 	echo "Give this miner a nickname"
 	read minerName
 	echo "Enter the miner's path (i.e. /home/you/miner/)"
@@ -177,9 +220,10 @@ Add_Miners()
 
 
 	echo "Adding Miner..."
-	Q="INSERT INTO miner SET name='$minerName', launch='$minerLaunch', path='$minerPath'"
+	Q="INSERT INTO miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine"
 	RunSQL "$Q"
-
+	echo "done."
+	sleep 1
 
 }
 Edit_Miners()
@@ -187,36 +231,31 @@ Edit_Miners()
 	clear
 	ShowHeader
 	echo "SELECT MINER TO EDIT"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM miner;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		minerName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$minerName")
-	done
-	DisplayMenu "$M"
-	PK=$(GetMenuSelection "$M")
-	if [[ "$PK" == "ERROR" ]]; then
-		DisplayError "Invalid selection!" "5"
-		return 0
-	fi
-	
-	Q="SELECT * FROM miner WHERE pk_miner=$PK;"
-	R=$(RunSQL "$Q")
-	cname=$(Field 2 "$R")
-	claunch=$(Field 3 "$R")
-	cpath=$(Field 4 "$R")
+	Q="SELECT pk_machine,name FROM machine;"
+	E="Select the machine the miner resides on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
+	Q="SELECT pk_miner, name FROM miner WHERE fk_machine=$thisMachine;"
+	E="Select the miner you wish to edit"
+	GetPrimaryKeySelection thisMiner "$Q" "$E"
+
+	Q="SELECT name, launch, path, fk_machine FROM miner WHERE pk_miner=$thisMiner;"
+	R=$(RunSQL "$Q")
+	cname=$(Field 1 "$R")
+	claunch=$(Field 2 "$R")
+	cpath=$(Field 3 "$R")
+	cmachine=$(Field 4 "$R")
 
 	clear
 	ShowHeader
 	echo "EDITING MINER"
 	echo "------------"
-	echo "Give this miner a nickname"
+
+	Q="SELECT pk_machine, name from machine;"                               
+	E="Please select the machine from the list above that is hosting this
+ miner"                          
+	GetPrimaryKeySelection thisMachine "$Q" "$E" "$cmachine"
+	echo "Please give this miner a nickname"
 	read -e -i "$cname" minerName
 	
 	echo "Enter the miner's path (i.e. /home/you/miner/)"
@@ -231,35 +270,29 @@ Edit_Miners()
 
 	echo "Updating Miner..."
 
-	Q="UPDATE miner SET name='$minerName', launch='$minerLaunch', path='$minerPath'"
+	Q="UPDATE miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine WHERE pk_miner=$thisMiner"
 	RunSQL "$Q"
-
+	
+	echo "done."
+	sleep 1
 }
 Delete_Miners()
 {
 	clear
 	ShowHeader
 	echo "SELECT MINER TO DELETE"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM miner;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		minerName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$minerName")
-	done
-	DisplayMenu "$M"
-	PK=$(GetMenuSelection "$M")
-	if [[ "$PK" == "ERROR" ]]; then
-		DisplayError "Invalid selection!" "5"
-		return 0
-	fi
+	Q="SELECT pk_miner,name FROM miner;"
+	E="Please select the miner from the list above to delete"
+	GetPrimaryKeySelection thisMiner "$Q" "$E"
+
 	echo "Deleting Miner..."
-	Q="DELETE FROM miner WHERE pk_miner=$PK"
+	Q="DELETE FROM profile_map WHERE fk_miner=$thisMiner;"
 	RunSQL "$Q"
+
+	Q="DELETE FROM miner WHERE pk_miner=$thisMiner"
+	RunSQL "$Q"
+	echo "done."
+	sleep 1
 }
 
 
@@ -319,42 +352,25 @@ Add_Pool()
 
         Q="INSERT INTO pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout'"
         RunSQL "$Q"
-
+	echo "done."
+	sleep 1
 }
 Edit_Pool()
 {
 	clear
 	ShowHeader
 	echo "SELECT POOL TO EDIT"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM pool;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		poolName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$poolName")
-	done
-	DisplayMenu "$M"
-	echo "Please select the pool from the list above to edit"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
-	EditPK=$PK
+	Q="SELECT pk_pool, name FROM pool;"
+	E="Please select the pool from the list above to edit"
+	GetPrimaryKeySelection thisPool "$Q" "$E"
         
-	Q="SELECT * FROM pool WHERE pk_pool=$PK;"
+	Q="SELECT name,server,alternateServer,port,timeout  FROM pool WHERE pk_pool=$thisPool;"
 	R=$(RunSQL "$Q")
-	cname=$(Field 2 "$R")
-	cserver=$(Field 3 "$R")
-	calternate=$(Field 4 "$R")
-	cport=$(Field 5 "$R")
-	ctimeout=$(FIeld 6 "$R")
+	cname=$(Field 1 "$R")
+	cserver=$(Field 2 "$R")
+	calternate=$(Field 3 "$R")
+	cport=$(Field 4 "$R")
+	ctimeout=$(FIeld 5 "$R")
 
 
 	clear
@@ -386,6 +402,8 @@ Edit_Pool()
 
         Q="UPDATE pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$EditPK"
         RunSQL "$Q"
+	echo "done."
+	sleep 1
 
 }
 Delete_Pool()
@@ -393,32 +411,15 @@ Delete_Pool()
 	clear
 	ShowHeader
 	echo "SELECT POOL TO DELETE"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM pool;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		poolName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$poolName")
-	done
-	DisplayMenu "$M"
-	echo "Please select the pool from the list above to delete"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
+	Q="SELECT pk_pool,name from pool;"
+	E="Please select the pool from the list above to delete"
+	GetPrimaryKeySelection thisPool "$Q" "$E"
 
 	echo "Deleting pool..."
 
 	
 	# Get a list of the workers that reference the pool...
-	Q="SELECT * FROM worker WHERE fk_pool=$PK"
+	Q="SELECT * FROM worker WHERE fk_pool=$thisPool;"
 	R=$(RunSQL "$Q")
 	for row in $R; do
 		thisWorker=$(Field 1 "$row")
@@ -429,11 +430,13 @@ Delete_Pool()
 		RunSQL "$Q"
 	done
 
-	Q="DELETE FROM worker WHERE fk_pool=$PK;"
+	Q="DELETE FROM worker WHERE fk_pool=$thisPool;"
 	RunSQL "$Q"
 	# And finally, delete the pool!
-	Q="DELETE FROM pool WHERE pk_pool=$PK;"
+	Q="DELETE FROM pool WHERE pk_pool=$thisPool;"
 	RunSQL "$Q"
+	echo "done."
+	sleep 1
 }
 
 
@@ -483,54 +486,23 @@ Add_Workers()
         read workerName
 	echo ""
 	Q="SELECT pk_pool, name FROM pool;"
-	R=$(RunSQL "$Q")
-	i=0
-	M=""
-	for row in $R; do
-		let i++
-		PK=$(Field 1 "$row")
-		poolName=$(Field 2 "$row")
-		M=$M$(FieldArrayAdd "$PK	$i	$poolName")
-
-	done
-
-	DisplayMenu "$M"
-	echo "What pool listed above is this worker associated with?"
-	PK=$(GetMenuSelection "$M")
-        if [[ "$PK" == "ERROR" ]]; then
-                DisplayError "Invalid selection!" "5"
-                return 0
-        fi
-
+	E="What pool listed above is this worker associated with?"
+	GetPrimaryKeySelection thisPool "$Q" "$E"
 
         echo "Enter the username for this worker"
         read userName
         echo "Enter the password for this worker"
         read password
-	echo "Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
+	echo "Enter a priority for this worker"
+	read workerPriority
+	E="Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
+	GetYesNoSelection workerAllow "$E" "y"
 
-	resp="-1"
-	until [[ "$resp" != "-1" ]]; do
-		read available
-		
-		available=`echo $available | tr '[A-Z]' '[a-z]'`
-		if [[ "$available" == "y" ]]; then
-			resp="1"
-		elif [[ "$available" == "n" ]]; then
-			resp="0"
-		else
-			echo "Invalid response!"
-
-
-		fi
-	done
-
-
-        echo "Adding Worker..."
-        Q="INSERT INTO worker (fk_pool, name, user, pass, auto_allow, disabled) VALUES (\"$PK\",\"$workerName\",\"$userName\",\"$password\",\"$resp\",0);"
-	
+	echo "Adding Worker..."
+        Q="INSERT INTO worker (fk_pool, name, user, pass,priority, auto_allow, disabled) VALUES ($PK,'$workerName,'$userName','$password',$workerPriority,$workerAllow,0);"
         R=$(RunSQL "$Q")
-
+	echo "done."
+	sleep 1
 
 
 }
@@ -545,31 +517,16 @@ Edit_Workers()
         i=0
         UseDB "smartcoin"
         Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
-
-        R=$(RunSQL "$Q")
-        for Row in $R; do
-                let i++
-                PK=$(Field 1 "$Row")
-                workerName=$(Field 2 "$Row")
-                M=$M$(FieldArrayAdd "$PK	$i	$workerName")
-        done
-        DisplayMenu "$M"
-	echo "Please select the worker from the list above to edit"
-        PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
-	EditPK=$PK
+	E="Please select the worker from the list above to edit"
+	GetPrimaryKeySelection EditPK "$Q" "$E"
         
-        Q="SELECT * FROM worker WHERE pk_worker=$PK;"
+        Q="SELECT fk_pool,name,user,pass,priority,auto_allow FROM worker WHERE pk_worker=$EditPK;"
         R=$(RunSQL "$Q")
-	cpool=$(Field 2 "$R")
-        cname=$(Field 3 "$R")
-        cuser=$(Field 4 "$R")
-        cpass=$(Field 5 "$R")
+	cpool=$(Field 1 "$R")
+        cname=$(Field 2 "$R")
+        cuser=$(Field 3 "$R")
+        cpass=$(Field 4 "$R")
+	cpriority=$(Field 5 "$R")
 	callow=$(FIeld 6 "$R")
 
 
@@ -577,26 +534,9 @@ Edit_Workers()
         ShowHeader
         echo "EDITING WORKER"
         echo "------------"
-	Q="SELECT * FROM pool"
-	R=$(RunSQL "$Q")
-	M=""
-	i=0
-	for Row in $R; do
-                let i++
-                PK=$(Field 1 "$Row")
-                poolName=$(Field 2 "$Row")
-                M=$M$(FieldArrayAdd "$PK	$i	$poolName")
-        done
-	DisplayMenu "$M"
-	echo "Which pool does this worker belong to?"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M" "$cpool")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
-	workerPool=$PK
+	Q="SELECT pk_pool,name FROM pool;"
+	E="Which pool does this worker belong to?"
+	GetPrimaryKeySelection workerPool "$Q" "$E" "$cpool"
 	echo ""
 
         echo "Give this worker a nickname"

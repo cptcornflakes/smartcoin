@@ -95,8 +95,18 @@ GetCurrentProfile() {
 	R=$(RunSQL "$Q")
 	echo $(Field 1 "$R")
 }
+SetCurrentProfile() {
+	local thisProfile=$1
+	local thisMachine
+	Q="SELECT fk_machine FROM profile WHERE pk_profile=$thisProfile;"
+	R=$(RunSQL "$Q")
+	thisMachine=$(Field 1 "$R")
 
-
+	Q="DELETE FROM current_profile WHERE fk_machine=$thisMachine;"
+	RunSQL "$Q"
+	Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES ($thisMachine,$thisProfile);"
+	RunSQL "$Q"
+}
 
 startMiners() {
 	# TODO: Should we pass in the machine PK, then use that to get the current_profile?
