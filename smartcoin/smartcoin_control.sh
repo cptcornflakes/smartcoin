@@ -74,29 +74,35 @@ GetPrimaryKeySelection()
 	eval $_ret="'$PK'"
 }
 #GetYesNoSelection var "$E" "default value"
-	GetYesNoSelection() {                                                                                
-		local resp="-1"  
-		local available
+GetYesNoSelection() {                                                                                
+	local resp="-1"  
+	local available
 
-		local _ret=$1
-                local msg=$2
-		local default=$3
+	local _ret=$1
+	local msg=$2
+	local default=$3
+	
+	if [[ "$default" == "1" ]]; then
+		default="y"
+	else
+		default="n"
+	fi
 
-		echo "$msg"                                             
-		until [[ "$resp" != "-1" ]]; do                                         
-			read -e -i available                                                  
-                                                                                
-			available=`echo $available | tr '[A-Z]' '[a-z]'`                
-			if [[ "$available" == "y" ]]; then                              
-				resp="1"                                                
-			elif [[ "$available" == "n" ]]; then                            
-				resp="0"                                                
-			else                                                            
-				echo "Invalid response!"                                
-			fi                                                              
-		done    
-		eval $_ret="'$resp'"
-	}
+	echo "$msg"                                             
+	until [[ "$resp" != "-1" ]]; do                                         
+		read -e -i "$default" available                                                  
+		                                                        
+		available=`echo $available | tr '[A-Z]' '[a-z]'`                
+		if [[ "$available" == "y" ]]; then                              
+			resp="1"                                                
+		elif [[ "$available" == "n" ]]; then                            
+			resp="0"                                                
+		else                                                            
+			echo "Invalid response!"                                
+		fi                                                              
+	done    
+	eval $_ret="'$resp'"
+}
 DisplayError()
 {
 	msg=$1
@@ -151,23 +157,27 @@ Do_ChangeProfile() {
 
 	# Display menu
 	Q="SELECT pk_machine,name from machine"
-	E="Select the machine you wish to change the profile on"
+	E="Select the machine from the list above that you wish to change the profile on"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
-	Q="SELECT pk_profile, name FROM profile where pk_profile>=-1 AND fk_machine=$thisMachine ORDER BY pk_profile ASC;"
+	Q="SELECT pk_profile, name FROM profile where fk_machine=$thisMachine ORDER BY pk_profile ASC;"
 	E="Select the profile from the list above that you wish to switch to"
 	GetPrimaryKeySelection thisProfile "$Q" "$E"
 	
-	# Now load in the profile!
-	#get the current profile
-	CURRENT_PROFILE=$(GetCurrentProfile "$thisMachine")
-
-	killMiners
-	SetCurrentProfile "$PK"
-	#GenAutoProfile
-	startMiners "$PK"
+	SetCurrentProfile "$thisMachine" "$thisProfile"
 	GotoStatus
 
+}
+Do_AutoProfile() {
+	clear
+	ShowHeader
+
+	# Display menu
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine from the list above that you wish to run the automatic profile on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+	SetProfile "$thisMachine" "-1"
 }
 
 # Configure Miners Menu
@@ -473,11 +483,6 @@ Do_Workers() {
 Add_Workers()
 {
         #table:miner fields:pk_miner, name, launch, path
-        local M
-	local Q
-	local R
-	local PK
-
 	clear
         ShowHeader
         echo "ADDING WORKER"
@@ -494,12 +499,13 @@ Add_Workers()
         echo "Enter the password for this worker"
         read password
 	echo "Enter a priority for this worker"
+	echo "Note: this is not yet in use"
 	read workerPriority
 	E="Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
 	GetYesNoSelection workerAllow "$E" "y"
 
 	echo "Adding Worker..."
-        Q="INSERT INTO worker (fk_pool, name, user, pass,priority, auto_allow, disabled) VALUES ($PK,'$workerName,'$userName','$password',$workerPriority,$workerAllow,0);"
+        Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ($PK,'$workerName,'$userName','$password',$workerPriority,$workerAllow,0);"
         R=$(RunSQL "$Q")
 	echo "done."
 	sleep 1
@@ -510,68 +516,57 @@ Add_Workers()
 
 Edit_Workers()
 {
-        clear
-        ShowHeader
-        echo "SELECT WORKER TO EDIT"
-        M=""
-        i=0
-        UseDB "smartcoin"
-        Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+	clear
+	ShowHeader
+	echo "SELECT WORKER TO EDIT"
+	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
-        
-        Q="SELECT fk_pool,name,user,pass,priority,auto_allow FROM worker WHERE pk_worker=$EditPK;"
-        R=$(RunSQL "$Q")
+
+	Q="SELECT fk_pool,name,user,pass,priority,auto_allow FROM worker WHERE pk_worker=$EditPK;"
+	R=$(RunSQL "$Q")
 	cpool=$(Field 1 "$R")
-        cname=$(Field 2 "$R")
-        cuser=$(Field 3 "$R")
-        cpass=$(Field 4 "$R")
+	cname=$(Field 2 "$R")
+	cuser=$(Field 3 "$R")
+	cpass=$(Field 4 "$R")
 	cpriority=$(Field 5 "$R")
 	callow=$(FIeld 6 "$R")
 
 
-        clear
-        ShowHeader
-        echo "EDITING WORKER"
-        echo "------------"
+	clear
+	ShowHeader
+	echo "EDITING WORKER"
+	echo "------------"
 	Q="SELECT pk_pool,name FROM pool;"
 	E="Which pool does this worker belong to?"
 	GetPrimaryKeySelection workerPool "$Q" "$E" "$cpool"
 	echo ""
 
-        echo "Give this worker a nickname"
-        read -e -i "$cname" workerName
-        echo ""
-
-        echo "Enter the user name for this worker"
-        read -e -i "$cuser" workerUser
+	echo "Give this worker a nickname"
+	read -e -i "$cname" workerName
 	echo ""
 
- 	echo "Enter the password for this worker"
-        read -e -i "$cpass" workerPass
+	echo "Enter the user name for this worker"
+	read -e -i "$cuser" workerUser
 	echo ""
-        
-	echo "Do you want to allow this worker to be added to the automatic profile?"
-	resp=""
-	until [[ "$resp" != "" ]]; do
-		read -e -i "$callow" workerAllow
-                        
-		available=`echo $available | tr '[A-Z]' '[a-z]'`
-		if [[ "$available" == "y" ]]; then
-			resp="1"
-		elif [[ "$available" == "n" ]]; then
-			resp="0"
-		else
-			echo "Invalid response!"
-		fi
-	done
-	callow=$resp
 
-        echo "Updating Worker..."
+	echo "Enter the password for this worker"
+	read -e -i "$cpass" workerPass
+	echo ""
 
-        Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
-        RunSQL "$Q"
+	echo "Enter the priority for this worker"
+	echo "Note: this is not yet in use"
+	read -e -i "$cpriority" workerPriority
 
+	E="Do you want to allow this worker to be added to the automatic profile?"
+	GetYesNoSelection workerAllow "$E" "$callow"
+
+	echo "Updating Worker..."
+
+	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority=$workerPriority, auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
+	RunSQL "$Q"
+	echo "done"
+	sleep 1
 }
 
 
@@ -581,33 +576,19 @@ Delete_Workers()
 	clear
 	ShowHeader
 	echo "SELECT WORKER TO DELETE"
-	M=""
-	i=0
-	UseDB "smartcoin"
 	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		workerName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$workerName")
-	done
-	DisplayMenu "$M"
-	echo "Please select the worker from the list above to delete"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
+	E="Please select the worker from the list above to delete"
+	GetPrimaryKeySelection thisWorker "$Q" "$E"
+	
 
 	echo "Deleting Worker..."
 	Q="DELETE FROM worker WHERE pk_worker=$PK;"
 	RunSQL "$Q"
 	# We also have to delete the profile_map entries that refer to this worker!
-	Q="DELETE FROM profile_map WHERE fk_worker=$PK;"
+	Q="DELETE FROM profile_map WHERE fk_worker=$thisWorker;"
 	RunSQL "$Q"
+	echo "done."
+	sleep 1
 }
 
 
@@ -642,46 +623,20 @@ Add_Profile()
 	echo "Enter a name for this profile"
 	read profileName
 	echo ""
-	Q="INSERT INTO profile set name=\"$profileName\";"
+	Q="INSERT INTO profile set name='$profileName';"
 	R=$(RunSQL "$Q")
 		
 	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
 	R=$(RunSQL "$Q")
 	profileID=$(Field 1 "$R")
 
-	instance=0
-
-
-
-
-
-	Q="Select pk_miner, name from miner;"
-	R=$(RunSQL "$Q")
-	i=0
-	M=""
-	for row in $R; do
-		let i++
-		PK=$(Field 1 "$row")
-		minerName=$(Field 2 "$row")
-		M=$M$(FieldArrayAdd "$PK	$i	$minerName")
-	done
-	DisplayMenu "$M"
-
-	echo "Please select the miner from the list above to use with this profile"
-
-	selection=""
-	until [[ "$selection" != "" ]]; do
-		# Process Menu Selection
-		selection=$(GetMenuSelection "$M")
-		if [[ "$selection" == "ERROR" ]]; then
-			DisplayError "Error! Invalid selection!" "5"
-			selection=""
-		fi
-	done
-	minerSelection=$selection
+\
+	Q="Select pk_miner, name from miner WHERE fk_machine=1;"
+	E="Please select the miner from the list above to use with this profile"
+	GetPrimaryKeySelection thisMiner "$Q" "$E"
 	echo ""
 	
-	
+	instance=0	
 	profileProgress=""
 	addedInstances=""
 	finished=""
@@ -696,97 +651,38 @@ Add_Profile()
 
 		echo -e "$profileProgress"
 		echo -e "$addedInstances"
-		Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
-		R=$(RunSQL "$Q")
-		i=0
-		M=""
-		for row in $R; do
-			let i++
-			PK=$(Field 1 "$row")
-			workerName=$(Field 2 "$row")
-			M=$M$(FieldArrayAdd "$PK	$i	$workerName")
-		done
-		DisplayMenu "$M"
-		
-		echo "Please select the pool worker from the list above to use with this profile"
-		
-		selection=""
-		until [[ "$selection" != "" ]]; do
-			# Process Menu Selection
-			selection=$(GetMenuSelection "$M")
-			if [[ "$selection" == "ERROR" ]]; then
-				DisplayError "Error! Invalid selection!" "5"
-				selection=""
-			fi
-		done
-		workerSelection=$selection
+		Q="SELECT pk_worker, CONCAT(pool.name,'.', worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+		E="Please select the pool worker from the list above to use with this profile"
+		GetPrimaryKeySelection thisWorker "$Q" "$E"
 		echo ""
 	
 	
-	
-	
 		Q="SELECT pk_device, name FROM device WHERE disabled=0;"
-		R=$(RunSQL "$Q")
-		i=0
-		M=""
-		for row in $R; do
-			let i++
-			PK=$(Field 1 "$row")
-			deviceName=$(Field 2 "$row")
-			M=$M$(FieldArrayAdd "$PK	$i	$deviceName")
-		done
-		DisplayMenu "$M"
+		E="Please select the device from the list above to use with this profile"
+		GetPrimaryKeySelection thisDevice "$Q" "$E"
+
 		
-		echo "Please select the device from the list above to use with this profile"
-		
-		selection=""
-		until [[ "$selection" != "" ]]; do
-			# Process Menu Selection
-			selection=$(GetMenuSelection "$M")
-			if [[ "$selection" == "ERROR" ]]; then
-				DisplayError "Error! Invalid selection!" "5"
-				selection=""
-			fi
-		done
-		deviceSelection=$selection
-		
-		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile) VALUES ($deviceSelection,$minerSelection,$workerSelection,$profileID);"
+		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile) VALUES ($thisDevice,$thisMiner,$thisWorker,$profileID);"
 		R=$(RunSQL "$Q")
 
 		clear
 		ShowHeader
-		Q="SELECT device.name, CONCAT(pool.name,\".\",worker.name) FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
+		Q="SELECT device.name, CONCAT(pool.name,'.',worker.name) FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
 "
 		R=$(RunSQL "$Q")
 		addedInstances=""
 		for row in $R; do
-			thisDevice=$(Field 1 "$row")
-			thisWorker=$(Field 2 "$row")
-			addedInstances="$addedInstances $thisDevice - $thisWorker\n"
+			addedDevice=$(Field 1 "$row")
+			addedWorker=$(Field 2 "$row")
+			addedInstances="$addedInstances $addedDevice - $addedWorker\n"
 		done
 		addedInstances="$addedInstances\n"
 		echo -e "$profileProgress"
 		echo -e "$addedInstances"
 		echo ""
-		echo "Your current progress on this profile is listed above."
-		echo "Would you like to continue adding instances to this profile? (y)es or (n)o?"
-		
-		resp=""
-		until [[ "$resp" != "" ]]; do
-			read available
-	                
-			available=`echo $available | tr '[A-Z]' '[a-z]'`
-			if [[ "$available" == "y" ]]; then
-				resp="1"
-			elif [[ "$available" == "n" ]]; then
-				resp="0"
-			else
-				echo "Invalid response!"
-		
-	
-			fi
-		done
-
+		E="Your current progress on this profile is listed above."
+		E="$E Would you like to continue adding instances to this profile? (y)es or (n)o?"
+		GetYesNoSelection resp "$E"
 
 		if [[ "$resp" == "0" ]]; then
 			finished=1
@@ -805,33 +701,19 @@ Delete_Profile()
 	M=""
 	i=0
 	UseDB "smartcoin"
-	Q="SELECT * FROM profile;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		profileName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$profileName")
-	done
-	DisplayMenu "$M"
-	echo "Please select the profile from the list above to delete"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
+	Q="SELECT pk_profile, name FROM profile;"
+	E="Please select the profile from the list above to delete"
+	GetPrimaryKeySelection thisProfile "$Q" "$E"
 
 	echo "Deleting profile..."
-
-	
 	# Get a list of the profile_map entries that reference the profile...
-	Q="DELETE FROM profile_map WHERE fk_profile=$PK;"
+	Q="DELETE FROM profile_map WHERE fk_profile=$thisProfile;"
 
 	# And finally, delete the profile!
-	Q="DELETE FROM profile WHERE pk_profile=$PK;"
+	Q="DELETE FROM profile WHERE pk_profile=$thisProfile;"
 	RunSQL "$Q"
+	echo "done."
+	sleep 1
 }
 
 onfigure Devices Menu
@@ -864,6 +746,10 @@ Add_Device()
 	echo "ADDING DEVICE"
 	echo "-------------"
 
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine you wish to add the device on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
 	echo "Give this device a nickname"
 	read deviceName
 	echo ""
@@ -873,71 +759,41 @@ Add_Device()
 	echo ""
 
 	
-	echo "Do you want to disable this device?"
+	E="Do you want to disable this device?"
+	GetYesNoSelection deviceDisabled"$E"
 	# TODO: needs auto_allow field!
-	resp=""
-	until [[ "$resp" != "" ]]; do
-		read deviceDisabled
-                        
-		available=`echo $deviceDisabled | tr '[A-Z]' '[a-z]'`
-		if [[ "$deviceDisabled" == "y" ]]; then
-			resp="1"
-		elif [[ "$deviceDisabled" == "n" ]]; then
-			resp="0"
-		else
-			echo "Invalid response!"
-		fi
-	done
-	deviceDisabled=$resp
-
+	
         echo "Adding Device..."
 
-        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled'"
+        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine=$thisMachine"
         RunSQL "$Q"
-	screen -r $sessionName -X wall "Device Added!"
+	screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
+	echo "done."
+	sleep 1
 }
 Edit_Device() 
 {
 	clear
 	ShowHeader
-	echo "SELECT DEVICE TO EDIT"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM device;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		deviceName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$deviceName")
-	done
-	DisplayMenu "$M"
-	echo "Please select the device from the list above to edit"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
-	EditPK=$PK
+	Q="SELECT pk_device, name FROM device WHERE fk_machine=1;"
+	E="Please select the device from the list above to edit"
+	GetPrimaryKeySelection EditPK "$Q" "$E"
         
-	Q="SELECT * FROM device WHERE pk_device=$PK;"
+	Q="SELECT name,fk_device, fk_machine, disabled FROM device WHERE pk_device=$EditPK;"
 	R=$(RunSQL "$Q")
-	cname=$(Field 2 "$R")
-	cdevice=$(Field 3 "$R")
+	cname=$(Field 1 "$R")
+	cdevice=$(Field 2 "$R")
+	cmachine=$(Field 3 "$R")
 	cdisabled=$(Field 4 "$R")
-	if [[ "$cdisabled" == "1" ]]; then
-		cdisabled="y"
-	else
-		cdisabled="n"
-	fi
 
 	clear
 	ShowHeader
 	echo "EDITING DEVICE"
 	echo "--------------"
+
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine for this device"
+	GetPrimaryKeySelection thisMachine "$Q" "$E" "$cmachine"
 
 	echo "Give this device a nickname"
 	read -e -i "$cname" deviceName
@@ -951,27 +807,16 @@ Edit_Device()
 	echo ""
 
 	
-	echo "Do you want to disable this device?"
+	E="Do you want to disable this device?"
+	GetYesNoSelection deviceDisabled "$E" "$cdisabled"
 	# TODO: needs auto_allow field!
-	resp=""
-	until [[ "$resp" != "" ]]; do
-		read -e -i "$cdisabled" deviceDisabled
-                        
-		deviceDisabled=`echo $deviceDisabled | tr '[A-Z]' '[a-z]'`
-		if [[ "$deviceDisabled" == "y" ]]; then
-			resp="1"
-		elif [[ "$deviceDisabled" == "n" ]]; then
-			resp="0"
-		else
-			echo "Invalid response!"
-		fi
-	done
-	deviceDisabled=$resp
 
         echo "Adding Device..."
 
-        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled' WHERE pk_device=$EditPK"
+        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled' WHERE pk_device=$EditPK"
         RunSQL "$Q"
+	echo done
+	sleep 1
 
 }
 Delete_Device()
@@ -979,37 +824,23 @@ Delete_Device()
 	clear
 	ShowHeader
 	echo "SELECT DEVICE TO DELETE"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT * FROM device;"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		deviceName=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$deviceName")
-	done
-	DisplayMenu "$M"
-	echo "Please select the device from the list above to delete"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
+
+	Q="SELECT pk_device, name FROM device;"
+	E="Please select the device from the list above to delete"
+	GetPrimaryKeySelection thisDevice "$Q" "$E"
 
 	echo "Deleting device..."
 
 
 	# Delete entries from the profile profile_map that use this device!
-	Q="DELETE from profile_map where fk_device=$PK;"
+	Q="DELETE from profile_map where fk_device=$thisDevice;"
 	RunSQL "$Q"
 
 	# And finally, delete the device!
-	Q="DELETE FROM device WHERE pk_device=$PK;"
+	Q="DELETE FROM device WHERE pk_device=$thisDevice;"
 	RunSQL "$Q"
+	echo "done."
+	sleep 1
 }
 
 while true
@@ -1019,14 +850,13 @@ do
 	echo "1) Reboot Computer"
 	echo "2) Kill smartcoin (exit)"
 	echo "3) Disconnect from smartcoin (leave running)"
-	echo "4) Regenerate Automatic Profile"
+	echo "4) Use Autoprofile"
 	echo "5) Select Profile"
 	echo "6) Configure Miners"
 	echo "7) Configure Workers"
 	echo "8) Configure Profiles"
 	echo "9) Configure Devices"
 	echo "10) Configure Pools"
-	#echo "11) View Miner session"
 
 	read selection
 
@@ -1060,13 +890,8 @@ do
 			echo "detach" >$commPipe
 			;;
 		4)
-			clear
-			ShowHeader
-			echo "Generating new Automatic profile..."
-			GenAutoProfile
-			echo "done."
-			sleep 3		
-			;;
+			Do_AutoProfile
+			;;		
 		5)
 			Do_ChangeProfile
 			;;
