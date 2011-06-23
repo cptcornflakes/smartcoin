@@ -25,6 +25,7 @@ LoadProfileOnChange()
 		killMiners
 		clear
 		ShowHeader
+		echo "A configuration change has been detected.  Loading the new profile...."
 		startMiners $MACHINE	
 	fi		
 }
