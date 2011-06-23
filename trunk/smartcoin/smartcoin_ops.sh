@@ -7,7 +7,7 @@ HEADER_smartcoin_ops="included"
 
 . $HOME/smartcoin/smartcoin_config.sh
 # Define the command pipe to the backend
-commPipe=$HOME/smartcoin/.smartcoin.cmd
+commPipe=$HOME/smartcoin/smartcoin.cmd
 
 ShowHeader() {
 	echo "smartcoin Management System "    $(date)
@@ -26,18 +26,8 @@ export MYSQL_DB_CRED
 CSQL_DIR="/var/run/SQL_Ops"
 CSQL_ID=""
 
-#Example:
-#  QUERY="SELECT field1, field2 FROM table"
-#  RESULT=$(RunSQL "$QUERY")
-#  for ROW in $RESULT; do
-#      FIELD1=$(Field 1 "$ROW")
-#      FIELD2=$(Field 2 "$ROW")
-#      echo "Field1: $FIELD1; Field2: $FIELD2"
-#  done
 
-#Usage:
-#  Var=$(RunSQL "<SQL query>")
-#Returns resulting rows in $Var; you can iterate through them using 'for'
+
 RunSQL()
 {
         local Q
@@ -52,7 +42,7 @@ RunSQL()
 
 #Usage:
 #  Field=$(Field 1 "<SQL row>")
-#Used in a 'for' loop to extract a field value from a row
+#Used in a 'for' loop to extract a field value from a FieldArray row
 Field()
 {
         local Row FieldNumber
@@ -72,7 +62,7 @@ UseDB()
         fi
 }
 
-UseDB "$MySqlDBName"
+UseDB "smartcoin"
 
 Field_Translate()
 {
@@ -87,7 +77,240 @@ FieldArrayAdd()
 	echo "$menuItem "
 }
 
-GetCurrentProfile() {
+
+
+
+
+
+
+
+
+startMiners() {
+	local thisMachine=$1
+	
+	local FA=$(GenCurrentProfile "$thisMachine")
+
+	i=0
+	for row in $FA; do
+			
+		let i++
+		local key=$(Field 1 "$row")
+		local pk_device=$(Field 2 "$row")
+		local pk_miner=$(Field 3 "$row")
+		local pk_worker=$(Field 4 "$row")
+		echo "Starting miner $key!"
+		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+		if [[ "$i" == "1" ]]; then
+			screen -d -m -S $minerSession -t "$key" $cmd
+			screen -r $minerSession -X zombie ko
+			screen -r $minerSession -X chdir
+			screen -r $minerSession -X hardstatus on
+			screen -r $minerSession -X hardstatus alwayslastline
+			screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
+		else
+			#TODO: Use screen -S $minerSession?
+			screen  -d -r $minerSession -X screen -t "$key" $cmd
+		fi
+	done
+}
+
+killMiners() {
+	cmd=`screen -ls`
+	DeleteTemporaryFiles
+	screen -d -r $minerSession -X quit 
+	cmd=`screen -ls`
+	sleep 1
+}
+
+GotoStatus() {
+	attached=`screen -ls | grep $sessionName | grep Attached`
+
+	if [[ "$attached" != "" ]]; then
+		screen  -d -r -p 0
+	else
+		screen  -r $sessionName -p 0
+	fi
+	
+}
+
+
+Log() {
+	local line="$1"
+	local dte=`date "+%D %T"`
+	echo -e "$dte\t$line\n" >> ~/smartcoin.log
+}
+
+
+
+DeleteTemporaryFiles() {
+	rm -rf $HOME/smartcoin/.smartcoin* 2>/dev/null
+	rm -rf $home/smartcoin/.Miner* 2>/dev/null
+}
+
+
+
+### PROFILE RELATED FUNCTIONS ###
+# TODO:  These should be in their own include file I think
+GetCurrentProfile()
+{
+	local thisMachine=$1
+
+	local Donate=$(DonationActive)
+
+	if [[ "$Donate" ]]; then
+		echo "donate"
+	else
+		Q="SELECT fk_profile FROM current_profile WHERE fk_machine=$MACHINE;"
+		R=$(RunSQL "$Q")
+		echo $(Field 1 "$R")
+	fi
+}
+GenCurrentProfile()
+{
+	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+
+	local thisMachine=$1
+	local thisProfile=$(GetCurrentProfile "$thisMachine")
+	local FieldArray
+	
+	local Donate=$(DonationActive) 
+
+	#TODO: how to test if true the correct way!
+
+	if [[ "$Donate" ]]; then
+		# Generate the FieldArray via DonateProfile
+		Log "Generating Donation Profile"
+		FieldArray=$(GenDonationProfile "$thisMachine")
+	elif [[ "$thisProfile" == "-1" ]]; then
+		# Generate the FieldArray via AutoProfile
+
+		FieldArray=$(GenAutoProfile "$thisMachine")
+	else
+		# Generate the FieldArray via the database
+		Q="SELECT CONCAT('Miner.',pk_profile_map), fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker, fk_device"
+        	FieldArray=$(RunSQL "$Q")
+	fi
+	
+
+	echo $FieldArray	
+}
+
+GenAutoProfile()
+{
+	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	local thisMachine=$1
+
+	local FA
+	local i=0
+
+	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	R=$(RunSQL "$Q")
+	thisMiner=$(Field 1 "$R")
+
+	Q="SELECT pk_worker FROM worker WHERE auto_allow=1 ORDER BY fk_pool ASC;"
+	R=$(RunSQL "$Q")
+
+	
+	for thisWorker in $R; do
+		Q="SELECT pk_device from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
+		R2=$(RunSQL "$Q")
+		for thisDevice in $R2; do
+			let i++
+		
+			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+		done
+	done
+
+	echo "$FA"
+}
+
+
+GenDonationProfile()
+{
+	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	local thisMachine=$1
+	local FA
+	local i=0
+	local donationWorkers="-4 -3 -2 -1"
+
+	
+	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	R=$(RunSQL "$Q")
+	thisMiner=$(Field 1 "$R")
+
+
+	
+
+	for thisDonationWorker in $donationWorkers; do
+		Q="SELECT pk_device from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
+		R=$(RunSQL "$Q")
+		for thisDevice in $R; do
+		
+			let i++
+		
+			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker")
+		done
+	done
+
+	echo "$FA"
+}
+
+# In addition, line 26 in _launcher.sh needs changed to call this, instead
+# of an sqlQuery
+GetWorkerInfo()
+{
+	# Returns a FieldArray containing user, pass, pool.server, pool.port, pool.name
+	local pk_worker=$1
+	local FA
+
+
+	# Handle special cases, such as special donation keys
+	case "$pk_worker" in
+	-1)
+		# Deepbit donation worker
+		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		;;
+	-2)
+		# Bitcoin.cz donation worker
+		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		;;
+	-3)
+		# BTCGuild donation worker
+		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		;;
+	-4)
+		# BTCMine donation worker
+		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		;;
+	*)
+		# Special no special cases, get information from the database
+		Q="SELECT user,pass,pool.server, pool.port, pool.name from worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool WHERE pk_worker=$pk_worker;"
+		FA=$(RunSQL "$Q")
+		;;
+
+	esac
+
+	echo $FA
+}
+
+GetProfileName() {
+	local thisMachine=$1
+
+	local thisProfile=$(GetCurrentProfile $thisMachine)
+	local Donate=$(DonationActive)
+
+	if [[ "$Donate" ]]; then
+		echo "Donation"
+	elif [[ "$thisProfile" == "-1" ]]; then
+		echo "Automatic"
+	else
+		Q="SELECT name FROM profile WHERE pk_profile=$thisProfile;"
+		R=$(RunSQL "$Q")
+		echo $(Field 1 "$R")
+	fi
+}
+
+GetCurrentDBProfile() {
 	local thisMachine=$1
 
 	UseDB "smartcoin"
@@ -96,11 +319,8 @@ GetCurrentProfile() {
 	echo $(Field 1 "$R")
 }
 SetCurrentProfile() {
-	local thisProfile=$1
-	local thisMachine
-	Q="SELECT fk_machine FROM profile WHERE pk_profile=$thisProfile;"
-	R=$(RunSQL "$Q")
-	thisMachine=$(Field 1 "$R")
+	local thisMachine=$1
+	local thisProfile=$2
 
 	Q="DELETE FROM current_profile WHERE fk_machine=$thisMachine;"
 	RunSQL "$Q"
@@ -108,182 +328,69 @@ SetCurrentProfile() {
 	RunSQL "$Q"
 }
 
-startMiners() {
-	# TODO: Should we pass in the machine PK, then use that to get the current_profile?
-	local profile=$1
 
-	# Get the machine number associated with the profile
-	Q="SELECT fk_machine FROM profile WHERE pk_profile=$profile;"
-	R=$(RunSQL "$Q")
-	local machine=$(Feild 1 "$R")
+AddTime()
+{
+	local baseTime=$1
+	local minutesToAdd=$2
+
+	local minutes=`expr $baseTime % 100` #${baseTime:2:3}
+	local hours=`expr $baseTime / 100` #${baseTime:0:2}
+
+	# Add minutes and keep between 0 and 60
+	local totalMinutes=$(($minutes+$minutesToAdd))
+	local carryOver=$(($totalMinutes/60))
+	local correctedMinutes=$(($totalMinutes%60))
+	correctedMinutes=`printf "%02d" $correctedMinutes`
 	
-	# TODO: since any profile_map with a defined fk_profile already limits to teh correct machine,
-	# the $machine var will be used to invoke ssh for remote machines
-	UseDB "smartcoin"
-	Q="SELECT pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$profile;"
-	R=$(RunSQL "$Q")
-	i=0
-
-	for Row in $R; do	
-		let i++
-		local PK=$(Field 1 "$Row")
-		local device=$(Field 2 "$Row")
-		local miner=$(Field 3 "$Row")
-		local worker=$(Field 4 "$Row")
-
-		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $device $miner $worker"
-		if [[ "$i" == "1" ]]; then
-		screen -d -m -S $minerSession -t "smartcoin.$PK" $cmd
-		screen -r $minerSession -X zombie ko
-		screen -r $minerSession -X chdir
-		screen -r $minerSession -X hardstatus on
-		screen -r $minerSession -X hardstatus alwayslastline
-		screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u
-		)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %d/%m %{W}%c %{g}]'
-		else
-		screen  -d -r $minerSession -X screen -t "smartcoin.$PK" $cmd
-
-		fi
-		sleep 1
-	done
-}
-
-killMiners() {
-	local profile=$1
-	DeleteTemporaryFiles
-	screen -d -r $minerSession -X quit
-
-
-	sleep 1
-}
-
-GotoStatus() {
-	attached=`screen -ls | grep $sessionName | grep Attached`
-
-	if [[ "$attached" != "" ]]; then
-		screen  -d -r -p status
-	else
-		screen  -r $sessionName -p status
-	fi
+	# Add remainder to hours
+	local correctedHours=$(($hours+carryOver))
+	correctedHours=$(($correctedHours%24))
 	
+	echo $correctedHours$correctedMinutes
+
+
 }
 
-Log() {
-	local line
-	line="$1"
-	echo -e "$line\n" >> ~/smartcoin.log
+
+
+DonationActive2() {
+	echo ""
 }
 
-GenAutoProfile() {
-	#TODO: SHould this be dynamic??
-	local machine=$1 #TODO: not used yet
-	local device
-	local miner
-	local worker
-	local R
-	local R2
-	local R3
-	Log "Generating Automatic Profile..."
 
-	#TODO: auto_profile primary keys will be -1000-$machinePK when multi-machine support is in
-	# Has the auto profile been added to the database yet?
-	Q="INSERT IGNORE INTO profile (pk_profile,name,fk_machine,auto_allow) values (-1, 'Automatic',1,1)";
+DonationActive() {
+	Q="SELECT value FROM settings WHERE data='donation_start';"
 	R=$(RunSQL "$Q")
-	Log "$Q"
-	# Next, erase any old autoprofile information from profile_map
-	# TODO: shouled entries be stored in the negative range?
-	Q="DELETE FROM profile_map WHERE fk_profile=-1;"
+	local start=$(Field 1 "$R")
+	
+	Q="SELECT value FROM settings WHERE data='donation_time';"
 	R=$(RunSQL "$Q")
-	Log "$Q"
-	Q="SELECT COUNT(*) from device WHERE fk_machine=1;"
-	R=$(RunSQL "$Q")
-	local rows=$(Field 1 "$R")
-	if [[ "$rows" != "0" ]]; then
-		# There is at least one device
-		Q="SELECT COUNT(*) from miner WHERE fk_machine=1;"
-		R=$(RunSQL "$Q")
-		rows=$(Field 1 "$R")
-		if [[ "$rows" != "0" ]]; then
-			# There is at least one miner, and one device
-			Q="SELECT COUNT(*) FROM worker;"
-			R=$(RunSQL "$Q")
-			rows=$(Field 1 "$R")
-			if [[ "$rows" != "0" ]]; then
-				# There is at least one worker, one miner and one device
-				# Lets do the Automatic profile!  It works with the first
-				# set up miner TODO: Make the miner selectable?
+	local duration=$(Field 1 "$R")
 
-				Q="SELECT pk_miner FROM miner WHERE fk_machine=1 ORDER BY pk_miner ASC LIMIT 1;"
-				R=$(RunSQL "$Q")
-				miner=$(Field 1 "$R")
-				
-				Q="SELECT pk_device FROM device WHERE fk_machine=1 AND disabled=0;"
-				R=$(RunSQL "$Q")
-				for row in $R; do
-					device=$(Field 1 "$row")
-					Q="SELECT pk_worker FROM worker WHERE auto_allow;"
-					R2=$(RunSQL "$Q")
-					for row2 in $R2; do
-						worker=$(Field 1 "$row2")
-						Q="INSERT INTO profile_map (fk_device, fk_miner, fk_worker, fk_profile) values ($device,$miner,$worker,-1);"
-						R3=$(RunSQL "$Q")
-					done
-				done
-			else
-				Log "No Workers Found!"
+	local end=$(AddTime "$start" "$duration")
+
+	curTime=`date +%k%M`
+
+	ret=""
+
+	if [[ "$start" -le "$end" ]]; then
+		# Normal
+		if [[ "$curTime" -ge "$start" ]]; then
+			if [[ "$curTime" -lt "$end"  ]]; then
+				ret="true"
 			fi
-		else
-			Log "No miners found!"
 		fi
 	else
-		Log "No devices Found!"
+		 # Midnight carryover
+		if [[ "$curTime" -ge "$start" ]]; then
+			ret="true"
+		fi
+		if [[ "$curTime" -lt "$end" ]]; then
+			ret="true"
+		fi
 	fi
+	echo $ret
+
 }
 
-GenerateDonationProfile() {
-	thisMachine=$1
-
-	# Make the special donation profile
-	Q="INSERT INTO profile (pk_profile,fk_machine,name,auto_allow) VALUES (-100,$thisMachine,'Donating!',1);"
-	RunSQL "$Q"
-
-	# Deepbit Donation Worker
-	Q="INSERT INTO worker (pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (-1,1,'Donate','jondecker76@gmail.com_donate','donate',1,0);"
-	RunSQL "$Q"
-
-	# Bitcoin.cz Donation Worker
-	Q="INSERT INTO worker (-2,pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (2,'Donate','jondecker76.donate','donate',1,0);"
-	RunSQL "$Q"	
-
-	# BTCGuild Donation Worker
-	Q="INSERT INTO worker (-3,pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (3,'Donate','jondecker76_donate','donate',1,0);"
-	RunSQL "$Q"
-
-	# BTCMine Donation Worker	
-	Q="INSERT INTO worker (-4,pk_worker,fk_pool,name,user,pass,auto_allow,disabled) VALUES (4,'Donate','jondecker76@donate','donate',1,0);"
-	RunSQL "$Q"	
-
-	# Update the profile_map
-	Q="DELETE FROM profile_map WHERE fk_profile=-100 AND fk_machine=$thisMachine"
-	RunSQL "$Q"
-
-	Q="SELECT * FROM device WHERE disabled=0;"
-	R=$(RunSQL "$Q")
-	
-	for row in $R; do
-		thisDevice=$(Field 1 "$row")
-		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
-		RunSQL "$Q"
-		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
-		RunSQL "$Q"
-		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
-		RunSQL "$Q"
-		Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile,fk_machine) VALUES ($thisDevice,1,-1,-100,$thisMachine)";
-		RunSQL "$Q"	
-	done
-}
-
-DeleteTemporaryFiles() {
-	# TODO: don't delete the commpipe!
-	rm $HOME/smartcoin/.smartcoin*
-}

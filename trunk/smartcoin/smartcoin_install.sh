@@ -123,7 +123,7 @@ if [[ "$phoenixMiner" != "" ]]; then
 	else
 		knl="poclbm"
 	fi
-	Q="INSERT IGNORE INTO miner (fk_machine, name,launch,path,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$phoenixMiner',0);"
+	Q="INSERT IGNORE INTO miner (fk_machine, name,launch,path,miner_default,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$phoenixMiner',0,0);"
 	R=$(RunSQL "$Q")
 fi
 
@@ -131,10 +131,12 @@ fi
 poclbmMiner=`locate poclbm.py | grep -vi svn`
 poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$phoenixMiner" != "" ]]; then
-	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0);"
+	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,miner_default,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
 	R=$(RunSQL "$Q")
 fi
-
+# Set the default miner
+Q="UPDATE miner SET miner_default=1 WHERE pk_miner=1;"
+RunSQL "$Q"
 
 # Set the current profile! 
 # Defaults to donation until they get one set up
@@ -156,7 +158,9 @@ read -e -i "36" myDonation
 
 Q="INSERT INTO settings SET data='donation_time', value='$myDonation', description='Hashpower donation minutes per day';"
 RunSQL "$Q"
-let startTime=$RANDOM%2359
+let startTime_hours=$RANDOM%23
+let startTime_minutes=$RANDOM%59
+startTime=$startTime_hours$startTime_minutes
 Q="INSERT INTO settings SET data='donation_start', value='$startTime', description='Time to start hashpower donation each day'"
 RunSQL "$Q"
 

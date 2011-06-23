@@ -4,48 +4,70 @@
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
+MACHINE=$1
+Log "Starting status monitor for machine $MACHINE"
+
+
+# Automaticall load a profile whenever it changes
+oldProfile
+LoadProfileOnChange()
+{
+	# Watch for a change in the profile
+	newProfile=$(GetCurrentProfile $MACHINE)
+
+
+	if [[ "$newProfile" != "$oldProfile" ]]; then
+		Log "NEW PROFILE DETECTED!"
+		Log "	Switching from profile: $oldProfile to profile: $newProfile"
+		DeleteTemporaryFiles
+		oldProfile=$newProfile
+		# Reload the miner screen session
+		killMiners
+		clear
+		ShowHeader
+		startMiners $MACHINE	
+	fi		
+}
+
+
+
 
 ShowStatus() {
 	status=""
+
+	Q="SELECT name FROM machine WHERE pk_machine=$MACHINE"
+	R=$(RunSQL "$Q")
+	hostName=$(Field 1 "$R")
+
+	status="\e[01;33mHost: $hostName\e[00m\n"
 	UseDB "smartcoin"
-	Q="Select device,type from device WHERE disabled=0 ORDER BY device ASC";
+	Q="Select name,device,type from device WHERE fk_machine=$MACHINE AND disabled=0 ORDER BY device ASC";
 	R=$(RunSQL "$Q")
 
 
 	for device in $R                                              
 	do 
-		deviceID=$(Field 1 "$device")
-		deviceType=$(Field 2 "$device")
+		deviceName=$(Field 1 "$device")
+		deviceID=$(Field 2 "$device")
+		deviceType=$(Field 3 "$device")
 		if [[ "$deviceType" == "gpu" ]]; then
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
 		        temperature=`aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';`
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
 			usage=`aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';`
-			status=$status"GPU $deviceID: Temp: $temperature load: $usage\n"
+			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
 	cpu=`iostat | awk '{if(NR==4) {print "CPU Load : " $1 "%"}}'`
-	status=$status"$cpu\n"
+	status=$status"$cpu\n\n"
 
 	compositeAccepted="0"
 	compositeRejected="0"
 
 	# Get current profile for the machine number
-	# TODO: machine logic
-	# TODO: make into a generalized function in smartcoin_ops.sh
-	Q="SELECT fk_profile from current_profile WHERE fk_machine=1;"
-	R=$(RunSQL "$Q")
-	$CURRENT_PROFILE=$(Field 1 "$R")
-
-	UseDB "smartcoin"
-	Q="SELECT name FROM profile WHERE pk_profile=$CURRENT_PROFILE;"
-	R=$(RunSQL "$Q")
-	profileName=$(Field 1 "$R")
-	status=$status"Profile: $profileName\n"
-
-	UseDB "smartcoin"
-	Q="SELECT profile_map.pk_profile_map,profile_map.fk_device, profile_map.fk_miner, profile_map.fk_worker,worker.fk_pool,device.name from profile_map LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN device on profile_map.fk_device = device.pk_device WHERE profile_map.fk_profile=$CURRENT_PROFILE ORDER BY fk_pool,fk_device ASC;"
-	R=$(RunSQL "$Q")
+	profileName=$(GetProfileName "$MACHINE")
+	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
+	FA=$(GenCurrentProfile "$MACHINE")
 
 	oldPool=""
 	hashes="0.00"
@@ -58,13 +80,17 @@ ShowStatus() {
 	totalRejected="0"
 	compositeRejected="0"
 
-	for Row in $R; do
-		PK=$(Field 1 "$Row")
+	for Row in $FA; do
+		key=$(Field 1 "$Row")
 		device=$(Field 2 "$Row")
 		miner=$(Field 3 "$Row")
 		worker=$(Field 4 "$Row")
-		pool=$(Field 5 "$Row")
-		deviceName=$(Field 6 "$Row")
+
+		FAworker=$(GetWorkerInfo "$worker")
+		pool=$(Field 5 "$FAworker")
+
+		Q="SELECT name FROM device WHERE pk_device=$device;"
+		deviceName=$(RunSQL "$Q")
 
 		
 		if [ "$oldPool" != "$pool" ]; then
@@ -80,17 +106,13 @@ ShowStatus() {
 			fi
 
 			oldPool=$pool
-			# get the name of the pool
-			Q="SELECT name from pool where pk_pool=$pool;"
-			R2=$(RunSQL "$Q")
-			poolName=$(Field 1 "$R2")
-			status=$status"--------$poolName--------\n"
+			status=$status"\e[01;32m--------$pool--------\e[00m\n"
 		fi
 
-		screen -d -r $minerSession -p smartcoin.$PK -X hardcopy "$HOME/smartcoin/.smartcoin.$PK"
-		cmd=`cat  "$HOME/smartcoin/.smartcoin.$PK" | grep Mhash`
+		screen -d -r $minerSession -p $key -X hardcopy "$HOME/smartcoin/.$key"
+		cmd=`cat  "$HOME/smartcoin/.$key" | grep Mhash`
 		if [ -z "$cmd" ]; then
-			cmd="<<<DOWN>>>"
+			cmd="\e[00;31m<<<DOWN>>>\e[00m"
 		fi
 		status=$status"$deviceName:\t$cmd\n"                    
                 hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
@@ -116,7 +138,7 @@ ShowStatus() {
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
-	percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted" | bc -l)
+	percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted* 100" | bc -l)
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0"
 	fi
@@ -136,10 +158,7 @@ echo "INITIALIZING SMARTCOIN....."
 
 clear
 while true; do
-	UseDB "smartcoin"
-	Q="SELECT fk_profile FROM current_profile WHERE fk_machine=1;"
-	R=$(RunSQL "$Q")
-	CURRENT_PROFILE=$(Field 1 "$R")
+	LoadProfileOnChange
 	UI=$(ShowStatus)
 	clear
 	ShowHeader
