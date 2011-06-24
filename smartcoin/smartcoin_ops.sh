@@ -195,9 +195,14 @@ GenCurrentProfile()
 	#TODO: how to test if true the correct way!
 
 	if [[ "$Donate" ]]; then
+		# AutoDonate time is right, lets auto-donate!
 		# Generate the FieldArray via DonateProfile
 		Log "Generating Donation Profile"
 		FieldArray=$(GenDonationProfile "$thisMachine")
+	elif [[ "$thisProfile" == "-2" ]]; then
+		# Generous user manually chose the Donation profile!
+		FieldArray=$(GenDonationProfile "$thisMachine")
+		
 	elif [[ "$thisProfile" == "-1" ]]; then
 		# Generate the FieldArray via AutoProfile
 
@@ -295,10 +300,7 @@ GetWorkerInfo()
 		# BTCGuild donation worker
 		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
 		;;
-	-4)
-		# BTCMine donation worker
-		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
-		;;
+	
 	*)
 		# Special no special cases, get information from the database
 		Q="SELECT user,pass,pool.server, pool.port, pool.name from worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool WHERE pk_worker=$pk_worker;"
@@ -317,7 +319,9 @@ GetProfileName() {
 	local Donate=$(DonationActive)
 
 	if [[ "$Donate" ]]; then
-		echo "Donation"
+		echo "Donation (via AutoDonate)"
+	elif [[ "$thisProfile" == "-2" ]]; then
+		echo "Donation (Manual selection)"
 	elif [[ "$thisProfile" == "-1" ]]; then
 		echo "Automatic"
 	else
