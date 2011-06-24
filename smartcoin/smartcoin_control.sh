@@ -637,7 +637,7 @@ Do_Profile() {
 		Delete_Profile
 		;;
 	EDIT)
-		#Edit_Profile
+		Edit_Profile
 		;;
 	*)
 		DisplayError "Invalid selection!" "5"
@@ -659,7 +659,7 @@ Add_Profile()
 	R=$(RunSQL "$Q")
 	profileID=$(Field 1 "$R")
 
-\
+
 	Q="Select pk_miner, name from miner WHERE fk_machine=1;"
 	E="Please select the miner from the list above to use with this profile"
 	GetPrimaryKeySelection thisMiner "$Q" "$E"
@@ -722,6 +722,12 @@ Add_Profile()
 	echo " Your profile is now finished. You can activate it at any time now in the profiles menu."
 	sleep 5
 }
+
+EditProfile()
+{
+
+}
+
 Delete_Profile()
 {
 	clear
