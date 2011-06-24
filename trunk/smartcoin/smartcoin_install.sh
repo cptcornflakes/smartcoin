@@ -52,6 +52,7 @@ echo ""
 
 # Set up the local machine
 Q="INSERT INTO machine (name,server,ssh_port,username,auto_allow,disabled) VALUES ('localhost','127.0.0.1',22,'$USER',1,0);"
+RunSQL "$Q"
 
 
 # Populate the database with default pools

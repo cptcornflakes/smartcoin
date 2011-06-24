@@ -29,6 +29,7 @@ echo "Starting SmartCoin..."
 running=`screen -ls 2> /dev/null | grep $sessionName`
 
 echo "Running check"
+
 if [[ "$running" ]]; then
 	attached=`screen -ls | grep -i attached`
 	echo "Re-attaching to smartcoin..."
@@ -40,6 +41,7 @@ if [[ "$running" ]]; then
 	
 	exit
 fi
+
 
 echo "Starting sessions..."
 screen -d -m -S $sessionName -t control "$HOME/smartcoin/smartcoin_control.sh"
