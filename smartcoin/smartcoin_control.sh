@@ -592,7 +592,7 @@ Add_Workers()
 	echo ""
 
 	E="Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
-	GetYesNoSelection workerAllow "$E" "1"
+	GetYesNoSelection workerAllow "$E" 1
 
 	echo "Adding Worker..."
         Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ($thisPool,'$workerName,'$userName','$password',$workerPriority,$workerAllow,0);"
