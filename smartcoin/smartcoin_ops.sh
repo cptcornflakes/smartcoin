@@ -12,8 +12,8 @@ HEADER_smartcoin_ops="included"
 # GLOBAL VARIABLES
 # TODO: some of these will be added to the settings database table eventually.
 # TODO: The installer can prompt for values, with sane defaults already entered
-sessionName="smartcoin"
-minerSession="miner"
+export sessionName="smartcoin"
+export minerSession="miner"
 commPipe=$HOME/smartcoin/smartcoin.cmd
 statusRefresh="5"
 MySqlHost="127.0.0.1"

@@ -38,8 +38,6 @@ if [[ "$running" ]]; then
 		screen -r $sessionName -p status
 	fi
 	
-	echo "SCREEN RUNNING!"
-	sleep 10
 	exit
 fi
 
