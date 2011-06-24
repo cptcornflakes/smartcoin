@@ -138,7 +138,7 @@ poclbmMiner=`locate poclbm.py | grep -vi svn`
 poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$phoenixMiner" != "" ]]; then
 	echo "Found poclbm miner installed on local system"
-	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
+	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,default_minersudo ,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
 	R=$(RunSQL "$Q")
 fi
 
@@ -158,6 +158,7 @@ RunSQL "$Q"
 # ----------------
 # Ask for donation
 # ----------------
+clear
 donation="Please consider donating a small portion of your hashing power to the author of SmartCoin.  A lot of work has gone in to"
 donation="$donation making this a good stable platform that will make maintaining your miners much easier, more stable"
 donation="$donation and with greater up-time. By donating a small portion"
@@ -166,6 +167,7 @@ donation="$donation Donating just 36 minutes a day of your hashing power is only
 donation="$donation your support and appreciation.  You can always turn this setting off in the menu once you feel you've given back a fair amount."
 donation="$donation\n"
 donation="$donation I pledge the following minutes per day of my hashing power to the author of smartcoin:"
+echo -e $donation
 read -e -i "36" myDonation
 
 Q="INSERT INTO settings SET data='donation_time', value='$myDonation', description='Hashpower donation minutes per day';"
@@ -176,6 +178,8 @@ startTime=$startTime_hours$startTime_minutes
 Q="INSERT INTO settings SET data='donation_start', value='$startTime', description='Time to start hashpower donation each day'"
 RunSQL "$Q"
 if [[ "$myDonation" -gt "0"  ]]; then
+	echo ""
+	echo ""
 	echo "Thank you for your decision to donate! Your donated hashes will start daily at $startTime_hours:$startTime_minutes for $myDonation minutes."
 	echo "You can turn this off at any time from the control screen, and even specify your own start time if you want to."
 fi	
