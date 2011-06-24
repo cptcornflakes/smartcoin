@@ -173,14 +173,17 @@ Do_ChangeProfile() {
 	clear
 	ShowHeader
 
+	autoEntry=$(FieldArrayAdd "-2	1	AutoDonate")
+	autoEntry=$(FieldArrayAdd "-1	2	Automatic")
+
 	# Display menu
 	Q="SELECT pk_machine,name from machine"
 	E="Select the machine from the list above that you wish to change the profile on"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
-	Q="SELECT pk_profile, name FROM profile where fk_machine=$thisMachine ORDER BY pk_profile ASC;"
+	Q="SELECT pk_profile, name FROM profile where fk_machine=$thisMachine AND pk_profile>0 ORDER BY pk_profile ASC;"
 	E="Select the profile from the list above that you wish to switch to"
-	GetPrimaryKeySelection thisProfile "$Q" "$E"
+	GetPrimaryKeySelection thisProfile "$Q" "$E" "" "$autoEntry"
 	
 	SetCurrentProfile "$thisMachine" "$thisProfile"
 	GotoStatus
