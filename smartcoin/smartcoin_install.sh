@@ -145,7 +145,7 @@ fi
 # Set the default miner
 
 # TODO: I should add more logic to determining a default.... Perhaps ask the user which one?
-Q="UPDATE miner SET miner_default=1 WHERE pk_miner=1;"
+Q="UPDATE miner SET default_miner=1 WHERE pk_miner=1;"
 RunSQL "$Q"
 
 # Set the current profile! 
