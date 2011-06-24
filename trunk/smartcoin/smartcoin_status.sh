@@ -21,6 +21,7 @@ if [[ "$running" ]]; then
 	# Automaticall load a profile whenever it changes
 	oldProfile=$(GetCurrentProfile $MACHINE)
 fi
+
 LoadProfileOnChange()
 {
 	# Watch for a change in the profile
