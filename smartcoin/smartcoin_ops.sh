@@ -153,6 +153,19 @@ DeleteTemporaryFiles() {
 
 
 
+
+SetDefaultMiner() {
+	local thisMachine=$1
+	local thisMiner=$2
+
+	Q="UPDATE miner SET miner_default=0 WHERE fk_machine=$thisMachine;"
+	RunSQL "$Q"
+
+	Q="Update miner set miner_default=1 WHERE pk_miner=$thisMiner;"
+	RunSQL "$Q"
+}
+
+
 ### PROFILE RELATED FUNCTIONS ###
 # TODO:  These should be in their own include file I think
 GetCurrentProfile()
