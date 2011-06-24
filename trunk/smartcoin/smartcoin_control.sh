@@ -71,7 +71,7 @@ GetPrimaryKeySelection()
 			Name=$(Field 3 "$thisRecord")
 			M=$M$(FieldArrayAdd "$PK	$index	$Name")
 		done
-		i=$index+1
+		i=$index
 	fi
 
 	
@@ -177,6 +177,7 @@ Do_ChangeProfile() {
 	clear
 	ShowHeader
 
+	# Add the flags for the dynamically generated profiles
 	autoEntry=$(FieldArrayAdd "-2	1	Donation")
 	autoEntry=$autoEntry$(FieldArrayAdd "-1	2	Automatic")
 
@@ -192,6 +193,34 @@ Do_ChangeProfile() {
 	SetCurrentProfile "$thisMachine" "$thisProfile"
 	GotoStatus
 
+}
+Do_Settings() {
+	clear
+	ShowHeader
+
+	echo "EDIT SETTINGS"
+	Q="SELECT pk_settings, description FROM settings WHERE description !='';"
+	E="Select the setting from the list above that you wish to edit"
+	GetPrimaryKeySelection thisSetting "$Q" "$E"
+
+	Q="SELECT value, description FROM settings WHERE pk_settings=$thisSetting;"
+	R=$(RunSQL "$Q")
+	settingValue=$(Field 1 "$R")
+	settingDescription=$(Field 2 "$R")
+	
+	echo "New $settingDescription"
+	read -e -i "$settingValue" newSetting
+
+	# sanitize the input a little
+	newSetting=${$newSetting#:}
+
+	echo "Updating Setting..."
+	Q="UPDATE settings SET value='$newSetting' WHERE pk_settings=$thisSetting;"
+	RunSQL "$Q"
+	sleep 1
+	echo "done."
+
+	
 }
 Do_AutoProfile() {
 	clear
@@ -339,7 +368,12 @@ Delete_Miners()
 	clear
 	ShowHeader
 	echo "SELECT MINER TO DELETE"
-	Q="SELECT pk_miner,name FROM miner;"
+
+	Q="SELECT pk_machine,name FROM machine;"
+	E="Select the machine from the list above that the miner resides on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+	
+	Q="SELECT pk_miner,name FROM miner WHERE fk_machine=$thisMachine;"
 	E="Please select the miner from the list above to delete"
 	GetPrimaryKeySelection thisMiner "$Q" "$E"
 
@@ -668,20 +702,35 @@ Do_Profile() {
 Add_Profile()
 {
 	# Add A Profile
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine you wish to add a profile on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
 	echo "Enter a name for this profile"
 	read profileName
 	echo ""
-	Q="INSERT INTO profile set name='$profileName';"
+	Q="INSERT INTO profile set name='$profileName', fk_machine='$thisMachine';"
 	R=$(RunSQL "$Q")
 		
 	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
 	R=$(RunSQL "$Q")
 	profileID=$(Field 1 "$R")
 
+	# Get the default miner
+	Q="SELECT pk_miner, miner_default FROM miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
+	R=$(RunSQL "$Q")
+	selectIndex=0
+	for thisRecord in $R; do
+		let selectIndex++
+		minerDefault=$(Field 2 "$R")
+		if [[ "$minerDefalut" == "1" ]]; then
+			break
+		fi
+	done
 
-	Q="Select pk_miner, name from miner WHERE fk_machine=1;"
+	Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
 	E="Please select the miner from the list above to use with this profile"
-	GetPrimaryKeySelection thisMiner "$Q" "$E"
+	GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
 	echo ""
 	
 	instance=0	
@@ -742,14 +791,44 @@ Add_Profile()
 	sleep 5
 }
 
-EditProfile()
+Edit_Profile()
 {
 	clear
 	ShowHeader
+	echo "Editing profiles not yet supported!!! Sorry :("
+	sleep 5
+	return
+
+	# TODO:  A lot!  Profile editing is pretty difficult!
+
+	#select * from profile_map LEFT JOIN profile on profile_map.fk_profile = profile.pk_profile WHERE profile.fk_machine=1;
+	clear
+	ShowHeader
 	echo "SELECT PROFILE TO EDIT"
-	Q="SELECT pk_profile, name FROM profile;"
-	E="Please select the profile from the list above to delete"
+
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine you wish to edit the profile on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+	Q="SELECT pk_profile, name FROM profile WHERE fk_machine=$thisMachine;"
+	E="Please select the profile from the list above to edit"
 	GetPrimaryKeySelection thisProfile "$Q" "$E"
+	echo ""
+
+	clear
+	ShowHeader
+
+	Q="SELECT pk_profile_map, worker.name ,miner.name, device.name FROM profile_map LEFT JOIN worker ON profile_map.fk_worker=worker.pk_worker LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner LEFT_JOIN device ON profile_map.fk_device=device.pk_device WHERE fk_profile=$thisProfile;"
+	R=$(RunSQL "$Q")
+	for row in $R; do
+		deviceName=$(Field 4 "$row")
+		minerName=$(Field 3 "$row")
+		workerName=$(Field 2 "$row")
+		thisProfileMap=$(Field 1 "$row")
+
+		echo "$deviceName	$workerName"
+	done	
+	sleep 10
 	
 }
 
@@ -933,7 +1012,7 @@ do
 	echo "1) Reboot Computer"
 	echo "2) Kill smartcoin (exit)"
 	echo "3) Disconnect from smartcoin (leave running)"
-
+	echo "4) Edit Settings"
 	echo "5) Select Profile"
 	echo "6) Configure Miners"
 	echo "7) Configure Workers"
@@ -971,6 +1050,9 @@ do
 			;;
 		3)
 			echo "detach" >$commPipe
+			;;
+		4)
+			Do_Settings
 			;;
 		5)
 			Do_ChangeProfile
