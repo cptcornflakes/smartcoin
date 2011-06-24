@@ -571,8 +571,8 @@ Add_Workers()
         echo "-------------"
 	Q="SELECT pk_pool, name FROM pool;"
 	E="What pool listed above is this worker associated with?"
-
 	GetPrimaryKeySelection thisPool "$Q" "$E"
+
         echo "Give this worker a nickname"
         read -e -i "default" workerName
 	echo ""
@@ -595,7 +595,7 @@ Add_Workers()
 	GetYesNoSelection workerAllow "$E" 1
 
 	echo "Adding Worker..."
-        Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ($thisPool,'$workerName,'$userName','$password',$workerPriority,$workerAllow,0);"
+        Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ('$thisPool','$workerName,'$userName','$password','$workerPriority','$workerAllow','0');"
         R=$(RunSQL "$Q")
 	echo "done."
 	sleep 10
