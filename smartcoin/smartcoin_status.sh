@@ -15,9 +15,12 @@ MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
 
-# Automaticall load a profile whenever it changes
-oldProfile=$(GetCurrentProfile $MACHINE)
+running=`screen -ls 2> /dev/null | grep $minerSession`
 
+if [[ "$running" ]]; then
+	# Automaticall load a profile whenever it changes
+	oldProfile=$(GetCurrentProfile $MACHINE)
+fi
 LoadProfileOnChange()
 {
 	# Watch for a change in the profile
