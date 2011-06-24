@@ -1,4 +1,10 @@
 #!/bin/bash
+# smartcoin_control.sh
+# This script handles all of the user configurable options and menu system of smartcoin.
+# Only one instance of this control script runs on the local machine, it uses and stores database information
+# which lets smartcoin interact with multiple machines.
+# This script only handles database interaction, and doesn't launch or kill any other processes directly.
+
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
@@ -800,7 +806,13 @@ Edit_Device()
 	echo ""
 
 	D=`$HOME/smartcoin/smartcoin_devices.py`
-	echo "$D"
+	D=$(Field_Prepare "$D")
+	for device in $D; do
+		deviceID=$(Field 1 "$device")
+		deviceName=$(Field 2 "$device")
+		echo "$deviceID) $deviceName"
+	done
+	echo ""
 	echo "Enter the OpenCL device number"
 	echo "(The list above is what is detected as available)"
 	read  -e -i "$cdevice" deviceDevice

@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # SmartCoin installer script
+# TODO:
+# [ ] Check on better way to interactively install packages...
 
 
 . $HOME/smartcoin/smartcoin_ops.sh
@@ -97,51 +99,60 @@ Q="INSERT IGNORE INTO pool (name,server,alternateServer,port,timeout,auto_allow,
 R=$(RunSQL "$Q")
 
 # Autodetect cards
-echo "Adding available devices..."
+echo "Adding available local devices..."
 D=`./smartcoin_devices.py`
 D=$(Field_Prepare "$D")
 for device in $D; do
 	id=$(Field 1 "$device")
 	devName=$(Field 2 "$device")
 	devDisable=$(Field 3 "$device")
+	devType=$(Field 4 "$device")
 	# TODO: deal with hard coded auto_allow?
-	Q="INSERT IGNORE INTO device (fk_machine,name,device,auto_allow,disabled) VALUES (1,'$devName',$id,1,$devDisable);"
-	R=$(RunSQL "$Q")
+	Q="INSERT IGNORE INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES (1,'$devName',$id,1,$devType,$devDisable);"
+	RunSQL "$Q"
 done
 echo "done."
 echo ""
 
 # Autodetect miners
-sudo updatedb
+echo "Auto detecting local installed miners..."
+sudo updatedb #needed for the linux `locatte` command to work reliably
 
 #detect phoenix install location
 phoenixMiner=`locate phoenix.py | grep -vi svn`
 phoenixMiner=${phoenixMiner%"phoenix.py"}
 if [[ "$phoenixMiner" != "" ]]; then
+	echo "Found Phoenix miner installed on local system"
 	if [[ -d $HOME/phoenix/kernels/phatk ]]; then
 		knl="phatk"
 	else
 		knl="poclbm"
 	fi
 	Q="INSERT IGNORE INTO miner (fk_machine, name,launch,path,miner_default,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$phoenixMiner',0,0);"
-	R=$(RunSQL "$Q")
+	RunSQL "$Q"
 fi
 
 # Detect poclbm install location
 poclbmMiner=`locate poclbm.py | grep -vi svn`
 poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$phoenixMiner" != "" ]]; then
+	echo "Found poclbm miner installed on local system"
 	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,miner_default,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
 	R=$(RunSQL "$Q")
 fi
+
 # Set the default miner
+
+# TODO: I should add more logic to determining a default.... Perhaps ask the user which one?
 Q="UPDATE miner SET miner_default=1 WHERE pk_miner=1;"
 RunSQL "$Q"
 
 # Set the current profile! 
-# Defaults to donation until they get one set up
-Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-100);"
-R=$(RunSQL "$Q")
+# Defaults to Auto profile until they get one set up
+Q="DELETE from current_profile WHERE fk_machine=1;"	#A little paranoid, but why not...
+RunSQL "$Q"
+Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-1);"
+RunSQL "$Q"
 
 # ----------------
 # Ask for donation
@@ -163,14 +174,17 @@ let startTime_minutes=$RANDOM%59
 startTime=$startTime_hours$startTime_minutes
 Q="INSERT INTO settings SET data='donation_start', value='$startTime', description='Time to start hashpower donation each day'"
 RunSQL "$Q"
-
-#generate the donation profile!
-GenerateDonationProfile 1
+if [[ "$myDonation" -gt "0"  ]]; then
+	echo "Thank you for your decision to donate! Your donated hashes will start daily at $startTime_hours:$startTime_minutes for $myDonation minutes."
+	echo "You can turn this off at any time from the control screen, and even specify your own start time if you want to."
+fi	
+echo ""
+echo ""
 
 # ---------
 # Finished!
 # ---------
 # Tell the user what to do
-echo "Installation is complete.  You can now start SmartCoin at any time by typing the command smartcoin at the terminal."
-echo "You will need to go to the control page to set up machines, miners, mining devices, pools and workers."
+echo "Installation is now complete.  You can now start SmartCoin at any time by typing the command 'smartcoin' at the terminal."
+echo "You will need to go to the control page to set up some workers!"
 
