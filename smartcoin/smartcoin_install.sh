@@ -109,7 +109,7 @@ for device in $D; do
 	devType=$(Field 4 "$device")
 
 	# TODO: deal with hard coded auto_allow?
-	Q="INSERT IGNORE INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES (1,'$devName',$id,1,$devType,$devDisable);"
+	Q="INSERT IGNORE INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES (1,'$devName',$id,1,'$devType',$devDisable);"
 	RunSQL "$Q"
 done
 echo "done."
