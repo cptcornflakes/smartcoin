@@ -1,6 +1,13 @@
 #!/bin/bash
-#clear
-#echo "Starting..."
+
+# smartcoin_status.sh
+# The name is a bit misleading, as this script does more than report status information.
+# This script is also responsible for launching/killing processes as well as handling
+# profile information.
+# One instance of smartcoin_status runs on the local host, for each machine being controlled.
+
+
+
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
@@ -9,7 +16,8 @@ Log "Starting status monitor for machine $MACHINE"
 
 
 # Automaticall load a profile whenever it changes
-oldProfile
+oldProfile=$(GetCurrentProfile $MACHINE)
+
 LoadProfileOnChange()
 {
 	# Watch for a change in the profile

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This is the dumping ground for a lot of generalized functions, and is pretty much included in all other scripts.
+# I really need to organize it a bit, clean it up, and maybe even separate it out into more logical files.
+
+
 if [[ -n "$HEADER_smartcoin_ops" ]]; then
         return 0
 fi

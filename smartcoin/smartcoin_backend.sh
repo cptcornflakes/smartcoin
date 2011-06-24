@@ -1,5 +1,11 @@
-
 #!/bin/bash
+
+# NOT USED
+# This is reserverd for future use.
+# There are some things that may need to be done from outside of the current shell
+# This script is for those occations.
+# Most of the programming here was for testing purposes...
+
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
