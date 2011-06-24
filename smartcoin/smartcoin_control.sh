@@ -54,11 +54,23 @@ GetPrimaryKeySelection()
 	local Q=$2
 	local msg=$3
 	local default=$4
+	local fieldArray=$5	# You can pass in a pre-populated field array to add on to
+
 
 	local PK	#Primary key of name (not shown in menu)
 	local Name	#Name displayed in menu
 	local M=""	#Menu FieldArray
-	i=0		#Index count
+	local i=0		#Index count
+
+
+	if [[ "$fieldArray" ]]; then
+		for thisRecord in $fieldArray; do
+			let i++
+			M=$M$thisRecord
+		done
+	fi
+
+	
 
 	UseDB "smartcoin"
 	R=$(RunSQL "$Q")
@@ -891,7 +903,7 @@ do
 	echo "1) Reboot Computer"
 	echo "2) Kill smartcoin (exit)"
 	echo "3) Disconnect from smartcoin (leave running)"
-	echo "4) Use Autoprofile"
+
 	echo "5) Select Profile"
 	echo "6) Configure Miners"
 	echo "7) Configure Workers"
@@ -930,9 +942,6 @@ do
 		3)
 			echo "detach" >$commPipe
 			;;
-		4)
-			Do_AutoProfile
-			;;		
 		5)
 			Do_ChangeProfile
 			;;
