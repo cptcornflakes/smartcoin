@@ -233,11 +233,23 @@ Add_Miners()
 	echo "<#port#>, and <#device#>"
 	echo "i.e.  phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k phatk device=<#device#> worksize=256 vectors aggression=11 bfi_int fastloop=false"
 	read minerLaunch
-
+	E="Do you want this to be the the default miner for this machine?"
+	GetYesNoSelection defaultMiner "$E"
 
 	echo "Adding Miner..."
 	Q="INSERT INTO miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine"
 	RunSQL "$Q"
+
+
+	Q="SELECT pk_miner FROM miner ORDER BY pk_miner DESC LIMIT 1;"
+	R=$(RunSQL "$Q")
+	insertedID=$(Field 1 "$R")
+
+
+	if [[ "$defaultMiner" = "1" ]]; then
+		SetDefaultMiner "$thisMachine" "$insertedID"
+	fi
+
 	echo "done."
 	sleep 1
 
@@ -255,12 +267,19 @@ Edit_Miners()
 	E="Select the miner you wish to edit"
 	GetPrimaryKeySelection thisMiner "$Q" "$E"
 
-	Q="SELECT name, launch, path, fk_machine FROM miner WHERE pk_miner=$thisMiner;"
+	Q="SELECT name, launch, path, fk_machine, miner_default FROM miner WHERE pk_miner=$thisMiner;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	claunch=$(Field 2 "$R")
 	cpath=$(Field 3 "$R")
 	cmachine=$(Field 4 "$R")
+	cdefault=$(Field 5 "$R")
+
+	if [[ "$cdefault" == "1" ]]; then
+		cdefault="y"
+	else
+		cdefault="n"
+	fi
 
 	clear
 	ShowHeader
@@ -282,12 +301,16 @@ Edit_Miners()
 	echo "<#port#>, and <#device#>"
 	read -e -i "$claunch" minerLaunch
 
+	E="Do you want this to be the the default miner for this machine?"
+	GetYesNoSelection defaultMiner "$E" "$cdefault"
 
 
 	echo "Updating Miner..."
 
 	Q="UPDATE miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine WHERE pk_miner=$thisMiner"
 	RunSQL "$Q"
+
+	SetDefaultMiner "$thisMachine" "$thisMiner"
 	
 	echo "done."
 	sleep 1
