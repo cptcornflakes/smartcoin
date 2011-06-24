@@ -9,9 +9,22 @@ if [[ -n "$HEADER_smartcoin_ops" ]]; then
 fi
 HEADER_smartcoin_ops="included"
 
-. $HOME/smartcoin/smartcoin_config.sh
-# Define the command pipe to the backend
+# GLOBAL VARIABLES
+# TODO: some of these will be added to the settings database table eventually.
+# TODO: The installer can prompt for values, with sane defaults already entered
+sessionName="smartcoin"
+minerSession="miner"
 commPipe=$HOME/smartcoin/smartcoin.cmd
+statusRefresh="5"
+MySqlHost="127.0.0.1"
+MySqlPort=""
+MySqlUser="smartcoin"
+MySqlPassword="smartcoin"
+
+
+
+
+
 
 ShowHeader() {
 	echo "smartcoin Management System "    $(date)
@@ -192,7 +205,6 @@ GenCurrentProfile()
 	
 	local Donate=$(DonationActive) 
 
-	#TODO: how to test if true the correct way!
 
 	if [[ "$Donate" ]]; then
 		# AutoDonate time is right, lets auto-donate!
@@ -290,15 +302,15 @@ GetWorkerInfo()
 	case "$pk_worker" in
 	-1)
 		# Deepbit donation worker
-		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8322	Deepbit.net (Donation)")
 		;;
 	-2)
 		# Bitcoin.cz donation worker
-		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		FA=$(FieldArrayAdd "jondecker76.donate	donate	mining.bitcoin.cz	8322	Bitcoin.cz (Donation)")
 		;;
 	-3)
 		# BTCGuild donation worker
-		FA=$(FieldArrayAdd "jondecker76@gmail.com	donate	deepbit.net	8322	Deepbit.net")
+		FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8322	BTCGuild (Donation)")
 		;;
 	
 	*)
