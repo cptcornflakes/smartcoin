@@ -165,7 +165,7 @@ donation="$donation and with greater up-time. By donating a small portion"
 donation="$donation of your hashing power, you will help to ensure that smartcoin users get support, bugs get fixed and features added."
 donation="$donation Donating just 36 minutes a day of your hashing power is only 1%, and will go a long way to show the author of SmartCoin"
 donation="$donation your support and appreciation.  You can always turn this setting off in the menu once you feel you've given back a fair amount."
-donation="$donation\n"
+donation="$donation \n\n\n"
 donation="$donation I pledge the following minutes per day of my hashing power to the author of smartcoin:"
 echo -e $donation
 read -e -i "36" myDonation
