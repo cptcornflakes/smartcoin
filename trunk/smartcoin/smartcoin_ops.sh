@@ -378,20 +378,22 @@ DonationActive() {
 
 	ret=""
 
-	if [[ "$start" -le "$end" ]]; then
-		# Normal
-		if [[ "$curTime" -ge "$start" ]]; then
-			if [[ "$curTime" -lt "$end"  ]]; then
+	if [[  "$duration" -gt "0" ]]; then
+		if [[ "$start" -le "$end" ]]; then
+			# Normal
+			if [[ "$curTime" -ge "$start" ]]; then
+				if [[ "$curTime" -lt "$end"  ]]; then
+					ret="true"
+				fi
+			fi
+		else
+			 # Midnight carryover
+			if [[ "$curTime" -ge "$start" ]]; then
 				ret="true"
 			fi
-		fi
-	else
-		 # Midnight carryover
-		if [[ "$curTime" -ge "$start" ]]; then
-			ret="true"
-		fi
-		if [[ "$curTime" -lt "$end" ]]; then
-			ret="true"
+			if [[ "$curTime" -lt "$end" ]]; then
+				ret="true"
+			fi
 		fi
 	fi
 	echo $ret
