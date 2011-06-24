@@ -569,12 +569,14 @@ Add_Workers()
         ShowHeader
         echo "ADDING WORKER"
         echo "-------------"
-        echo "Give this worker a nickname"
-        read workerName
-	echo ""
 	Q="SELECT pk_pool, name FROM pool;"
 	E="What pool listed above is this worker associated with?"
+
 	GetPrimaryKeySelection thisPool "$Q" "$E"
+        echo "Give this worker a nickname"
+        read -e -i "default" workerName
+	echo ""
+	
 
         echo "Enter the username for this worker"
         read userName
