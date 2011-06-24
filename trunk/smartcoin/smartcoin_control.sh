@@ -65,9 +65,13 @@ GetPrimaryKeySelection()
 
 	if [[ "$fieldArray" ]]; then
 		for thisRecord in $fieldArray; do
-			let i++
-			M=$M$thisRecord
+			
+			PK=$(Field 1 "$thisRecord")
+			index=$(Field 2 "$thisRecord")
+			Name=$(Field 3 "$thisRecord")
+			M=$M$(FieldArrayAdd "$PK	$index	$Name")
 		done
+		i=$index+1
 	fi
 
 	
@@ -173,8 +177,8 @@ Do_ChangeProfile() {
 	clear
 	ShowHeader
 
-	autoEntry=$(FieldArrayAdd "-2	1	AutoDonate")
-	autoEntry=$(FieldArrayAdd "-1	2	Automatic")
+	autoEntry=$(FieldArrayAdd "-2	1	Donation")
+	autoEntry=$autoEntry$(FieldArrayAdd "-1	2	Automatic")
 
 	# Display menu
 	Q="SELECT pk_machine,name from machine"
@@ -740,7 +744,13 @@ Add_Profile()
 
 EditProfile()
 {
-
+	clear
+	ShowHeader
+	echo "SELECT PROFILE TO EDIT"
+	Q="SELECT pk_profile, name FROM profile;"
+	E="Please select the profile from the list above to delete"
+	GetPrimaryKeySelection thisProfile "$Q" "$E"
+	
 }
 
 Delete_Profile()
@@ -748,10 +758,11 @@ Delete_Profile()
 	clear
 	ShowHeader
 	echo "SELECT PROFILE TO DELETE"
-	M=""
-	i=0
-	UseDB "smartcoin"
-	Q="SELECT pk_profile, name FROM profile;"
+	Q="SELECT pk_machine,name from machine"
+	E="Select the machine you wish to delete the profile from"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+	Q="SELECT pk_profile, name FROM profile WHERE fk_machine=$thisMachine;"
 	E="Please select the profile from the list above to delete"
 	GetPrimaryKeySelection thisProfile "$Q" "$E"
 
@@ -808,16 +819,21 @@ Add_Device()
 	read  deviceDevice
 	echo ""
 
-	
+	E="Would you like this device to be available to the automatic profile? (y)es or (n)o?"
+	GetYesNoSelection deviceAllow "$E" "y"	
+
+
 	E="Do you want to disable this device?"
 	GetYesNoSelection deviceDisabled"$E"
-	# TODO: needs auto_allow field!
+	
+	
+
 	
         echo "Adding Device..."
 
-        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine=$thisMachine"
+        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine=$thisMachine, auto_allow=$deviceAllow"
         RunSQL "$Q"
-	screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
+	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
 	sleep 1
 }
@@ -825,16 +841,21 @@ Edit_Device()
 {
 	clear
 	ShowHeader
-	Q="SELECT pk_device, name FROM device WHERE fk_machine=1;"
+	Q="SELECT pk_machine, name from machine;"                               
+	E="Please select the machine from the list above that is hosting this device"                          
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+	Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine;"
 	E="Please select the device from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
         
-	Q="SELECT name,fk_device, fk_machine, disabled FROM device WHERE pk_device=$EditPK;"
+	Q="SELECT name,fk_device,auto_allow,disabled FROM device WHERE pk_device=$EditPK;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	cdevice=$(Field 2 "$R")
-	cmachine=$(Field 3 "$R")
+	callow=$(Field 3 "$R")
 	cdisabled=$(Field 4 "$R")
+	cmachine=$thisMachine
 
 	clear
 	ShowHeader
@@ -863,13 +884,16 @@ Edit_Device()
 	echo ""
 
 	
+	E="Would you like this device to be available to the automatic profile? (y)es or (n)o?"
+	GetYesNoSelection deviceAllow "$E" "y" "$callow"
+
 	E="Do you want to disable this device?"
 	GetYesNoSelection deviceDisabled "$E" "$cdisabled"
 	# TODO: needs auto_allow field!
 
         echo "Adding Device..."
 
-        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled' WHERE pk_device=$EditPK"
+        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled', auto_allow=$deviceAllow WHERE pk_device=$EditPK"
         RunSQL "$Q"
 	echo done
 	sleep 1
@@ -880,8 +904,11 @@ Delete_Device()
 	clear
 	ShowHeader
 	echo "SELECT DEVICE TO DELETE"
+	Q="SELECT pk_machine, name from machine;"                               
+	E="Please select the machine from the list above that is hosting this device"                          
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
-	Q="SELECT pk_device, name FROM device;"
+	Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine;"
 	E="Please select the device from the list above to delete"
 	GetPrimaryKeySelection thisDevice "$Q" "$E"
 
