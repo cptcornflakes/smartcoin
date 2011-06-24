@@ -599,7 +599,7 @@ Add_Workers()
         Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ('$thisPool','$workerName','$userName','$password','$workerPriority','$workerAllow','0');"
         R=$(RunSQL "$Q")
 	echo "done."
-	sleep 10
+	sleep 1
 
 
 }
