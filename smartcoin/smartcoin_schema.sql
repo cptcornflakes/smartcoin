@@ -23,7 +23,8 @@
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `current_profile` (
   `fk_machine` int(11) DEFAULT NULL,
-  `fk_profile` int(11) DEFAULT NULL
+  `fk_profile` int(11) DEFAULT NULL,
+  UNIQUE KEY `fk_machine` (`fk_machine`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -42,7 +43,7 @@ CREATE TABLE `device` (
   `auto_allow` tinyint(1) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`pk_device`),
-  UNIQUE KEY `fk_machine` (`fk_machine`,`name`)
+  UNIQUE KEY `fk_machine_2` (`fk_machine`,`device`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -76,7 +77,7 @@ CREATE TABLE `macro` (
   `name` varchar(30) DEFAULT NULL,
   `auto_allow` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`pk_macro`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -89,8 +90,9 @@ CREATE TABLE `macro_map` (
   `pk_macro_map` int(11) NOT NULL AUTO_INCREMENT,
   `fk_macro` int(11) DEFAULT NULL,
   `fk_profile` int(11) DEFAULT NULL,
+  `fk_machine` int(11) DEFAULT NULL,
   PRIMARY KEY (`pk_macro_map`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -105,6 +107,7 @@ CREATE TABLE `miner` (
   `name` varchar(32) DEFAULT NULL,
   `launch` varchar(255) DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,
+  `default_miner` tinyint(1) DEFAULT NULL,
   `disabled` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`pk_miner`),
   UNIQUE KEY `fk_machine` (`fk_machine`,`name`)
@@ -142,7 +145,8 @@ CREATE TABLE `profile` (
   `fk_machine` int(11) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
   `auto_allow` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`pk_profile`)
+  PRIMARY KEY (`pk_profile`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -158,7 +162,6 @@ CREATE TABLE `profile_map` (
   `fk_miner` int(11) DEFAULT NULL,
   `fk_worker` int(11) DEFAULT NULL,
   `fk_profile` int(11) DEFAULT NULL,
-  `fk_machine` int(11) DEFAULT NULL,
   PRIMARY KEY (`pk_profile_map`)
 ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -206,4 +209,4 @@ CREATE TABLE `worker` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2011-06-21 18:58:56
+-- Dump completed on 2011-06-24 17:00:56
