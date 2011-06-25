@@ -990,8 +990,8 @@ Add_Device()
 
 	
         echo "Adding Device..."
-
-        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine=$thisMachine, auto_allow=$deviceAllow"
+	#TODO: Fix hard coded type
+        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine='$thisMachine', auto_allow='$deviceAllow', type='gpu'"
         RunSQL "$Q"
 	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
