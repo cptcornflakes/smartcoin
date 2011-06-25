@@ -49,7 +49,7 @@ LoadProfileOnChange()
 	if [[ "$newProfile" == "-1" ]]; then
 		Log "We are running in AUTO"
 		if [[  "$changed" ]]; then
-			Log
+
 			Log "NEW WORKERS DETECTED!"
 			DeleteTemporaryFiles
 			killMiners
