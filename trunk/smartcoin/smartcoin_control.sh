@@ -313,6 +313,15 @@ Edit_Miners()
 	E="Select the machine the miner resides on"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
+
+	empty=$(tableIsEmpty "miner" "WHERE fk_machine=$thisMachine")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no miners to edit."
+		sleep 3
+		return
+	fi
+
 	Q="SELECT pk_miner, name FROM miner WHERE fk_machine=$thisMachine;"
 	E="Select the miner you wish to edit"
 	GetPrimaryKeySelection thisMiner "$Q" "$E"
@@ -377,6 +386,16 @@ Delete_Miners()
 	Q="SELECT pk_machine,name FROM machine;"
 	E="Select the machine from the list above that the miner resides on"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+
+	empty=$(tableIsEmpty "miner" "WHERE fk_machine=$thisMachine")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no miners to delete."
+		sleep 3
+		return
+	fi
+
 	
 	Q="SELECT pk_miner,name FROM miner WHERE fk_machine=$thisMachine;"
 	E="Please select the miner from the list above to delete"
@@ -456,6 +475,15 @@ Edit_Pool()
 {
 	clear
 	ShowHeader
+
+	empty=$(tableIsEmpty "pool")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no pools to edit."
+		sleep 3
+		return
+	fi
+
 	echo "SELECT POOL TO EDIT"
 	Q="SELECT pk_pool, name FROM pool;"
 	E="Please select the pool from the list above to edit"
@@ -507,6 +535,15 @@ Delete_Pool()
 {
 	clear
 	ShowHeader
+
+	empty=$(tableIsEmpty "pool")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no pools to delete."
+		sleep 3
+		return
+	fi
+
 	echo "SELECT POOL TO DELETE"
 	Q="SELECT pk_pool,name from pool;"
 	E="Please select the pool from the list above to delete"
@@ -614,6 +651,15 @@ Edit_Workers()
 {
 	clear
 	ShowHeader
+
+	empty=$(tableIsEmpty "worker")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no workers to edit."
+		sleep 3
+		return
+	fi
+
 	echo "SELECT WORKER TO EDIT"
 	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to edit"
@@ -671,6 +717,15 @@ Delete_Workers()
 {
 	clear
 	ShowHeader
+
+	empty=$(tableIsEmpty "worker")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no workers to delete."
+		sleep 3
+		return
+	fi
+
 	echo "SELECT WORKER TO DELETE"
 	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to delete"
@@ -950,6 +1005,15 @@ Edit_Device()
 	E="Please select the machine from the list above that is hosting this device"                          
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
+	empty=$(tableIsEmpty "device" "WHERE fk_machine=$thisMachine")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no devices to edit."
+		sleep 3
+		return
+	fi
+
+
 	Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine;"
 	E="Please select the device from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
@@ -1012,6 +1076,15 @@ Delete_Device()
 	Q="SELECT pk_machine, name from machine;"                               
 	E="Please select the machine from the list above that is hosting this device"                          
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+	empty=$(tableIsEmpty "device" "WHERE fk_machine=$thisMachine")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no devices to delete."
+		sleep 3
+		return
+	fi
+
 
 	Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine;"
 	E="Please select the device from the list above to delete"
