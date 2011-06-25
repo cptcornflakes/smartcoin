@@ -97,10 +97,10 @@ GetPrimaryKeySelection()
 }
 #GetYesNoSelection var "$E" "default value"
 GetYesNoSelection() {                                                                                
-	local resp="-1"  
+	resp="-1"  
 	local available
 
-	local _ret=$1
+	local _retyn=$1
 	local msg=$2
 	local default=$3
 	
@@ -125,7 +125,9 @@ GetYesNoSelection() {
 			echo "Invalid response!"                                
 		fi                                                              
 	done    
-	eval $_ret="'$resp'"
+		echo "Got response: $resp"
+	
+	eval $_retyn="'$resp'"
 }
 DisplayError()
 {
