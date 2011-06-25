@@ -268,7 +268,7 @@ Add_Miners()
 	ShowHeader
 	echo "ADDING MINER"
 	echo "------------"
-	Q="SELEECT pk_machine, name from machine;"
+	Q="SELECT pk_machine, name from machine;"
 	E="Please select the machine from the list above that is hosting this miner"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
 	echo "Give this miner a nickname"
