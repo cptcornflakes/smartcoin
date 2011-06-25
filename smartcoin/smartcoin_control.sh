@@ -461,7 +461,7 @@ Edit_Pool()
 	cserver=$(Field 2 "$R")
 	calternate=$(Field 3 "$R")
 	cport=$(Field 4 "$R")
-	ctimeout=$(FIeld 5 "$R")
+	ctimeout=$(Field 5 "$R")
 
 
 	clear
