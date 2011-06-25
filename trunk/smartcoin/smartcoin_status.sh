@@ -29,7 +29,6 @@ WorkersChanged() {
 
 	if [[ "$oldWorkers" != "$newWorkers" ]]; then
 		
-		oldWorkers=$newWorkers
 		Log " Why aren't they equal????"
 		echo "true"
 	else
@@ -51,7 +50,7 @@ LoadProfileOnChange()
 	if [[ "$newProfile" == "-1" ]]; then
 		Log "We are running in AUTO"
 		if [[  "$changed" ]]; then
-
+			oldWorkers=$newWorkers
 			Log "NEW WORKERS DETECTED!"
 			DeleteTemporaryFiles
 			killMiners
