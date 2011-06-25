@@ -41,9 +41,10 @@ LoadProfileOnChange()
 {
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
-	
-	if [[ $(GetCurrentProfile) == -1 ]]; then
-		if [[  $(WorkersChanged) ]]; then
+	changed=$(WorkersChanged)
+
+	if [[ "$newProfile" == "-1" ]]; then
+		if [[  "$changed" ]]; then
 			Log "NEW WORKERS DETECTED!"
 			DeleteTemporaryFiles
 			killMiners
@@ -155,6 +156,7 @@ ShowStatus() {
 		status=$status"$deviceName:\t$cmd\n"                    
                 hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
 		if [ -z "$hashes" ]; then
+	
 			hashes="0.00"
 		fi
 		totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)
