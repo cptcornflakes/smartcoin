@@ -25,6 +25,7 @@ WorkersChanged() {
 	curWorkers=$(Field 1 "$R")
 
 	if [[ "$curWorkers" != "$oldWorkers" ]]; then
+		oldWorkers=$curWorkers
 		echo "true"
 	else
 		echo ""
