@@ -211,8 +211,7 @@ Do_Settings() {
 	echo "New $settingDescription"
 	read -e -i "$settingValue" newSetting
 
-	# sanitize the input a little
-	newSetting=${$newSetting#:}
+
 
 	echo "Updating Setting..."
 	Q="UPDATE settings SET value='$newSetting' WHERE pk_settings=$thisSetting;"
