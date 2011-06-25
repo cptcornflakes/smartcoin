@@ -14,6 +14,7 @@
 MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
+oldWorkers=""
 Q="SELECT COUNT(*) FROM worker;"
 R=$(RunSQL "$Q")
 oldWorkers=$(Field 1 "$R")
@@ -26,9 +27,10 @@ WorkersChanged() {
 	Log "Old: $oldWorkers"
 	Log "New: $curWorkers"
 
-	if [[ "$curWorkers" != "$oldWorkers" ]]; then
-		Log " Why aren't they equal????"
+	if [[ "$oldWorkers" != "$curWorkers" ]]; then
+		
 		oldWorkers=$curWorkers
+		Log " Why aren't they equal????"
 		echo "true"
 	else
 		echo ""
