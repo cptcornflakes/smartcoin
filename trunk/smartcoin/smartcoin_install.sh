@@ -137,7 +137,7 @@ fi
 # Detect poclbm install location
 poclbmMiner=`locate poclbm.py | grep -vi svn`
 poclbmMiner=${poclbmMiner%"poclbm.py"}
-if [[ "$phoenixMiner" != "" ]]; then
+if [[ "$poclbmMiner" != "" ]]; then
 	echo "Found poclbm miner installed on local system"
 	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,default_minersudo ,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
 	R=$(RunSQL "$Q")
@@ -150,10 +150,10 @@ Q="UPDATE miner SET default_miner=1 WHERE pk_miner=1;"
 RunSQL "$Q"
 
 # Set the current profile! 
-# Defaults to AutoDonate profile until the user gets one set up
+# Defaults to Automatic profile until the user gets one set up
 Q="DELETE from current_profile WHERE fk_machine=1;"	#A little paranoid, but why not...
 RunSQL "$Q"
-Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-2);"
+Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-1);"
 RunSQL "$Q"
 
 # ----------------
