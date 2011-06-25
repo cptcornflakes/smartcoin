@@ -15,6 +15,20 @@ MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
 
+oldWorkers=""
+
+WorkersChanged() {
+	Q="SELECT COUNT(*) FROM worker;"
+	R=$(RunSQL "$Q")
+	curWorkers=$(Field 1 "$R")
+
+	if [[ "$curWorkers" != "$oldWorkers" ]]; then
+		echo "true"
+	else
+		echo ""
+	fi
+
+}
 
 # Automaticall load a profile whenever it changes
 oldProfile=""
@@ -24,9 +38,9 @@ LoadProfileOnChange()
 {
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
+	
 
-
-	if [[ "$newProfile" != "$oldProfile" ]]; then
+	if [[ "$newProfile" != "$oldProfile" -o $("WorkersChanged") ]]; then
 		Log "NEW PROFILE DETECTED!"
 		Log "	Switching from profile: $oldProfile to profile: $newProfile"
 		DeleteTemporaryFiles
