@@ -171,6 +171,10 @@ donation="$donation I pledge the following minutes per day of my hashing power t
 echo -e $donation
 read -e -i "36" myDonation
 
+if [[ "$myDonation" == "" ]]; then
+	myDonation=0
+fi
+
 Q="INSERT INTO settings SET data='donation_time', value='$myDonation', description='Hashpower donation minutes per day';"
 RunSQL "$Q"
 let startTime_hours=$RANDOM%23
