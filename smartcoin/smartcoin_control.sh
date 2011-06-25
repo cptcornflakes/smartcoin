@@ -491,7 +491,7 @@ Edit_Pool()
 
         echo "Updating Pool..."
 
-        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$EditPK"
+        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$thisPool"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
