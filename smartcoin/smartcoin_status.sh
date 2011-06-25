@@ -23,8 +23,11 @@ WorkersChanged() {
 	Q="SELECT COUNT(*) FROM worker;"
 	R=$(RunSQL "$Q")
 	curWorkers=$(Field 1 "$R")
+	Log "Old: $oldWorkers"
+	Log "New: $curWorkers"
 
 	if [[ "$curWorkers" != "$oldWorkers" ]]; then
+		Log " Why aren't they equal????"
 		oldWorkers=$curWorkers
 		echo "true"
 	else
@@ -44,7 +47,9 @@ LoadProfileOnChange()
 	changed=$(WorkersChanged)
 
 	if [[ "$newProfile" == "-1" ]]; then
+		Log "We are running in AUTO"
 		if [[  "$changed" ]]; then
+			Log
 			Log "NEW WORKERS DETECTED!"
 			DeleteTemporaryFiles
 			killMiners
