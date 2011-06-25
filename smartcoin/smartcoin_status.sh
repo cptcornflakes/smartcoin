@@ -24,12 +24,9 @@ WorkersChanged() {
 	Q="SELECT COUNT(*) FROM worker;"
 	R=$(RunSQL "$Q")
 	newWorkers=$(Field 1 "$R")
-	Log "Old: $oldWorkers"
-	Log "New: $newWorkers"
 
 	if [[ "$oldWorkers" != "$newWorkers" ]]; then
 		
-		Log " Why aren't they equal????"
 		echo "true"
 	else
 		echo ""
