@@ -1018,7 +1018,7 @@ Edit_Device()
 	E="Please select the device from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
         
-	Q="SELECT name,fk_device,auto_allow,disabled FROM device WHERE pk_device=$EditPK;"
+	Q="SELECT name,device,auto_allow,disabled FROM device WHERE pk_device=$EditPK;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	cdevice=$(Field 2 "$R")
