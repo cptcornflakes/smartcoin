@@ -1058,9 +1058,11 @@ do
 			killMiners
 			# Commit suicide
 			screen -d -r $sessionName -X quit
+			;;
 			
 		3)
 			screen -d $sessionName
+			;;
 
 		4)
 			Do_Settings
