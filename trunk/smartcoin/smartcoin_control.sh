@@ -806,6 +806,8 @@ Add_Profile()
 		else
 			echo "resp was non-zero"
 		fi
+		echo "Any key to continue..."
+		read blah
 	done	
 	clear
 	ShowHeader
