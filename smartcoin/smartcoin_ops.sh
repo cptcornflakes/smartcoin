@@ -246,7 +246,7 @@ GenAutoProfile()
 
 	
 	for thisWorker in $R; do
-		Q="SELECT pk_device from device WHERE fk_machine=$thisMachine AND disabled=0 AND type='gpu' ORDER BY device ASC;"
+		Q="SELECT pk_device from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
 		R2=$(RunSQL "$Q")
 		for thisDevice in $R2; do
 			let i++
