@@ -1061,7 +1061,8 @@ Edit_Device()
 
         echo "Updating Device..."
 
-        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled', auto_allow='$deviceAllow' WHERE pk_device=$EditPK"
+	# TODO: fix hard-coded type!
+        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine='$thiMachine', disabled='$deviceDisabled', auto_allow='$deviceAllow', type='gpu' WHERE pk_device=$EditPK"
         RunSQL "$Q"
 	echo done
 	sleep 10
