@@ -40,9 +40,6 @@ if [ "$MySqlPassword" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -p$MySqlPassword"; 
 MYSQL_DB_CRED=`echo $MYSQL_DB_CRED`
 export MYSQL_DB_CRED
 
-CSQL_DIR="/var/run/SQL_Ops"
-CSQL_ID=""
-
 
 
 RunSQL()
