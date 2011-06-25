@@ -265,7 +265,7 @@ GenDonationProfile()
 	local thisMachine=$1
 	local FA
 	local i=0
-	local donationWorkers="-4 -3 -2 -1"
+	local donationWorkers="-3 -2 -1"
 
 	
 	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
