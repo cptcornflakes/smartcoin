@@ -14,8 +14,10 @@
 MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
+Q="SELECT COUNT(*) FROM worker;"
+R=$(RunSQL "$Q")
+oldWorkers=$(Field 1 "$R")
 
-oldWorkers=""
 
 WorkersChanged() {
 	Q="SELECT COUNT(*) FROM worker;"
@@ -39,8 +41,18 @@ LoadProfileOnChange()
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
 	
-
-	if [[ "$newProfile" != "$oldProfile" -o $("WorkersChanged") ]]; then
+	if [[ $(GetCurrentProfile) == -1 ]]; then
+		if [[  $(WorkersChanged) ]]; then
+			Log "NEW WORKERS DETECTED!"
+			DeleteTemporaryFiles
+			killMiners
+			clear
+			ShowHeader
+			echo "New workers have been added.  Regenerating the automatic profile...."
+			startMiners $MACHINE	
+		fi
+	fi
+	if [[ "$newProfile" != "$oldProfile" ]]; then
 		Log "NEW PROFILE DETECTED!"
 		Log "	Switching from profile: $oldProfile to profile: $newProfile"
 		DeleteTemporaryFiles
