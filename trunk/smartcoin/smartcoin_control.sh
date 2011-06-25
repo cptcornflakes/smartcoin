@@ -1042,9 +1042,9 @@ Edit_Device()
 	D=`$HOME/smartcoin/smartcoin_devices.py`
 	D=$(Field_Prepare "$D")
 	for device in $D; do
-		deviceID=$(Field 1 "$device")
-		deviceName=$(Field 2 "$device")
-		echo "$deviceID) $deviceName"
+		devID=$(Field 1 "$device")
+		devName=$(Field 2 "$device")
+		echo "$devID) $devName"
 	done
 	echo ""
 	echo "Enter the OpenCL device number"
