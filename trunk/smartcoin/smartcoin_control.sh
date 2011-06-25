@@ -621,7 +621,7 @@ Edit_Workers()
 	cuser=$(Field 3 "$R")
 	cpass=$(Field 4 "$R")
 	cpriority=$(Field 5 "$R")
-	callow=$(FIeld 6 "$R")
+	callow=$(Field 6 "$R")
 
 
 	clear
