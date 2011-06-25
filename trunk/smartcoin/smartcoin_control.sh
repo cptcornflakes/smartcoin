@@ -315,7 +315,7 @@ Edit_Miners()
 	E="Select the miner you wish to edit"
 	GetPrimaryKeySelection thisMiner "$Q" "$E"
 
-	Q="SELECT name, launch, path, fk_machine, miner_default FROM miner WHERE pk_miner=$thisMiner;"
+	Q="SELECT name, launch, path, fk_machine, default_miner FROM miner WHERE pk_miner=$thisMiner;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	claunch=$(Field 2 "$R")
@@ -726,7 +726,7 @@ Add_Profile()
 	profileID=$(Field 1 "$R")
 
 	# Get the default miner
-	Q="SELECT pk_miner, miner_default FROM miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
+	Q="SELECT pk_miner, default_miner FROM miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
 	R=$(RunSQL "$Q")
 	selectIndex=0
 	for thisRecord in $R; do
