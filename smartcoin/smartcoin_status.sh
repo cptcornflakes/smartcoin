@@ -23,13 +23,13 @@ oldWorkers=$(Field 1 "$R")
 WorkersChanged() {
 	Q="SELECT COUNT(*) FROM worker;"
 	R=$(RunSQL "$Q")
-	curWorkers=$(Field 1 "$R")
+	newWorkers=$(Field 1 "$R")
 	Log "Old: $oldWorkers"
-	Log "New: $curWorkers"
+	Log "New: $newWorkers"
 
-	if [[ "$oldWorkers" != "$curWorkers" ]]; then
+	if [[ "$oldWorkers" != "$newWorkers" ]]; then
 		
-		oldWorkers=$curWorkers
+		oldWorkers=$newWorkers
 		Log " Why aren't they equal????"
 		echo "true"
 	else
