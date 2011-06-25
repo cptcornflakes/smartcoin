@@ -118,9 +118,9 @@ GetYesNoSelection() {
 		                                                        
 		available=`echo $available | tr '[A-Z]' '[a-z]'`                
 		if [[ "$available" == "y" ]]; then                              
-			resp="1"                                                
+			resp=1                                                
 		elif [[ "$available" == "n" ]]; then                            
-			resp="0"                                                
+			resp=0                                                
 		else                                                            
 			echo "Invalid response!"                                
 		fi                                                              
