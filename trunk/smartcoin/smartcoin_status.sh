@@ -158,28 +158,31 @@ ShowStatus() {
 		cmd=`cat  "$HOME/smartcoin/.$key" | grep Mhash`
 		if [ -z "$cmd" ]; then
 			cmd="\e[00;31m<<<DOWN>>>\e[00m"
+			hashes="0.00"
+			accepted="0"
+			rejected="0"
+		else
+			hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
+			accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
+			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		fi
 		status=$status"$deviceName:\t$cmd\n"                    
-                hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
+                
 		if [ -z "$hashes" ]; then
-	
 			hashes="0.00"
 		fi
-		totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)
-
-		accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
 		if [ -z "$accepted" ]; then
 			accepted="0"
 		fi
-		totalAccepted=`expr $totalAccepted + $accepted`
-		rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		if [ -z "$rejected" ]; then
 			rejected="0"
 		fi
+
+		totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)
+		totalAccepted=`expr $totalAccepted + $accepted`
 		totalRejected=`expr $totalRejected + $rejected`
-
-
 	done
+
 	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
