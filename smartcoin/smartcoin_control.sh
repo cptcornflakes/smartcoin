@@ -798,8 +798,13 @@ Add_Profile()
 		E="$E Would you like to continue adding instances to this profile? (y)es or (n)o?"
 		GetYesNoSelection resp "$E"
 
+		echo "resp = $resp"
+
 		if [[ "$resp" == "0" ]]; then
+			echo "resp was zero, finish up!"
 			finished="1"
+		else
+			echo "resp was non-zero"
 		fi
 	done	
 	clear
