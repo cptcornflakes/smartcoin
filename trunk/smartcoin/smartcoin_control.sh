@@ -1064,7 +1064,7 @@ Edit_Device()
         Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled', auto_allow='$deviceAllow' WHERE pk_device=$EditPK"
         RunSQL "$Q"
 	echo done
-	sleep 1
+	sleep 10
 
 }
 Delete_Device()
