@@ -106,8 +106,10 @@ GetYesNoSelection() {
 	
 	if [[ "$default" == "1" ]]; then
 		default="y"
-	else
+	elif [[  "$default" == "0" ]]; then
 		default="n"
+	else
+		default=""
 	fi
 
 	echo "$msg"                                             
@@ -797,7 +799,7 @@ Add_Profile()
 		GetYesNoSelection resp "$E"
 
 		if [[ "$resp" == "0" ]]; then
-			finished=1
+			finished="1"
 		fi
 	done	
 	clear
