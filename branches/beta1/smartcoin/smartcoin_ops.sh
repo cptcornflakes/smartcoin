@@ -411,6 +411,17 @@ DonationActive() {
 	R=$(RunSQL "$Q")
 	local duration=$(Field 1 "$R")
 
+	if [[ "$duration" == "" ]]; then
+		duration="0"
+	fi
+	if [[ "$start" == "" ]]; then
+		let startTime_hours=$RANDOM%23
+		let startTime_minutes=$RANDOM%59
+		startTime=$startTime_hours$startTime_minutes
+		Q="UPDATE settings SET value='$startTime' WHERE data='donation_start'"
+		RunSQL "$Q"
+	fi
+
 	local end=$(AddTime "$start" "$duration")
 
 	curTime=`date +%k%M`
