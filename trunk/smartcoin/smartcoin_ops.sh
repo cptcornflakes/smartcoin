@@ -98,7 +98,20 @@ FieldArrayAdd()
 
 
 
+tableIsEmpty() {
+	local thisTable=$1
+	local whereClause=$2
 
+	Q="SELECT COUNT(*) FROM $thisTable $whereClause;"
+	R=$(RunSQL "$Q")
+	res=$(Field 1 "$R")
+
+	if [[ "$res" == "0" ]]; then
+		echo "True"
+	else
+		echo ""
+	fi
+}
 
 
 

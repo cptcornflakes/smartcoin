@@ -855,6 +855,14 @@ Delete_Profile()
 	Q="SELECT pk_machine,name from machine"
 	E="Select the machine you wish to delete the profile from"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
+	
+	empty=$(tableIsEmpty "profile" "WHERE fk_machine=$thisMachine")
+	if [[ "$empty" ]]; then
+		echo ""
+		echo "There are no profiles to delete."
+		sleep 3
+		return
+	fi
 
 	Q="SELECT pk_profile, name FROM profile WHERE fk_machine=$thisMachine;"
 	E="Please select the profile from the list above to delete"
