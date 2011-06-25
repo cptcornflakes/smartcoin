@@ -357,13 +357,16 @@ Edit_Miners()
 	Q="UPDATE miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine WHERE pk_miner=$thisMiner"
 	RunSQL "$Q"
 
-	SetDefaultMiner "$thisMachine" "$thisMiner"
+	if [[ "$defaultMiner" = "1" ]]; then
+		SetDefaultMiner "$thisMachine" "$thisMiner"
+	fi
 	
 	echo "done."
 	sleep 1
 }
 Delete_Miners()
 {
+	#TODO: deal with situation where we delete the default miner - a new one needs set!
 	clear
 	ShowHeader
 	echo "SELECT MINER TO DELETE"
@@ -741,6 +744,10 @@ Add_Profile()
 	GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
 	echo ""
 	
+	Q="SELECT name FROM miner WHERE pk_miner=$thisMiner;"
+	R=$(RunSQL "$Q")
+	minerName=$(Field 1 "$R")
+
 	instance=0	
 	profileProgress=""
 	addedInstances=""
@@ -749,7 +756,7 @@ Add_Profile()
 		let instance++
 		clear
 		ShowHeader
-		profileProgress="Profile: $profileName using device $minerName (adding miner instance #$instance)\n"
+		profileProgress="Profile: $profileName using miner $minerName (adding miner instance #$instance)\n"
 		#profileProgress="$profileProgress--------------------------------------------------------------------------------\n"
 
 

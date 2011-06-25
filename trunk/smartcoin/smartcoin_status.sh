@@ -51,12 +51,12 @@ LoadProfileOnChange()
 			R=$(RunSQL "$Q")
 			newWorkers=$(Field 1 "$R")
 			oldWorkers=$newWorkers
-			Log "NEW WORKERS DETECTED!"
+			Log "WORKER CHANGE DETECTED!"
 			DeleteTemporaryFiles
 			killMiners
 			clear
 			ShowHeader
-			echo "New workers have been added.  Regenerating the automatic profile...."
+			echo "The number of workers has changed.  Regenerating the automatic profile...."
 			startMiners $MACHINE	
 		fi
 	fi
