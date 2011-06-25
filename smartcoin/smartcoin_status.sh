@@ -50,6 +50,9 @@ LoadProfileOnChange()
 	if [[ "$newProfile" == "-1" ]]; then
 		Log "We are running in AUTO"
 		if [[  "$changed" ]]; then
+			Q="SELECT COUNT(*) FROM worker;"
+			R=$(RunSQL "$Q")
+			newWorkers=$(Field 1 "$R")
 			oldWorkers=$newWorkers
 			Log "NEW WORKERS DETECTED!"
 			DeleteTemporaryFiles
