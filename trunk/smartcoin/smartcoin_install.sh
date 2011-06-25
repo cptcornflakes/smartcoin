@@ -150,10 +150,10 @@ Q="UPDATE miner SET default_miner=1 WHERE pk_miner=1;"
 RunSQL "$Q"
 
 # Set the current profile! 
-# Defaults to Auto profile until they get one set up
+# Defaults to AutoDonate profile until the user gets one set up
 Q="DELETE from current_profile WHERE fk_machine=1;"	#A little paranoid, but why not...
 RunSQL "$Q"
-Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-1);"
+Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-2);"
 RunSQL "$Q"
 
 # ----------------
