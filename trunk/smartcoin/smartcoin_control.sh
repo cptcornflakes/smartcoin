@@ -1054,15 +1054,14 @@ Edit_Device()
 
 	
 	E="Would you like this device to be available to the automatic profile? (y)es or (n)o?"
-	GetYesNoSelection deviceAllow "$E" "y" "$callow"
+	GetYesNoSelection deviceAllow "$E" "$callow"
 
 	E="Do you want to disable this device?"
 	GetYesNoSelection deviceDisabled "$E" "$cdisabled"
-	# TODO: needs auto_allow field!
 
-        echo "Adding Device..."
+        echo "Updating Device..."
 
-        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled', auto_allow=$deviceAllow WHERE pk_device=$EditPK"
+        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine=$thiMachine, disabled='$deviceDisabled', auto_allow='$deviceAllow' WHERE pk_device=$EditPK"
         RunSQL "$Q"
 	echo done
 	sleep 1
