@@ -907,11 +907,11 @@ Add_Device()
 	echo ""
 
 	E="Would you like this device to be available to the automatic profile? (y)es or (n)o?"
-	GetYesNoSelection deviceAllow "$E" "y"	
+	GetYesNoSelection deviceAllow "$E"
 
 
 	E="Do you want to disable this device?"
-	GetYesNoSelection deviceDisabled"$E"
+	GetYesNoSelection deviceDisabled "$E"
 	
 	
 
