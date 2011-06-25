@@ -1054,11 +1054,14 @@ do
 			fi
 			;;
 		2)
-			echo "exit" >$commPipe
-			;;
+			# Kill the miners
+			killMiners
+			# Commit suicide
+			screen -d -r $sessionName -X quit
+			
 		3)
-			echo "detach" >$commPipe
-			;;
+			screen -d $sessionName
+
 		4)
 			Do_Settings
 			;;
