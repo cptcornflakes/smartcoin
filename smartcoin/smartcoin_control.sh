@@ -673,7 +673,7 @@ Delete_Workers()
 	
 
 	echo "Deleting Worker..."
-	Q="DELETE FROM worker WHERE pk_worker=$PK;"
+	Q="DELETE FROM worker WHERE pk_worker=$thisWorker;"
 	RunSQL "$Q"
 	# We also have to delete the profile_map entries that refer to this worker!
 	Q="DELETE FROM profile_map WHERE fk_worker=$thisWorker;"
