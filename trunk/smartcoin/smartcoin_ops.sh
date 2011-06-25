@@ -302,15 +302,15 @@ GetWorkerInfo()
 	case "$pk_worker" in
 	-1)
 		# Deepbit donation worker
-		FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8322	Deepbit.net (Donation)")
+		FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8332	Deepbit.net (Donation)")
 		;;
 	-2)
 		# Bitcoin.cz donation worker
-		FA=$(FieldArrayAdd "jondecker76.donate	donate	mining.bitcoin.cz	8322	Bitcoin.cz (Donation)")
+		FA=$(FieldArrayAdd "jondecker76.donate	donate	mining.bitcoin.cz	8332	Bitcoin.cz (Donation)")
 		;;
 	-3)
 		# BTCGuild donation worker
-		FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8322	BTCGuild (Donation)")
+		FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8332	BTCGuild (Donation)")
 		;;
 	
 	*)
