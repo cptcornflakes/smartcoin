@@ -47,9 +47,10 @@ RunSQL()
         local Q
         Q="$*"
         if [[ -n "$Q" ]]; then
-                mysql -A -N "$SQL_DB" $MYSQL_DB_CRED -e "$Q;" | Field_Translate
+                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED -e "$Q;" | Field_Translate
+		sqlite3 -noheader -separator "	" $HOME/smartcoin/smartcoin.db | Field_Translate
         else
-                mysql -A -N "$SQL_DB" $MYSQL_DB_CRED | Field_Translate
+                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED | Field_Translate
 	        fi
 }
 
