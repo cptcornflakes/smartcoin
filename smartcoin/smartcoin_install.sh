@@ -144,13 +144,13 @@ poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$poclbmMiner" != "" ]]; then
 	echo "Found poclbm miner installed on local system"
 	Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
-	R=$(RunSQL "$Q")
+	RunSQL "$Q"
 fi
 
 # Set the default miner
 
 # TODO: I should add more logic to determining a default.... Perhaps ask the user which one?
-Q="UPDATE miner (default_miner) VALUES ('1') WHERE pk_miner=1;"
+Q="UPDATE miner SET (default_miner) VALUES ('1') WHERE pk_miner=1;"
 RunSQL "$Q"
 
 # Set the current profile! 
