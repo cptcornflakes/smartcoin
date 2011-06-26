@@ -143,7 +143,7 @@ poclbmMiner=`locate poclbm.py | grep -vi svn`
 poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$poclbmMiner" != "" ]]; then
 	echo "Found poclbm miner installed on local system"
-	Q="INSERT INTO miner (fk_machine,name,launch,path,default_minersudo ,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
+	Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
 	R=$(RunSQL "$Q")
 fi
 
