@@ -9,13 +9,19 @@
 preInstallCheck() {
 	# Just a start at detecting things that should be done PRIOR to trying to run smartcoin
 
-	ready=""
-	ready=`echo $LD_LIBRARY_PATH | grep AMD-APP-SDK`
-	if [[ "$ready" == "" ]]; then
-		echo "It appears that the AMD APP SDK is not in your LD_LIBRARY_PATH"
-		echo "This is required for smartcoin to work properly!"
-		echo "Please add the AMD APP SDK path to LD_LIBRARY_PATH and try again."
-		exit
+	amd_sdk_21=""
+	amd_sdk_21=`echo $LD_LIBRARY_PATH | grep -i AMD-APP-SDK`
+	
+	amd_sdk_24=""
+	amd_sdk_24=`echo $LD_LIBRARY_PATH | grep -i ATI-STREAM-SDK`
+	
+	if [[ "$amd_sdk_21" == "" ]]; then
+		if [[ "$amd_sdk_24" == "" ]]; then
+			echo "It appears that the AMD/ATI SDK is not in your LD_LIBRARY_PATH"
+			echo "This is required for smartcoin to work properly!"
+			echo "Please add the AMD APP SDK path to LD_LIBRARY_PATH and try again."
+			exit
+		fi
 	fi
 }
 
