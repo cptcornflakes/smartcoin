@@ -18,7 +18,7 @@
 . $HOME/smartcoin/smartcoin_ops.sh
 
 # Start the backend service
-$HOME/smartcoin/smartcoin_backend.sh &
+#$HOME/smartcoin/smartcoin_backend.sh &
 
 
 Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
