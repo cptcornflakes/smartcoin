@@ -287,7 +287,7 @@ Add_Miners()
 	GetYesNoSelection defaultMiner "$E"
 
 	echo "Adding Miner..."
-	Q="INSERT INTO miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine"
+	Q="INSERT INTO miner (name,launch,path,fk_machine) VALUES ('$minerName','$minerLaunch','$minerPath','$thisMachine');"
 	RunSQL "$Q"
 
 
@@ -466,7 +466,7 @@ Add_Pool()
 
         echo "Adding Pool..."
 
-        Q="INSERT INTO pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout'"
+        Q="INSERT INTO pool (name,server,alternate_server,port,timeout) VALUES ('$poolName',$poolServer','$poolAlternate'$poolPort','$poolTimeout');"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
@@ -489,7 +489,7 @@ Edit_Pool()
 	E="Please select the pool from the list above to edit"
 	GetPrimaryKeySelection thisPool "$Q" "$E"
         
-	Q="SELECT name,server,alternateServer,port,timeout  FROM pool WHERE pk_pool=$thisPool;"
+	Q="SELECT name,server,alternate_server,port,timeout  FROM pool WHERE pk_pool=$thisPool;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	cserver=$(Field 2 "$R")
@@ -525,7 +525,7 @@ Edit_Pool()
 
         echo "Updating Pool..."
 
-        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$thisPool"
+        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternate_server='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$thisPool"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
@@ -778,7 +778,7 @@ Add_Profile()
 	echo "Enter a name for this profile"
 	read profileName
 	echo ""
-	Q="INSERT INTO profile set name='$profileName', fk_machine='$thisMachine';"
+	Q="INSERT INTO profile (name,fk_machine) VALUES ('$profileName','$thisMachine');"
 	R=$(RunSQL "$Q")
 		
 	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
@@ -991,7 +991,7 @@ Add_Device()
 	
         echo "Adding Device..."
 	#TODO: Fix hard coded type
-        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine='$thisMachine', auto_allow='$deviceAllow', type='gpu'"
+        Q="INSERT INTO device (name,device,disabled,fk_machine,auto_allow,type) VALUES ('$deviceName','$deviceDevice',$deviceDisabled','$thisMachine','$deviceAllow','gpu');"
         RunSQL "$Q"
 	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
