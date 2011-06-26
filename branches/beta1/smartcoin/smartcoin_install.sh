@@ -15,6 +15,7 @@ preInstallCheck() {
 		echo "It appears that the AMD APP SDK is not in your LD_LIBRARY_PATH"
 		echo "This is required for smartcoin to work properly!"
 		echo "Please add the AMD APP SDK path to LD_LIBRARY_PATH and try again."
+		exit
 	fi
 }
 
