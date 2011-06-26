@@ -37,9 +37,9 @@ echo ""
 # Set up MySQL
 UseDB "smartcoin"
 echo "Configuring MySQL..."
-sudo mysql -A -N -p -e "CREATE DATABASE smartcoin;" 2> /dev/null
-sudo mysql -A -N -p -e "CREATE USER 'smartcoin'@'localhost'  IDENTIFIED BY 'smartcoin';" 2> /dev/null
-sudo mysql -A -N -p -e "GRANT ALL PRIVILEGES ON smartcoin.* TO 'smartcoin'@'localhost' IDENTIFIED BY 'smartcoin';" 2> /dev/null
+sudo mysql -A -N -p -e "CREATE DATABASE smartcoin;"
+sudo mysql -A -N -p -e "CREATE USER 'smartcoin'@'localhost'  IDENTIFIED BY 'smartcoin';" 
+sudo mysql -A -N -p -e "GRANT ALL PRIVILEGES ON smartcoin.* TO 'smartcoin'@'localhost' IDENTIFIED BY 'smartcoin';" 
 echo "done."
 echo ""
 echo "Importing database schema..."
