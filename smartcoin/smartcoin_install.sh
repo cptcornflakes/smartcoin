@@ -60,47 +60,47 @@ RunSQL "$Q"
 
 
 # Populate the database with default pools
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('DeepBit','deepbit.net',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('DeepBit','deepbit.net',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoin.cz (slush)','mining.bitcoin.cz',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoin.cz (slush)','mining.bitcoin.cz',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BTCGuild','btcguild.com',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BTCGuild','btcguild.com',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BTCMine','btcmine.com',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BTCMine','btcmine.com',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoins.lc','bitcoins.lc',NULL,8080,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoins.lc','bitcoins.lc',NULL,8080,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('SwePool','swepool.net',NULL,8337,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('SwePool','swepool.net',NULL,8337,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Continuum','continuumpool.com',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Continuum','continuumpool.com',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('MineCo','mineco.in',NULL,3000,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('MineCo','mineco.in',NULL,3000,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Eligius','mining.eligius.st',NULL,8337,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Eligius','mining.eligius.st',NULL,8337,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('CoinMiner','173.0.52.116',NULL,8347,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('CoinMiner','173.0.52.116',NULL,8347,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('ZABitcoin','mine.zabitcoin.co.za',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('ZABitcoin','mine.zabitcoin.co.za',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitClockers','pool.bitclockers.com',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitClockers','pool.bitclockers.com',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('MtRed','mtred.com',NULL,8337,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('MtRed','mtred.com',NULL,8337,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('SimpleCoin','simplecoin.us',NULL,8337,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('SimpleCoin','simplecoin.us',NULL,8337,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Ozco','ozco.in',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Ozco','ozco.in',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('EclipseMC','us.eclipsemc.com',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('EclipseMC','us.eclipsemc.com',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitP','pool.bitp.it',NULL,8334,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitP','pool.bitp.it',NULL,8334,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitcoinPool','bitcoinpool.com',NULL,8334,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitcoinPool','bitcoinpool.com',NULL,8334,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('EcoCoin','ecocoin.org',NULL,8332,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('EcoCoin','ecocoin.org',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitLottoPool','bitcoinpool.com',NULL,8337,60,1,0);"
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('BitLottoPool','bitcoinpool.com',NULL,8337,60,1,0);"
 R=$(RunSQL "$Q")
-Q="INSERT IGNORE INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('X8S','pit.x8s.de',NULL,8337,60,1,0);"                              
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('X8S','pit.x8s.de',NULL,8337,60,1,0);"                              
 R=$(RunSQL "$Q")
 
 # Autodetect cards
@@ -114,7 +114,7 @@ for device in $D; do
 	devType=$(Field 4 "$device")
 
 	# TODO: deal with hard coded auto_allow?
-	Q="INSERT IGNORE INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES (1,'$devName',$id,1,'$devType',$devDisable);"
+	Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES (1,'$devName',$id,1,'$devType',$devDisable);"
 	RunSQL "$Q"
 done
 echo "done."
@@ -134,7 +134,7 @@ if [[ "$phoenixMiner" != "" ]]; then
 	else
 		knl="poclbm"
 	fi
-	Q="INSERT IGNORE INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$phoenixMiner',0,0);"
+	Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$phoenixMiner',0,0);"
 	RunSQL "$Q"
 fi
 
@@ -143,7 +143,7 @@ poclbmMiner=`locate poclbm.py | grep -vi svn`
 poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$poclbmMiner" != "" ]]; then
 	echo "Found poclbm miner installed on local system"
-	Q="INSERT IGNORE INTO miner (fk_machine,name,launch,path,default_minersudo ,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
+	Q="INSERT INTO miner (fk_machine,name,launch,path,default_minersudo ,disabled) VALUES (1,'poclbm','poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
 	R=$(RunSQL "$Q")
 fi
 
