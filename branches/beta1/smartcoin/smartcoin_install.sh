@@ -184,7 +184,7 @@ RunSQL "$Q"
 let startTime_hours=$RANDOM%23
 let startTime_minutes=$RANDOM%59
 startTime=$startTime_hours$startTime_minutes
-Q="INSERT INTO settings SET data='donation_start', value='$startTime', description='Time to start hashpower donation each day'"
+Q="INSERT INTO settings (data, value, description) VALUES ('donation_start','$startTime','Time to start hashpower donation each day');"
 RunSQL "$Q"
 if [[ "$myDonation" -gt "0"  ]]; then
 	echo ""
