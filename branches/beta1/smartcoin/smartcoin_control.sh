@@ -661,7 +661,7 @@ Edit_Workers()
 	fi
 
 	echo "SELECT WORKER TO EDIT"
-	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+	Q="SELECT pk_worker, pool.name || '.' || worker.name as fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
 
@@ -727,7 +727,7 @@ Delete_Workers()
 	fi
 
 	echo "SELECT WORKER TO DELETE"
-	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+	Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to delete"
 	GetPrimaryKeySelection thisWorker "$Q" "$E"
 	
@@ -821,7 +821,7 @@ Add_Profile()
 
 		echo -e "$profileProgress"
 		echo -e "$addedInstances"
-		Q="SELECT pk_worker, CONCAT(pool.name,'.', worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+		Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 		E="Please select the pool worker from the list above to use with this profile"
 		GetPrimaryKeySelection thisWorker "$Q" "$E"
 		echo ""
@@ -837,7 +837,7 @@ Add_Profile()
 
 		clear
 		ShowHeader
-		Q="SELECT device.name, CONCAT(pool.name,'.',worker.name) FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
+		Q="SELECT device.name, pool.name || '.' || worker.name AS fullName FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
 "
 		R=$(RunSQL "$Q")
 		addedInstances=""
