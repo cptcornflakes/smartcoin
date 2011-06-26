@@ -937,7 +937,7 @@ Delete_Profile()
 	sleep 1
 }
 
-onfigure Devices Menu
+
 Do_Devices() {
 	clear
 	ShowHeader
