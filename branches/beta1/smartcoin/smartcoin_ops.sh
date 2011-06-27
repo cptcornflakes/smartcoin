@@ -232,7 +232,7 @@ GenCurrentProfile()
 		FieldArray=$(GenAutoProfile "$thisMachine")
 	else
 		# Generate the FieldArray via the database
-		Q="SELECT CONCAT('Miner.',pk_profile_map), fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker, fk_device"
+		Q="SELECT 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker, fk_device"
         	FieldArray=$(RunSQL "$Q")
 	fi
 	
