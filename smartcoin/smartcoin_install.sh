@@ -12,6 +12,8 @@ CheckIfAlreadyInstalled() {
 	Q="SELECT COUNT(*) FROM settings;"
 	R=$(RunSQL "$R")
 	cnt=$(Field 1 "$R")
+	echo "Count: $cnt"
+	echo ""
 
 	if [[ "$cnt" -ge 1 ]]; then
 		echo "The installer has already been run before.  You cannot run it again"
