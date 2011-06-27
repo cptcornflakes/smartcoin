@@ -37,7 +37,7 @@ Do_ChangeProfile() {
 	R=$(RunSQL "$Q")
 	machineName=$(Field 1 "$R")
 
-	screen -d -r $sessionName -p $machineName
+	screen -S $sessionName -p $machineName
 
 }
 Do_Settings() {
