@@ -31,7 +31,13 @@ Do_ChangeProfile() {
 	GetPrimaryKeySelection thisProfile "$Q" "$E" "" "$autoEntry"
 	
 	SetCurrentProfile "$thisMachine" "$thisProfile"
-	GotoStatus
+	
+	# Lets see if we can automatically go to the status screen
+	Q="SELECT name FROM machine WHERE pk_machine=$thisMachine;"
+	R=$(RunSQL "$Q")
+	machineName=$(Field 1 "$R")
+
+	screen -d -r $sessionName -p $machineName
 
 }
 Do_Settings() {
