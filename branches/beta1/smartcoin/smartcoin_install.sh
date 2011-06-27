@@ -10,11 +10,9 @@ AMD_SDK_PATH=""
 
 CheckIfAlreadyInstalled() {
 	Q="SELECT COUNT(*) FROM settings;"
-	R=$(RunSQL "$R")
+	R=$(RunSQL "$Q")
 	cnt=$(Field 1 "$R")
-	echo "Count: $cnt"
-	echo "$R"
-	echo ""
+
 
 	if [[ "$cnt" -ge 1 ]]; then
 		echo "The installer has already been run before.  You cannot run it again"
