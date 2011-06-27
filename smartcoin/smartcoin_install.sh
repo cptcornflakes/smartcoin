@@ -8,7 +8,7 @@
 AMD_SDK_PATH=""
 
 
-AlreadyInstalled() {
+CheckIfAlreadyInstalled() {
 	Q="SELECT COUNT(*) FROM settings;"
 	R=$(RunSQL "$R")
 	local count=$(Field 1 "$R")
@@ -44,6 +44,7 @@ findAMDSDK()
 }
 
 . $HOME/smartcoin/smartcoin_ops.sh
+CheckIfAlreadyInstalled
 
 clear
 
