@@ -69,8 +69,12 @@ sudo updatedb #needed for the linux `locate` command to work reliably
 
 # Lets see if we can auto-detect the AMD SDK
 amd_sdk_location=$(findAMDSDK)
-echo "Smartcoin needs to know the location of the AMD/ATI SDK in order to work properly."
+echo "Smartcoin needs to know the location of the AMD/ATI SDK library in order to work properly."
 echo "I have tried to locate it for you, but you may need to type it manually below."
+echo "The path may resemble something similar to /home/user/AMD-APP-SDK-v2.4-lnx32/lib/x86/, for example"
+echo "Enter the path below:"
+echo ""
+
 read -e -i "$amd_sdk_location" location
 
 Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
@@ -177,6 +181,7 @@ if [[ "$phoenixMiner" != "" ]]; then
 	done
 	DisplayMenu "$M"
 
+	echo "Select the local phoenix installation from the list above"
 	selected="ERROR"
 	until [[ "$selected" != "ERROR" ]]; do
 		selected=$(GetMenuSelection "$M")
