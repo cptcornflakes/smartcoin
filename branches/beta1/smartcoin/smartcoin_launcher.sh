@@ -10,7 +10,7 @@ miner=$3
 worker=$4
 
 # Lets fix up our $LD_LIBRARY_PATH
-Q="SELECT value FROM settings WHERE data='AMD_SDK_LOCATION';"
+Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
 R=$(RunSQL "$Q")
 amd_sdk_location=$(Field 1 "$R")
 
