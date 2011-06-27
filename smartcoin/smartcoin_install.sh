@@ -46,10 +46,10 @@ findAMDSDK()
 }
 
 . $HOME/smartcoin/smartcoin_ops.sh
-CheckIfAlreadyInstalled
+
 
 clear
-
+CheckIfAlreadyInstalled
 
 
 
