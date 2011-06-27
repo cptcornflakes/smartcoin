@@ -13,6 +13,7 @@ CheckIfAlreadyInstalled() {
 	R=$(RunSQL "$R")
 	cnt=$(Field 1 "$R")
 	echo "Count: $cnt"
+	echo "$R"
 	echo ""
 
 	if [[ "$cnt" -ge 1 ]]; then
