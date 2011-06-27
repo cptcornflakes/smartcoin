@@ -50,7 +50,7 @@ if  [[ "$getPermission" != "y"  ]]; then
      exit
 fi
 sudo updatedb #needed for the linux `locate` command to work reliably
-preInstallCheck
+
 
 # Lets see if we can auto-detect the AMD SDK
 amd_sdk_location=$(findAMDSDK)
