@@ -5,26 +5,34 @@
 # [ ] Check on better way to interactively install packages...
 
 
+AMD_SDK_PATH=""
 
 preInstallCheck() {
-	# Just a start at detecting things that should be done PRIOR to trying to run smartcoin
+	
 
-	amd_sdk_21=""
-	amd_sdk_21=`echo $LD_LIBRARY_PATH | grep -i AMD-APP-SDK`
-	
-	amd_sdk_24=""
-	amd_sdk_24=`echo $LD_LIBRARY_PATH | grep -i ATI-STREAM-SDK`
-	
-	if [[ "$amd_sdk_21" == "" ]]; then
-		if [[ "$amd_sdk_24" == "" ]]; then
-			echo "It appears that the AMD/ATI SDK is not in your LD_LIBRARY_PATH"
-			echo "This is required for smartcoin to work properly!"
-			echo "Please add the AMD APP SDK path to LD_LIBRARY_PATH and try again."
-			exit
-		fi
-	fi
+
 }
 
+findAMDSDK()
+{
+	local roots="$HOME/ /root/"
+	local paths="AMD-APP-SDK-v2.6-lnx32/  AMD-APP-SDK-v2.6-lnx64/ AMD-APP-SDK-v2.4-lnx32/  AMD-APP-SDK-v2.4-lnx64/ ATI-STREAM-SDK-v2.1-lnx32/ ATI-STREAM-SDK-v2.1-lnx64/"
+	local libDirs="lib/x86/ lib/x86_64"
+	local retPath=""
+	
+	for thisRoot in $roots; do
+		for thisPath in $paths; do
+			for thisLibDir in $libDirs; do
+				if [[ -d "$thisRoot$thisPath$thisLibDir" ]]; then
+					# Found One!!
+					retPath="$thisRoot$thisPath$thisLibDir"
+					break 3
+				fi
+			done
+		done
+	done
+	echo $retPath
+}
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
@@ -39,11 +47,23 @@ echo "Do you wish to continue? (y/n)"
 read getPermission
 echo ""
 
+
 getPermission=`echo $getPermission | tr '[A-Z]' '[a-z]'`
 if  [[ "$getPermission" != "y"  ]]; then
      echo "Exiting  SmartCoin installer."
      exit
 fi
+sudo updatedb #needed for the linux `locate` command to work reliably
+preInstallCheck
+
+# Lets see if we can auto-detect the AMD SDK
+amd_sdk_location=$(findAMDSDK)
+echo "Smartcoin needs to know the location of the AMD/ATI SDK in order to work properly."
+echo "I have tried to locate it for you, but you may need to type it manually below."
+read -e -i "$amd_sdk_location" location
+
+Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
+RunSQL "$Q"
 
 
 # Create  SymLink
@@ -128,19 +148,54 @@ echo ""
 
 # Autodetect miners
 echo "Auto detecting local installed miners..."
-sudo updatedb #needed for the linux `locatte` command to work reliably
+
 
 #detect phoenix install location
 phoenixMiner=`locate phoenix.py | grep -vi svn`
-phoenixMiner=${phoenixMiner%"phoenix.py"}
+#phoenixMiner=${phoenixMiner%"phoenix.py"}
+
 if [[ "$phoenixMiner" != "" ]]; then
-	echo "Found Phoenix miner installed on local system"
-	if [[ -d $HOME/phoenix/kernels/phatk ]]; then
+	M=""
+	i=0
+
+
+	for thisLocation in $phoenixMiner; do
+		let i++
+
+		M=$M$(FieldArrayAdd "$i	$i	$thisLocation")
+	done
+	DisplayMenu "$M"
+
+	selected="ERROR"
+	until [[ "$selected" != "ERROR" ]]; do
+		selected=$(GetMenuSelection "$M")
+		if [[ "$selected" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	
+	i=0
+	ret=""
+	for thisLocation in $phoenixMiner; do
+		let i++
+		ret=$thisLocation
+		if [[ "$selected" == "$i" ]]; then
+			break
+		fi
+	done
+
+	thisLocation=$thisLocation
+	thisLocation=${thisLocation%"phoenix.py"}
+	Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
+	RunSQL "$Q"
+
+
+	if [[ -d $thisLocation/kernels/phatk ]]; then
 		knl="phatk"
 	else
 		knl="poclbm"
 	fi
-	Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$phoenixMiner',0,0);"
+	Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES (1,'phoenix','phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ -k $knl device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false','$thisLocation',0,0);"
 	RunSQL "$Q"
 fi
 
