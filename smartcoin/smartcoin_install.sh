@@ -7,11 +7,7 @@
 
 AMD_SDK_PATH=""
 
-preInstallCheck() {
-	
 
-
-}
 
 findAMDSDK()
 {
@@ -38,7 +34,7 @@ findAMDSDK()
 
 clear
 
-preInstallCheck
+
 
 
 echo "SmartCoin requires root permissions to install dependencies, create SymLinks and set up the database."
