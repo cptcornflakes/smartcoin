@@ -187,13 +187,13 @@ ShowStatus() {
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
-	percentRejected=`echo "scale=4;a=$compositeRejected; b=$compositeAccepted; c=a/b; scale=2; c*100;" | bc -l`
-	percentRejected=$(($percentRejected))
+	percentRejected=`echo "scale=3;a=$compositeRejected; b=$compositeAccepted; c=a/b;" | bc -l`
+	#percentRejected=$(($percentRejected))
 	
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0.00"
 	fi
-	status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejected]"
+	status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected  Rejected]"
 
 	echo  $status
 	screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
