@@ -25,23 +25,9 @@ CheckIfAlreadyInstalled() {
 
 findAMDSDK()
 {
-	local roots="$HOME/ /root/"
-	local paths="AMD-APP-SDK-v2.6-lnx32/  AMD-APP-SDK-v2.6-lnx64/ AMD-APP-SDK-v2.4-lnx32/  AMD-APP-SDK-v2.4-lnx64/ ATI-STREAM-SDK-v2.1-lnx32/ ATI-STREAM-SDK-v2.1-lnx64/"
-	local libDirs="lib/x86/ lib/x86_64"
-	local retPath=""
-	
-	for thisRoot in $roots; do
-		for thisPath in $paths; do
-			for thisLibDir in $libDirs; do
-				if [[ -d "$thisRoot$thisPath$thisLibDir" ]]; then
-					# Found One!!
-					retPath="$thisRoot$thisPath$thisLibDir"
-					break 3
-				fi
-			done
-		done
-	done
-	echo $retPath
+	 local location=`sudo find / -type d -regextype posix-extended -iregex '.*/(AMD|ATI)-(APP|STREAM)-SDK-v[[:digit:].]+-lnx(32|64)/lib/x86(_64)?$'
+`
+	echo "$location"
 }
 
 . $HOME/smartcoin/smartcoin_ops.sh
