@@ -187,11 +187,11 @@ ShowStatus() {
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
-	percentRejected=$(echo "scale=4; $compositeRejected / $compositeAccepted" | bc -l)
-
-	percentRejected=$(echo "scale=2; $percentRejected * 100" | bc -l)
+	percentRejected=`echo "scale=4;a=$compositeAccepted ; b=$compositeAccepted; c=a/b; scale=2; c*100;" | bc -l`
+	percentRejected=$(($percentRejected))
+	
 	if [ -z "$percentRejected" ]; then
-		percentRejected="0"
+		percentRejected="0.00"
 	fi
 	status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejected]"
 
