@@ -4,6 +4,11 @@
 # TODO:
 # [ ] Check on better way to interactively install packages...
 
+INSTALL_LOCATION=$1
+
+if [[ "$INSTALL_LOCATION" == "" ]]; then
+	INSTALL_LOCATION="$HOME"
+fi
 
 AMD_SDK_PATH=""
 
@@ -69,7 +74,7 @@ RunSQL "$Q"
 
 # Create  SymLink
 echo "Creating symlink..."
-sudo ln -s $HOME/smartcoin/smartcoin.sh /usr/bin/smartcoin 2> /dev/null
+sudo ln -s $INSTALL_LOCATION/smartcoin/smartcoin.sh /usr/bin/smartcoin 2> /dev/null
 echo "done."
 echo ""
 
