@@ -23,7 +23,6 @@
 
 Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
 
-DeleteTemporaryFiles
 echo "Starting SmartCoin..."
 
 running=`screen -ls 2> /dev/null | grep $sessionName`
