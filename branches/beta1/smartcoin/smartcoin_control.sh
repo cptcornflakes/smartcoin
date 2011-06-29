@@ -548,7 +548,7 @@ Edit_Workers()
 
 	echo "Updating Worker..."
 
-	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority=$workerPriority, auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
+	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority='$workerPriority', auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
 	RunSQL "$Q"
 	echo "done"
 	sleep 1
