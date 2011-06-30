@@ -23,11 +23,11 @@ if [[ "$svn_rev_start" == "$svn_rev_end" ]]; then
 else
   if [[ "$experimental_update" ]]; then
     #Do an experimental update!
-    Log "Preparing experimental update from r$svn_revision_start to r$svn_revision_end" 1
+    Log "Preparing experimental update from r$svn_rev_start to r$svn_rev_end" 1
     svn update
   else
     if [[ "$safe_update" ]]; then
-     Log "Preparing safe update from r$svn_revision_start to r$svn_revision_end" 1
+     Log "Preparing safe update from r$svn_rev_start to r$svn_rev_end" 1
      svn update
     else
       Log "There are new experimental updates, but they aren't proven safe yet. Not updating." 1
