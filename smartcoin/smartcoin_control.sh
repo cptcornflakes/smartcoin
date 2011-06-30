@@ -309,7 +309,7 @@ Add_Pool()
 
         echo "Adding Pool..."
 
-        Q="INSERT INTO pool (name,server,alternate_server,port,timeout) VALUES ('$poolName',$poolServer','$poolAlternate','$poolPort','$poolTimeout');"
+        Q="INSERT INTO pool (name,server,alternate_server,port,timeout) VALUES ('$poolName','$poolServer','$poolAlternate','$poolPort','$poolTimeout');"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
