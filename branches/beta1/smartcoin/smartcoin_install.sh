@@ -264,6 +264,11 @@ fi
 echo ""
 echo ""
 
+# Set up by default for stable updates!
+Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
+RunSQL "$Q"
+
+
 # ---------
 # Finished!
 # ---------
