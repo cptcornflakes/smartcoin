@@ -156,8 +156,8 @@ ShowStatus() {
 		fi
 
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-		cmd=`cat  "/tmp/smartcoin-$key" | grep hash`
-    
+		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
+    cmd=grep "hash" "/tmp/smartcoin-$key" | tail -n 1
     if [[ "$cmd" == *GHash* ]]; then
       hashUnits="GHash"
     elif [[ "$cmd" == *Mhash* ]]; then
