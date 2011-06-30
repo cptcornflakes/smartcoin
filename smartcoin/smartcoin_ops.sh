@@ -14,6 +14,9 @@ HEADER_smartcoin_ops="included"
 # TODO: The installer can prompt for values, with sane defaults already entered
 export sessionName="smartcoin"
 export minerSession="miner"
+STABLE=1
+EXPERIMENTAL=2
+
 commPipe=$HOME/smartcoin/smartcoin.cmd
 statusRefresh="5"
 MySqlHost="127.0.0.1"
