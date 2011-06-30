@@ -306,10 +306,11 @@ Add_Pool()
 	echo "Enter a disconnection timeout for this pool"
 	read poolTimeout
 	echo ""
+  
+  # TODO: auto_allow and disabled aren't used yet (if ever?)
+  #       fix hard coding once a decision is made
 
-        echo "Adding Pool..."
-
-        Q="INSERT INTO pool (name,server,alternate_server,port,timeout) VALUES ('$poolName','$poolServer','$poolAlternate','$poolPort','$poolTimeout');"
+        Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('$poolName','$poolServer','$poolAlternate','$poolPort','$poolTimeout','1','0');"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
