@@ -45,9 +45,12 @@ else
      case $i in
 	
 
-     252)
-        # Update schema going into r250
+     255)
+        # Update schema going into r255
+         echo "Applying r255 patch..."
         # Set up by default for stable updates!
+        Q="DELETE FROM settings WHERE data='dev_branch';"
+        RunSQL "$Q"
         Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
         RunSQL "$Q"
         ;;
