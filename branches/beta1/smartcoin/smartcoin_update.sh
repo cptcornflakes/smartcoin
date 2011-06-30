@@ -14,20 +14,25 @@ svn_rev_start=`svn info | grep "^Revision" | awk '{print $2}'`
 svn_current_repo=`svn info | grep "^URL" | awk '{print $2}'`
 svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
 
-Log "Preparing to update from r$svn_revision_start to r$svn_revision_end" 1
+if [[ "$svn_rev_start" == "$svn_rev_end" ]]; then
+  Log "You are already at the current revision r$svn_rev_start!" 1
+else
 
+  Log "Preparing to update from r$svn_revision_start to r$svn_revision_end" 1
+  #svn -r $svn_rev_end update
 
-for i in {"$svn_rev_start".."$svn_rev_end"}; do
+  for i in {"$svn_rev_start".."$svn_rev_end"}; do
 	
-	case $i in;
+     case $i in;
 	
-	190)
-		# Update schema going into r190
-		;;
-	201)
-		# Update schema going into r200
-		;;
+     190)
+        # Update schema going into r190
+        ;;
+     201)
+        # Update schema going into r200
+        ;;
 
-	esac
+     esac
 	
-done
+  done
+fi
