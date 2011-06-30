@@ -14,7 +14,7 @@ Log "Preparing to do an Update..." 1
 svn_rev_start=`svn info | grep "^Revision" | awk '{print $2}'`
 svn_current_repo=`svn info | grep "^URL" | awk '{print $2}'`
 svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
-safe_update=`svn diff -r $svn_rev_start:$svn_rev_end update.ver`
+safe_update=1 #TODO: UNCOMMENT THIS WHEN READY FOR STABLE UPDATES!`svn diff -r $svn_rev_start:$svn_rev_end update.ver`
 
 
 
