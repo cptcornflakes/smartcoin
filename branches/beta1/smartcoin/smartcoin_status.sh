@@ -155,7 +155,18 @@ ShowStatus() {
 		fi
 
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-		cmd=`cat  "/tmp/smartcoin-$key" | grep Mhash`
+		cmd=`cat  "/tmp/smartcoin-$key" | grep hash`
+    
+    if [[ "$cmd" == *GHash* ]]; then
+      hashUnits="GHash"
+    elif [[ "$cmd" == *Mhash* ]]; then
+      hashUnits="Mhash"
+    elif [[ "$cmd" == *khash* ]]; then
+      hashUnits="khash"
+    else
+      hashUnits="hash"
+    fi  
+      
 		if [ -z "$cmd" ]; then
 			cmd="\e[00;31m<<<DOWN>>>\e[00m"
 			hashes="0.00"
@@ -192,7 +203,7 @@ ShowStatus() {
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0.00"
 	fi
-	status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
+	status=$status"Grand Total: [$compositeHashes $hashUnits/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
 
 	echo  $status
 	screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
