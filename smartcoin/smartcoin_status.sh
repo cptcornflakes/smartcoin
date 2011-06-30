@@ -157,8 +157,8 @@ ShowStatus() {
 
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
-    #cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
-    cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
+    cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1 | grep -in warning`
+    #cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
     if [[ "$cmd" == *GHash* ]]; then
       hashUnits="GHash"
     elif [[ "$cmd" == *Mhash* ]]; then
