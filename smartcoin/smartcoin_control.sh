@@ -10,7 +10,24 @@
 
 
 
+# Update system
+Do_Update()
+{
+  Q="SELECT value FROM settings WHERE data='dev_branch';"
+  R=$(RunSQL "$Q")
+  local branch=$(Field 1 "$R")
+  
+  if [[ "$branch" == "stable" ]]; then
+   . $HOME/smartcoin/smartcoin_update.sh
+  elif [[ "$branch == "experimental" ]]; then
+  . $HOME/smartcoin/smartcoin_update.sh 1
+  else
+    echo ""
+    echo "Error! Specified branch must be either \"experimental\" or \"stable\"."
+    sleep 5    
+  fi
 
+}
 # Profile Menu
 Do_ChangeProfile() {
 
@@ -977,6 +994,7 @@ do
 	echo "8) Configure Profiles"
 	echo "9) Configure Devices"
 	echo "10) Configure Pools"
+  echo "11) Update Smartcoin"
 
 	read selection
 
@@ -1038,7 +1056,9 @@ do
 		10)
 			Do_Pools
 			;;
-			
+		 11)
+       Do_Update
+       ;;
 		*)
 
 			;;
