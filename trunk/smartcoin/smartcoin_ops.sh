@@ -316,7 +316,7 @@ GetWorkerInfo()
 		;;
 	-2)
 		# Bitcoin.cz donation worker
-		FA=$(FieldArrayAdd "jondecker76.donate	donate	mining.bitcoin.cz	8332	Bitcoin.cz (Donation)")
+		FA=$(FieldArrayAdd "jondecker76@donate	donate	btcmine.com	8332	BTCMine (Donation)")
 		;;
 	-3)
 		# BTCGuild donation worker
