@@ -58,10 +58,11 @@ minerLaunch=${minerLaunch//<#pass#>/$workerPass}
 minerLaunch=${minerLaunch//<#server#>/$workerServer}
 minerLaunch=${minerLaunch//<#port#>/$workerPort}
 minerLaunch=${minerLaunch//<#device#>/$thisDevice}
+minerLaunch=${minerLaunch//<#path#>/$minerPath}
 
 echo "LAUNCH: $minerLaunch"
 Log "Launching miner with launch string: $minerLaunch"
 
-#pushd $minerPath
-cd $minerPath && ./$minerLaunch
-#popd
+
+$minerLaunch
+
