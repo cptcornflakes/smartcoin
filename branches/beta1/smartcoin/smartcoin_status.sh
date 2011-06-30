@@ -99,7 +99,7 @@ ShowStatus() {
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
 		        temperature=`DISPLAY=:0,0 aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';`
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
-			usage=`DISPLAY=:0.0 aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';`
+			usage=$(DISPLAY=:0.0 aticonfig --pplib-cmd "get activity" | awk '/Activity\:/ { print $2 }')
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
