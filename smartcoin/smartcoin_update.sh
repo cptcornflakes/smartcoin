@@ -9,19 +9,12 @@
 # When it increments, you are safe to do the update!
 
 
-# Either of these will work for getting Subversion working copy revision number
-#svn_rev_start=`svn info | sed -ne 's/^Revision: //p'`
-#svn_rev_start=`svn info | grep "^Revision" | awk '{print $2}'`
+Log "Preparing to do an Update..." 1
+svn_rev_start=`svn info | grep "^Revision" | awk '{print $2}'`
+svn_current_repo=`svn info | grep "^URL" | awk '{print $2}'`
+svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
 
-#then...
-#svn update
-#TODO: Copy files to other host machines!
-
-
-#then...
-#svn_rev_end=`svn info | grep "^Revision" | awk '{print $2}'`
-
-# test
+Log "Preparing to update from r$svn_revision_start to r$svn_revision_end" 1
 
 
 for i in {"$svn_rev_start".."$svn_rev_end"}; do
