@@ -164,8 +164,14 @@ GotoStatus() {
 
 Log() {
 	local line="$1"
+  local announce="$2"
+  
 	local dte=`date "+%D %T"`
 	echo -e "$dte\t$line\n" >> ~/smartcoin.log
+   
+  if [[ "$announce" == "1" ]]; then
+    echo -e $line
+  fi
 }
 
 
