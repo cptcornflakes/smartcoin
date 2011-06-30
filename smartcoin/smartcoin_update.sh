@@ -21,6 +21,7 @@
 #then...
 #svn_rev_end=`svn info | grep "^Revision" | awk '{print $2}'`
 
+# test
 
 
 for i in {"$svn_rev_start".."$svn_rev_end"}; do
