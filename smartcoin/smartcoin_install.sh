@@ -1,5 +1,8 @@
 #!/bin/bash
 
+. $HOME/smartcoin/smartcoin_ops.sh
+
+
 # SmartCoin installer script
 # TODO:
 # [ ] Check on better way to interactively install packages...
@@ -34,8 +37,6 @@ findAMDSDK()
 `
 	echo "$location"
 }
-
-. $HOME/smartcoin/smartcoin_ops.sh
 
 
 clear
