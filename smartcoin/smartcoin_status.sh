@@ -142,7 +142,7 @@ ShowStatus() {
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-			status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
+			status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
 			compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 			compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 			compositeRejected=`expr $compositeRejected + $totalRejected`
