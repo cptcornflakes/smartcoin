@@ -98,6 +98,9 @@ Do_Miners() {
 	EDIT)
 		Edit_Miners
 		;;
+  EXIT)
+    return
+    ;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;	
@@ -273,7 +276,10 @@ clear
                                                                                 
         EDIT)                                                                   
                 Edit_Pool                                                    
-                ;;                                                              
+                ;;  
+        EXIT)
+                return
+                ;;                
         *)                                                                      
                 DisplayError "Invalid selection!" "5"                           
                 ;;                                                              
@@ -437,6 +443,9 @@ Do_Workers() {
 
         EDIT)
                 Edit_Workers
+                ;;
+        EXIT)
+                return
                 ;;
         *)
                 DisplayError "Invalid selection!" "5"
@@ -605,6 +614,9 @@ Do_Profile() {
 	EDIT)
 		Edit_Profile
 		;;
+  EXIT)
+    return
+    ;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;      
@@ -799,6 +811,9 @@ Do_Devices() {
 	EDIT)
 		Edit_Device
 		;;
+  EXIT)
+    return
+    ;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;      
