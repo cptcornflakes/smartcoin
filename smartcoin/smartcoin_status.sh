@@ -101,7 +101,7 @@ ShowStatus() {
 		        temperature=$(aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';)
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
       usage=$(aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';)
-			status=$status"$deviceName: Temp: $temperature load: $usage%\n"
+			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
 	cpu=`iostat | awk '{if(NR==4) {print "CPU Load : " $1 "%"}}'`
