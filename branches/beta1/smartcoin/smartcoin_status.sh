@@ -46,7 +46,7 @@ LoadProfileOnChange()
 	changed=$(WorkersChanged)
 
 	if [[ "$newProfile" == "-1" ]]; then
-		Log "We are running in AUTO"
+
 		if [[  "$changed" ]]; then
 			Q="SELECT COUNT(*) FROM worker;"
 			R=$(RunSQL "$Q")
