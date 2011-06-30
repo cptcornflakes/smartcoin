@@ -16,13 +16,7 @@ svn_current_repo=`svn info | grep "^URL" | awk '{print $2}'`
 svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
 safe_update=`svn diff -r $svn_rev_start:$svn_rev_end update.ver`
 
-SafeUpdate() {
 
-}
-
-ExperimentalUpdate() {
-
-}
 
 if [[ "$svn_rev_start" == "$svn_rev_end" ]]; then
   Log "You are already at the current revision r$svn_rev_start!" 1
