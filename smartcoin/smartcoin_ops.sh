@@ -593,8 +593,8 @@ AddEditDelete()
 	clear
 	ShowHeader
 
-	echo "Would you like to (A)dd, (E)dit or (D)elete"
-	echo $msg"?"
+	echo "Would you like to (A)dd, (E)dit or (D)elete $msg?"
+	echo "(X) to exit back to the main menu."
 #test
 }
 GetAEDSelection()
@@ -612,6 +612,9 @@ GetAEDSelection()
 	d)
 		echo "DELETE"
 		;;
+  x)
+    echo "EXIT"
+    ;;
 	*)
 		echo "ERROR"
 		;;	
