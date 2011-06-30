@@ -55,3 +55,5 @@ else
 	
   done
 fi
+
+Log "Update task complete." 1
