@@ -44,11 +44,12 @@ else
 	
      case $i in
 	
-     190)
-        # Update schema going into r190
-        ;;
-     201)
-        # Update schema going into r200
+
+     252)
+        # Update schema going into r250
+        # Set up by default for stable updates!
+        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
+        RunSQL "$Q"
         ;;
 
      esac
