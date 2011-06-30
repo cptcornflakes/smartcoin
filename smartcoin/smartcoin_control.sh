@@ -19,7 +19,7 @@ Do_Update()
   
   if [[ "$branch" == "stable" ]]; then
    . $HOME/smartcoin/smartcoin_update.sh
-  elif [[ "$branch == "experimental" ]]; then
+  elif [[ "$branch" == "experimental" ]]; then
   . $HOME/smartcoin/smartcoin_update.sh 1
   else
     echo ""
