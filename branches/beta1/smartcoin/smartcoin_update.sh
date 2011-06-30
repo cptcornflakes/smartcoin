@@ -7,7 +7,7 @@
 # TODO:
 # make a safe option, which will look at a file 'smartcoin_safeupdate.txt' or similar.
 # When it increments, you are safe to do the update!
-
+. $HOME/smartcoin/smartcoin_ops.sh
 
 Log "Preparing to do an Update..." 1
 svn_rev_start=`svn info | grep "^Revision" | awk '{print $2}'`
@@ -23,7 +23,7 @@ else
 
   for i in {"$svn_rev_start".."$svn_rev_end"}; do
 	
-     case $i in;
+     case $i in
 	
      190)
         # Update schema going into r190
