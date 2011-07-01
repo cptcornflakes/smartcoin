@@ -16,7 +16,7 @@ Do_Update()
   local svn_rev=`svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}'`
   clear
   ShowHeader
-  E="Your current version is $svn_rev.\n"
+  E="Your current version is r$svn_rev.\n"
   E=$E"Are you sure that you wish to perform an update?"
 	GetYesNoSelection doInstall "$E"
 
