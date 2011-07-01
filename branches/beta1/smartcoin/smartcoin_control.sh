@@ -13,6 +13,18 @@
 # Update system
 Do_Update()
 {
+  local svn_rev=`svn info | grep "^Revision" | awk '{print $2}'`
+  clear
+  ShowHeader
+  E="Your current version is $svn_rev.\n"
+  E="$EAre you sure that you wish to perform an update?"
+  E="Do you want this to be the the default miner for this machine?"
+	GetYesNoSelection doInstall "$E"
+
+  if [[ "$doInstall" == "0" ]]; then
+    return
+  fi
+  
   Q="SELECT value FROM settings WHERE data='dev_branch';"
   R=$(RunSQL "$Q")
   local branch=$(Field 1 "$R")
