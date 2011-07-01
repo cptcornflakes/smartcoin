@@ -38,14 +38,15 @@ else
 
 
  
-  #svn -r $svn_rev_end update
+  echo ""
+  echo "Applying post update patches..."
 
-  for i in {"$svn_rev_start".."$svn_rev_end"}; do
+  for ((i=$svn_rev_start; i<=$svn_rev_end; i++)); do
 	
      case $i in
 	
 
-     260)
+     268)
         # Update schema going into r255
          echo "Applying r255 patch..."
         # Set up by default for stable updates!
@@ -63,3 +64,8 @@ else
 fi
 
 Log "Update task complete." 1
+
+echo ""
+echo "Update is now complete!  You should now restart smartcoin. Please hit any key to continue."
+read blah
+
