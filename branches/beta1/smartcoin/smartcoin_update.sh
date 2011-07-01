@@ -45,7 +45,7 @@ else
      case $i in
 	
 
-     257)
+     260)
         # Update schema going into r255
          echo "Applying r255 patch..."
         # Set up by default for stable updates!
@@ -55,7 +55,7 @@ else
         RunSQL "$Q"
         ;;
     *)
-        echo "No post install updates to apply to r$i"
+        echo "No patches to apply to r$i"
         ;;
      esac
 	
