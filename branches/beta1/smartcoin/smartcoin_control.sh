@@ -18,7 +18,6 @@ Do_Update()
   ShowHeader
   E="Your current version is $svn_rev.\n"
   E="$EAre you sure that you wish to perform an update?"
-  E="Do you want this to be the the default miner for this machine?"
 	GetYesNoSelection doInstall "$E"
 
   if [[ "$doInstall" == "0" ]]; then
