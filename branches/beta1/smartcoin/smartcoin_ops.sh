@@ -567,7 +567,7 @@ GetYesNoSelection() {
 		default=""
 	fi
 
-	echo "$msg"                                             
+	echo -e "$msg"                                             
 	until [[ "$resp" != "-1" ]]; do                                         
 		read -e -i "$default" available                                                  
 		                                                        
