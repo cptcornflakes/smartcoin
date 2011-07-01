@@ -33,8 +33,12 @@ else
  
   echo ""
   echo "Applying post update patches..."
-
-  for ((i=$svn_rev_start; i<=$svn_rev_end; i++)); do
+  # We don't want to apply patches against the start revision, as it would have already been done the previous time... So make sure we increment it!
+  patchStart=$svn_rev_start
+  let patchStart++
+  patchEnd=$svn_rev_end
+  
+  for ((i=$patchStart; i<=$patchEnd; i++)); do
 	
      case $i in
 	
