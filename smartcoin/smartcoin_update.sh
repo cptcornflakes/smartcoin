@@ -39,9 +39,9 @@ else
      case $i in
 	
 
-     268)
-        # Update schema going into r255
-         echo "Applying r255 patch..."
+     270)
+        # Update schema going into r270
+         echo "Applying r$i patch..."
         # Set up by default for stable updates!
         Q="DELETE FROM settings WHERE data='dev_branch';"
         RunSQL "$Q"
