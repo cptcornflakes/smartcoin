@@ -45,7 +45,7 @@ else
      case $i in
 	
 
-     255)
+     257)
         # Update schema going into r255
          echo "Applying r255 patch..."
         # Set up by default for stable updates!
@@ -54,7 +54,9 @@ else
         Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
         RunSQL "$Q"
         ;;
-
+    *)
+        echo "No post install updates to apply to r$i"
+        ;;
      esac
 	
   done
