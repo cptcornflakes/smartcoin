@@ -24,15 +24,19 @@ Do_Update()
   if [[ "$doInstall" == "0" ]]; then
     return
   fi
+  # First, lets update only the update script!
+  echo "Bring update script up to current..."
+  svn update smartcoin_update.sh
+  echo ""
   
   Q="SELECT value FROM settings WHERE data='dev_branch';"
   R=$(RunSQL "$Q")
   local branch=$(Field 1 "$R")
   
   if [[ "$branch" == "stable" ]]; then
-   . $HOME/smartcoin/smartcoin_update.sh
+     $HOME/smartcoin/smartcoin_update.sh
   elif [[ "$branch" == "experimental" ]]; then
-  . $HOME/smartcoin/smartcoin_update.sh 1
+    $HOME/smartcoin/smartcoin_update.sh 1
   else
     echo ""
     echo "Error! Specified branch must be either \"experimental\" or \"stable\"."
