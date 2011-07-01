@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# STUB -  will start working on a sensible update system!!!
-# This file is for updating smartcoin.
-# It will let me change yoyur database schema, and other things on the fly, instead of needing a
-# full reinstall!
-# TODO:
-# make a safe option, which will look at a file 'smartcoin_safeupdate.txt' or similar.
-# When it increments, you are safe to do the update!
 . $HOME/smartcoin/smartcoin_ops.sh
 experimental_update=$1
 
