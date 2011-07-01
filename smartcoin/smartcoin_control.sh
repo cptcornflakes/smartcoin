@@ -13,7 +13,7 @@
 # Update system
 Do_Update()
 {
-  local svn_rev=`svn info | grep "^Revision" | awk '{print $2}'`
+  local svn_rev=`svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}'`
   clear
   ShowHeader
   E="Your current version is $svn_rev.\n"
