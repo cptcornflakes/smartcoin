@@ -17,7 +17,7 @@ Do_Update()
   clear
   ShowHeader
   E="Your current version is $svn_rev.\n"
-  E="$EAre you sure that you wish to perform an update?"
+  E=$E"Are you sure that you wish to perform an update?"
 	GetYesNoSelection doInstall "$E"
 
   if [[ "$doInstall" == "0" ]]; then
