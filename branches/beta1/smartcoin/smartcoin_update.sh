@@ -39,15 +39,15 @@ else
      case $i in
 	
 
-     270)
-        # Update schema going into r270
-         echo "Applying r$i patch..."
-        # Set up by default for stable updates!
-        Q="DELETE FROM settings WHERE data='dev_branch';"
-        RunSQL "$Q"
-        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
-        RunSQL "$Q"
-        ;;
+#     270)
+#        # Update schema going into r270
+#         echo "Applying r$i patch..."
+#        # Set up by default for stable updates!
+#        Q="DELETE FROM settings WHERE data='dev_branch';"
+#        RunSQL "$Q"
+#        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
+#        RunSQL "$Q"
+#TODO: Uncomment all of this and update the revision number when ready to roll out experimental/stable updates        ;;
     *)
         echo "No patches to apply to r$i"
         ;;
