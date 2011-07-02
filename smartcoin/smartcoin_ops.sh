@@ -359,24 +359,7 @@ GetWorkerInfo()
 	echo $FA
 }
 
-GetProfileName() {
-	local thisMachine=$1
 
-	local thisProfile=$(GetCurrentProfile $thisMachine)
-	local Donate=$(DonationActive)
-
-	if [[ "$Donate" ]]; then
-		echo "Donation (via AutoDonate) - $Donate minutes remaining."
-	elif [[ "$thisProfile" == "-2" ]]; then
-		echo "Donation (Manual selection)"
-	elif [[ "$thisProfile" == "-1" ]]; then
-		echo "Automatic"
-	else
-		Q="SELECT name FROM profile WHERE pk_profile=$thisProfile;"
-		R=$(RunSQL "$Q")
-		echo $(Field 1 "$R")
-	fi
-}
 
 GetCurrentDBProfile() {
 	local thisMachine=$1
@@ -480,6 +463,24 @@ DonationActive() {
 
 }
 
+GetProfileName() {
+	local thisMachine=$1
+
+	local thisProfile=$(GetCurrentProfile $thisMachine)
+	local Donate=$(DonationActive)
+
+	if [[ "$Donate" ]]; then
+		echo "Donation (via AutoDonate) - $Donate minutes remaining."
+	elif [[ "$thisProfile" == "-2" ]]; then
+		echo "Donation (Manual selection)"
+	elif [[ "$thisProfile" == "-1" ]]; then
+		echo "Automatic"
+	else
+		Q="SELECT name FROM profile WHERE pk_profile=$thisProfile;"
+		R=$(RunSQL "$Q")
+		echo $(Field 1 "$R")
+	fi
+}
 
 NotImplemented()
 {
