@@ -138,7 +138,7 @@ startMiners() {
 		Log "Starting miner $key!" 1
 		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
 		if [[ "$i" == "1" ]]; then
-			screen -d -m -S $minerSession -t $key "$cmd"
+			screen -d -m -S $minerSession -t "$key" $cmd
 			sleep 2 # Lets give screen some time to start up before hammering it with calls
 			screen -r $minerSession -X zombie ko
 			screen -r $minerSession -X chdir
@@ -147,7 +147,7 @@ startMiners() {
 			screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
 		else
 			#TODO: Use screen -S $minerSession?
-			screen  -d -r $minerSession -X screen -t "$key" "$cmd"
+			screen  -d -r $minerSession -X screen -t "$key" $cmd
 		fi
 	done
 }
