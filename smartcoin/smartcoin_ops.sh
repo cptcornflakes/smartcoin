@@ -36,6 +36,7 @@ fi
 # TODO: The installer can prompt for values, with sane defaults already entered
 export sessionName="smartcoin"
 export minerSession="miner"
+
 STABLE=1
 EXPERIMENTAL=2
 
@@ -169,11 +170,10 @@ startMiners() {
 }
 
 killMiners() {
-	cmd=`screen -ls`
+	Log "Killing Miners...."
 	DeleteTemporaryFiles
 	screen -d -r $minerSession -X quit 
-	cmd=`screen -ls`
-	sleep 1
+	sleep 2
 }
 
 GotoStatus() {
@@ -203,8 +203,8 @@ Log() {
 
 
 DeleteTemporaryFiles() {
-	rm -rf $HOME/smartcoin/.smartcoin* 2>/dev/null
-	rm -rf $home/smartcoin/.Miner* 2>/dev/null
+	rm -rf /tmp/.smartcoin* 2>/dev/null
+	rm -rf /tmp/.Miner* 2>/dev/null
 }
 
 
