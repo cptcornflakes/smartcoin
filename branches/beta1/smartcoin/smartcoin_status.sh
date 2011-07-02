@@ -10,7 +10,7 @@
 
 
 . $HOME/smartcoin/smartcoin_ops.sh
-export DISPLAY=:0.0
+
 
 MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
@@ -79,6 +79,7 @@ LoadProfileOnChange()
 
 
 ShowStatus() {
+	export DISPLAY=:0
 	status=""
 
 	Q="SELECT name FROM machine WHERE pk_machine=$MACHINE"

@@ -21,7 +21,7 @@
 #$HOME/smartcoin/smartcoin_backend.sh &
 
 
-Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
+
 
 echo "Starting SmartCoin..."
 
@@ -41,8 +41,9 @@ if [[ "$running" ]]; then
 	exit
 fi
 
-
-echo "Starting sessions..."
+RotateLogs
+Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
+Log "Starting main smartcoin screen session..." 1
 screen -d -m -S $sessionName -t control "$HOME/smartcoin/smartcoin_control.sh"
 screen -r $sessionName -X zombie ko
 screen -r $sessionName -X chdir
@@ -51,14 +52,14 @@ screen -r $sessionName -X hardstatus alwayslastline
 screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u
 )%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
 
-echo "Creating Windows"
+Log "Creating tab for each machine..." 1
 # Create a new window for each machine
 Q="SELECT pk_machine, name FROM machine;"
 R=$(RunSQL "$Q")
 for row in $R; do
-	echo "..window"
 	pk_machine=$(Field 1 "$row")
 	machineName=$(Field 2 "$row")
+	Log "	$machineName"
 	screen -r $sessionName -X screen -t $machineName $HOME/smartcoin/smartcoin_status.sh "$pk_machine"
 done
 
