@@ -43,6 +43,9 @@ Do_Update()
     echo "Error! Specified branch must be either \"experimental\" or \"stable\"."
     sleep 5    
   fi
+  
+  # Lets update the master revision variable
+  export REVISION=$(GetRevision)
 
 }
 # Profile Menu
