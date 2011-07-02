@@ -41,7 +41,7 @@ MySqlPassword="smartcoin"
 
 
 ShowHeader() {
-	echo "smartcoin Management System "    $(date)
+	echo "smartcoin Management System r$REVISION"    $(date)
 	echo "--------------------------------------------------------------------------------"
 }
 
