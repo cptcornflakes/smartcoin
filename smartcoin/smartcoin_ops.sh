@@ -181,13 +181,16 @@ Log() {
   local announce="$2"
   
 	local dte=`date "+%D %T"`
-	echo -e "$dte\t$line\n" >> ~/smartcoin.log
+	echo -e "$dte\t$line\n" >> $HOME/smartcoin/smartcoin.log
    
   if [[ "$announce" == "1" ]]; then
     echo -e $line
   fi
 }
 
+RotateLogs() {
+	mv $HOME/smartcoin/smartcoin.log $HOME/smartcoin/smartcoin.log.previous
+}
 
 
 DeleteTemporaryFiles() {

@@ -1037,11 +1037,13 @@ do
 				fi
 			done	
 			if [[ "$resp" == "1" ]]; then
-				echo " Going down for a reboot!"
+				Log "Reboot option selected" 1
+				echo "Going down for a reboot."
 				sudo reboot
 			fi
 			;;
 		2)
+			Log "Exit option selected"
 			# Kill the miners
 			killMiners
 			# Commit suicide
@@ -1049,36 +1051,45 @@ do
 			;;
 			
 		3)
+			Log "Disconnect option selected"
 			screen -d $sessionName
 			;;
 
 		4)
+			Log "Settings option selected"
 			Do_Settings
 			;;
 		5)
+			Log "Change Profile option selected"
 			Do_ChangeProfile
 			;;
 		6)	
+			Log "Configure Miners option selected"
 			Do_Miners
 			;;
 		7)
+			Log "Configure Workers option selected"
 			Do_Workers
 			;;
 
 		8)
+			Log "Configure Profiles option selected"
 			Do_Profile
 			;;
 	
 		9)
+			Log "Configure Devices option selected"
 			Do_Devices
 			;;
 
 		10)
+			Log "Configure Pools option selected"
 			Do_Pools
 			;;
-		 11)
-       Do_Update
-       ;;
+		11)
+			Log "Update option selected"
+      			Do_Update
+      			;;
 		*)
 
 			;;
