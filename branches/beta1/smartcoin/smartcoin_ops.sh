@@ -293,6 +293,7 @@ GenAutoProfile()
 }
 
 
+
 GenDonationProfile()
 {
 	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
@@ -365,7 +366,7 @@ GetProfileName() {
 	local Donate=$(DonationActive)
 
 	if [[ "$Donate" ]]; then
-		echo "Donation (via AutoDonate)"
+		echo "Donation (via AutoDonate) - $Donate minutes remaining."
 	elif [[ "$thisProfile" == "-2" ]]; then
 		echo "Donation (Manual selection)"
 	elif [[ "$thisProfile" == "-1" ]]; then
@@ -426,6 +427,8 @@ DonationActive2() {
 }
 
 
+# DonationActive returns either nothing if the donation isn't active,
+# or a positive number representing the number of minutes remaining in the donation cycle
 DonationActive() {
 	Q="SELECT value FROM settings WHERE data='donation_start';"
 	R=$(RunSQL "$Q")
@@ -448,7 +451,7 @@ DonationActive() {
 
 	local end=$(AddTime "$start" "$duration")
 
-	curTime=`date +%k%M`
+	local curTime=`date +%k%M`
 
 	ret=""
 
@@ -457,26 +460,25 @@ DonationActive() {
 			# Normal
 			if [[ "$curTime" -ge "$start" ]]; then
 				if [[ "$curTime" -lt "$end"  ]]; then
-					ret="true"
+					#ret="true"
+					ret=(( $end - $curTime ))
 				fi
 			fi
 		else
 			 # Midnight carryover
 			if [[ "$curTime" -ge "$start" ]]; then
-				ret="true"
+				#ret="true"
+				local minTilMid=(( 2400 - $curTime ))
+				ret=(( $minTilMid + $end ))
 			fi
 			if [[ "$curTime" -lt "$end" ]]; then
-				ret="true"
+				ret=(( $end - $curTime ))
 			fi
 		fi
 	fi
 	echo $ret
 
 }
-
-
-
-
 
 
 NotImplemented()
