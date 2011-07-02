@@ -32,7 +32,7 @@ else
 
  
 	#make sure that we backup the database before playing around with it!
-	cp $HOME/smartcon/smartcoin.db $HOME/smartcoin/smarcoin.db.backup
+	cp $HOME/smartcoin/smartcoin.db $HOME/smartcoin/smarcoin.db.backup
 
 	echo ""
 	Log "Applying post update patches..." 1
