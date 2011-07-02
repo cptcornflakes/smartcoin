@@ -10,6 +10,9 @@ fi
 HEADER_smartcoin_ops="included"
 
 
+GetRevision() {
+  echo $(svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}')
+}
 
 
 
@@ -19,6 +22,8 @@ HEADER_smartcoin_ops="included"
 # TODO: The installer can prompt for values, with sane defaults already entered
 export sessionName="smartcoin"
 export minerSession="miner"
+export REVISION=$(GetRevision)
+
 
 STABLE=1
 EXPERIMENTAL=2
