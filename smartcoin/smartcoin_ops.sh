@@ -10,23 +10,6 @@ fi
 HEADER_smartcoin_ops="included"
 
 
-# Lets fix up our $LD_LIBRARY_PATH
-Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
-R=$(RunSQL "$Q")
-amd_sdk_location=$(Field 1 "$R")
-
-Q="SELECT value FROM settings WHERE data='phoenix_location';"
-R=$(RunSQL "$Q")
-phoenix_location=$(Field 1 "$R")
-
-if [[ "$amd_sdk_location" ]]; then
-	echo "Exporting the AMD/ATI SDK path to LD_LIBRARY_PATH: $amd_sdk_location"
-	export LD_LIBRARY_PATH=$amd_sdk_location:$LD_LIBRARY_PATH
-fi
-if [[ "$phoenix_location" ]]; then
-	echo "Exporting the phoenix path to LD_LIBRARY_PATH: $phoenix_location"
-	export LD_LIBRARY_PATH=$phoenix_location:$LD_LIBRARY_PATH
-fi	
 
 
 
@@ -654,5 +637,29 @@ GetAEDSelection()
 }
 
 # ### END UI HELPER FUNCTIONS ###
+
+
+
+
+
+
+
+# Lets fix up our $LD_LIBRARY_PATH
+Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
+R=$(RunSQL "$Q")
+amd_sdk_location=$(Field 1 "$R")
+
+Q="SELECT value FROM settings WHERE data='phoenix_location';"
+R=$(RunSQL "$Q")
+phoenix_location=$(Field 1 "$R")
+
+if [[ "$amd_sdk_location" ]]; then
+	echo "Exporting the AMD/ATI SDK path to LD_LIBRARY_PATH: $amd_sdk_location"
+	export LD_LIBRARY_PATH=$amd_sdk_location:$LD_LIBRARY_PATH
+fi
+if [[ "$phoenix_location" ]]; then
+	echo "Exporting the phoenix path to LD_LIBRARY_PATH: $phoenix_location"
+	export LD_LIBRARY_PATH=$phoenix_location:$LD_LIBRARY_PATH
+fi	
 
 
