@@ -452,7 +452,7 @@ DonationActive() {
 			if [[ "$curTime" -ge "$start" ]]; then
 				#ret="true"
 				local minTilMid=$(( 2400 - $curTime ))
-				ret=(( $minTilMid + $end ))
+				ret=$(( $minTilMid + $end ))
 			fi
 			if [[ "$curTime" -lt "$end" ]]; then
 				ret=$(( $end - $curTime ))
