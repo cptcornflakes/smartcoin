@@ -45,7 +45,7 @@ minerLaunch=${minerLaunch//<#device#>/$thisDevice}
 minerLaunch=${minerLaunch//<#path#>/$minerPath}
 
 echo "LAUNCH: $minerLaunch"
-Log "Launching miner with launch string: $minerLaunch"
+Log "Launching miner with launch string: $minerLaunch" 1
 
 
 cd $minerPath && $minerLaunch
