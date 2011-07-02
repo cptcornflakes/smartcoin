@@ -444,18 +444,18 @@ DonationActive() {
 			if [[ "$curTime" -ge "$start" ]]; then
 				if [[ "$curTime" -lt "$end"  ]]; then
 					#ret="true"
-					ret=(( $end - $curTime ))
+					ret=$(( $end - $curTime ))
 				fi
 			fi
 		else
 			 # Midnight carryover
 			if [[ "$curTime" -ge "$start" ]]; then
 				#ret="true"
-				local minTilMid=(( 2400 - $curTime ))
+				local minTilMid=$(( 2400 - $curTime ))
 				ret=(( $minTilMid + $end ))
 			fi
 			if [[ "$curTime" -lt "$end" ]]; then
-				ret=(( $end - $curTime ))
+				ret=$(( $end - $curTime ))
 			fi
 		fi
 	fi
