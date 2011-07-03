@@ -41,6 +41,7 @@ if [[ "$running" ]]; then
 	exit
 fi
 
+DeleteTemporaryFiles
 RotateLogs
 Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
 Log "Starting main smartcoin screen session..." 1
