@@ -392,7 +392,7 @@ AddTime()
 	local totalMinutes=$(($minutes+$minutesToAdd))
 	local carryOver=$(($totalMinutes/60))
 	local correctedMinutes=$(($totalMinutes%60))
-	correctedMinutes=`printf "%02d" $correctedMinutes`
+	correctedMinutes=$(seq $correctedMinutes $correctedMinutes) #`printf "%02d" $correctedMinutes`
 	
 	# Add remainder to hours
 	local correctedHours=$(($hours+carryOver))
@@ -435,7 +435,7 @@ DonationActive() {
 	local end=$(AddTime "$start" "$duration")
 
 	local curTime=`date +%k%M`
-  curTime=`printf "%02d" "$curTime"` # strips any preceeding zeros)
+  curTime=$(seq $curTime $curTime) # strips any preceeding zeros)
 
 	ret=""
 
