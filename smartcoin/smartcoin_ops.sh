@@ -435,6 +435,7 @@ DonationActive() {
 	local end=$(AddTime "$start" "$duration")
 
 	local curTime=`date +%k%M`
+  curTime=$(($curTime)) # strips any preceeding zeros)
 
 	ret=""
 
