@@ -209,7 +209,7 @@ ShowStatus() {
 	status=$status"Grand Total: [$compositeHashes $hashUnits/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
 
 	echo  $status
-	screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
+	#screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
 
 
 
