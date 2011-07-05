@@ -126,7 +126,7 @@ Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabl
 R=$(RunSQL "$Q")
 
 # Autodetect cards
-echo "Adding available local devices..."
+echo "Adding available local devices. Please be patient..."
 D=`./smartcoin_devices.py`
 D=$(Field_Prepare "$D")
 for device in $D; do
@@ -220,6 +220,7 @@ if [[ "$poclbmMiner" != "" ]]; then
 fi
 
 # Set the default miner
+echo ""
 Q="SELECT pk_miner,name FROM miner ORDER BY pk_miner ASC;"
 E="Which miner listed above do you want to be the default miner?"
 GetPrimaryKeySelection thisMiner "$Q" "$E"
@@ -238,6 +239,7 @@ Log "Current profile set to Automatic for localhost"
 
 
 # Lets see if we can auto-detect the AMD SDK
+echo ""
 Log "Asking user if they wish to autodetect the AMD/ATI SDK location."
 echo "Smartcoin needs to know the location of the AMD/ATI SDK library in order to work properly."
 echo "You can choose to have this location auto-detected, or you can enter it manually."
