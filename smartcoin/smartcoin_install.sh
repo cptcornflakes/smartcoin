@@ -1,7 +1,7 @@
 #!/bin/bash
 CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 
-. $CUR_LOCATION/smartcoin_ops.sh
+
 
 #INSTALL_LOCATION=$1
 
@@ -86,6 +86,7 @@ echo ""
 
 
 # SQL DB calls start now, make sure we set the database
+. $CUR_LOCATION/smartcoin_ops.sh
 UseDB "smartcoin.db"
 
 # Set up the local machine
