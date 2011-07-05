@@ -714,18 +714,18 @@ Add_Profile()
 		echo -e "$addedInstances"
 
 		Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
-		E="Please select the miner from the list above to use with this profile"
+		E="Please select the miner from the list above to use with this instance"
 		GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
 		echo ""
 
 		Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
-		E="Please select the pool worker from the list above to use with this profile"
+		E="Please select the pool worker from the list above to use with this instance"
 		GetPrimaryKeySelection thisWorker "$Q" "$E"
 		echo ""
 	
 	
 		Q="SELECT pk_device, name FROM device WHERE disabled=0;"
-		E="Please select the device from the list above to use with this profile"
+		E="Please select the device from the list above to use with this instance"
 		GetPrimaryKeySelection thisDevice "$Q" "$E"
 
 		
