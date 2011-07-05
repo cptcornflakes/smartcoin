@@ -6,7 +6,6 @@ else
 fi
 
 
-INSTALL_LOCATION=$1
 
 #INSTALL_LOCATION=$1
 
@@ -53,7 +52,6 @@ echo "Do you wish to continue? (y/n)"
 read getPermission
 echo ""
 
-
 getPermission=`echo $getPermission | tr '[A-Z]' '[a-z]'`
 if  [[ "$getPermission" != "y"  ]]; then
 	echo "Exiting  SmartCoin installer."
@@ -61,20 +59,6 @@ if  [[ "$getPermission" != "y"  ]]; then
 	exit
 fi
 Log "	Permission Granted."
-
-# Lets see if we can auto-detect the AMD SDK
-amd_sdk_location=$(findAMDSDK)
-echo "Smartcoin needs to know the location of the AMD/ATI SDK library in order to work properly."
-echo "I have tried to locate it for you, but you may need to type it manually below."
-echo "The path may resemble something similar to /home/user/AMD-APP-SDK-v2.4-lnx32/lib/x86/, for example"
-echo "Enter the path below:"
-echo ""
-
-read -e -i "$amd_sdk_location" location
-
-Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
-RunSQL "$Q"
-
 
 # Create  SymLink
 Log "Creating symlink..." 1
