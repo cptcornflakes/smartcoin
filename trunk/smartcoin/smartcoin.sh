@@ -1,9 +1,10 @@
 #!/bin/bash
 #SMART (Simple Miner Administration for Remote Terminals)
-echo "Dirname "$( dirname "$0")
-echo "pwd " `pwd`
-
-CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
 . $CUR_LOCATION/smartcoin_ops.sh
 
 # Start the backend service
