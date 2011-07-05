@@ -3,10 +3,10 @@ CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 
 . $CUR_LOCATION/smartcoin_ops.sh
 
-INSTALL_LOCATION=$1
+#INSTALL_LOCATION=$1
 
 if [[ "$INSTALL_LOCATION" == "" ]]; then
-	INSTALL_LOCATION="$HOME"
+	INSTALL_LOCATION="$CUR_LOCATION"
 fi
 
 AMD_SDK_PATH=""
