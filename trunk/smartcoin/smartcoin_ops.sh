@@ -9,11 +9,25 @@ if [[ -n "$HEADER_smartcoin_ops" ]]; then
 fi
 HEADER_smartcoin_ops="included"
 
+
+GetRevision() {
+  echo $(svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}')
+}
+
+
+
+
 # GLOBAL VARIABLES
 # TODO: some of these will be added to the settings database table eventually.
 # TODO: The installer can prompt for values, with sane defaults already entered
 export sessionName="smartcoin"
 export minerSession="miner"
+export REVISION=$(GetRevision)
+
+
+STABLE=1
+EXPERIMENTAL=2
+
 commPipe=$HOME/smartcoin/smartcoin.cmd
 statusRefresh="5"
 MySqlHost="127.0.0.1"
@@ -27,7 +41,7 @@ MySqlPassword="smartcoin"
 
 
 ShowHeader() {
-	echo "smartcoin Management System "    $(date)
+	echo "smartcoin Management System r$REVISION"    $(date)
 	echo "--------------------------------------------------------------------------------"
 }
 
@@ -47,10 +61,11 @@ RunSQL()
         local Q
         Q="$*"
         if [[ -n "$Q" ]]; then
-                mysql -A -N "$SQL_DB" $MYSQL_DB_CRED -e "$Q;" | Field_Translate
-        else
-                mysql -A -N "$SQL_DB" $MYSQL_DB_CRED | Field_Translate
-	        fi
+                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED -e "$Q;" | Field_Translate
+		sqlite3 -noheader -separator "	" $HOME/smartcoin/smartcoin.db "$Q;" | Field_Translate
+        fi
+                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED | Field_Translate
+	        #fi
 }
 
 
@@ -125,10 +140,11 @@ startMiners() {
 		local pk_device=$(Field 2 "$row")
 		local pk_miner=$(Field 3 "$row")
 		local pk_worker=$(Field 4 "$row")
-		echo "Starting miner $key!"
+		Log "Starting miner $key!" 1
 		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
 		if [[ "$i" == "1" ]]; then
 			screen -d -m -S $minerSession -t "$key" $cmd
+			sleep 2 # Lets give screen some time to start up before hammering it with calls
 			screen -r $minerSession -X zombie ko
 			screen -r $minerSession -X chdir
 			screen -r $minerSession -X hardstatus on
@@ -142,11 +158,10 @@ startMiners() {
 }
 
 killMiners() {
-	cmd=`screen -ls`
+	Log "Killing Miners...."
 	DeleteTemporaryFiles
 	screen -d -r $minerSession -X quit 
-	cmd=`screen -ls`
-	sleep 1
+	sleep 2
 }
 
 GotoStatus() {
@@ -163,15 +178,24 @@ GotoStatus() {
 
 Log() {
 	local line="$1"
+  local announce="$2"
+  
 	local dte=`date "+%D %T"`
-	echo -e "$dte\t$line\n" >> ~/smartcoin.log
+	echo -e "$dte\t$line\n" >> $HOME/smartcoin/smartcoin.log
+   
+  if [[ "$announce" == "1" ]]; then
+    echo -e $line
+  fi
+}
+
+RotateLogs() {
+	mv $HOME/smartcoin/smartcoin.log $HOME/smartcoin/smartcoin.log.previous
 }
 
 
-
 DeleteTemporaryFiles() {
-	rm -rf $HOME/smartcoin/.smartcoin* 2>/dev/null
-	rm -rf $home/smartcoin/.Miner* 2>/dev/null
+	rm -rf /tmp/smartcoin* 2>/dev/null
+	rm -rf /tmp/Miner* 2>/dev/null
 }
 
 
@@ -231,7 +255,7 @@ GenCurrentProfile()
 		FieldArray=$(GenAutoProfile "$thisMachine")
 	else
 		# Generate the FieldArray via the database
-		Q="SELECT CONCAT('Miner.',pk_profile_map), fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker, fk_device"
+		Q="SELECT 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
         	FieldArray=$(RunSQL "$Q")
 	fi
 	
@@ -267,6 +291,7 @@ GenAutoProfile()
 
 	echo "$FA"
 }
+
 
 
 GenDonationProfile()
@@ -315,7 +340,7 @@ GetWorkerInfo()
 		FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8332	Deepbit.net (Donation)")
 		;;
 	-2)
-		# Bitcoin.cz donation worker
+		# BTCMine donation worker
 		FA=$(FieldArrayAdd "jondecker76@donate	donate	btcmine.com	8332	BTCMine (Donation)")
 		;;
 	-3)
@@ -334,24 +359,7 @@ GetWorkerInfo()
 	echo $FA
 }
 
-GetProfileName() {
-	local thisMachine=$1
 
-	local thisProfile=$(GetCurrentProfile $thisMachine)
-	local Donate=$(DonationActive)
-
-	if [[ "$Donate" ]]; then
-		echo "Donation (via AutoDonate)"
-	elif [[ "$thisProfile" == "-2" ]]; then
-		echo "Donation (Manual selection)"
-	elif [[ "$thisProfile" == "-1" ]]; then
-		echo "Automatic"
-	else
-		Q="SELECT name FROM profile WHERE pk_profile=$thisProfile;"
-		R=$(RunSQL "$Q")
-		echo $(Field 1 "$R")
-	fi
-}
 
 GetCurrentDBProfile() {
 	local thisMachine=$1
@@ -384,7 +392,7 @@ AddTime()
 	local totalMinutes=$(($minutes+$minutesToAdd))
 	local carryOver=$(($totalMinutes/60))
 	local correctedMinutes=$(($totalMinutes%60))
-	correctedMinutes=`printf "%02d" $correctedMinutes`
+	correctedMinutes=$(seq $correctedMinutes $correctedMinutes) #`printf "%02d" $correctedMinutes`
 	
 	# Add remainder to hours
 	local correctedHours=$(($hours+carryOver))
@@ -402,6 +410,8 @@ DonationActive2() {
 }
 
 
+# DonationActive returns either nothing if the donation isn't active,
+# or a positive number representing the number of minutes remaining in the donation cycle
 DonationActive() {
 	Q="SELECT value FROM settings WHERE data='donation_start';"
 	R=$(RunSQL "$Q")
@@ -411,9 +421,21 @@ DonationActive() {
 	R=$(RunSQL "$Q")
 	local duration=$(Field 1 "$R")
 
+	if [[ "$duration" == "" ]]; then
+		duration="0"
+	fi
+	if [[ "$start" == "" ]]; then
+		let startTime_hours=$RANDOM%23
+		let startTime_minutes=$RANDOM%59
+		startTime=$startTime_hours$startTime_minutes
+		Q="UPDATE settings SET value='$startTime' WHERE data='donation_start'"
+		RunSQL "$Q"
+	fi
+
 	local end=$(AddTime "$start" "$duration")
 
-	curTime=`date +%k%M`
+	local curTime=`date +%k%M`
+  curTime=$(seq $curTime $curTime) # strips any preceeding zeros)
 
 	ret=""
 
@@ -422,20 +444,232 @@ DonationActive() {
 			# Normal
 			if [[ "$curTime" -ge "$start" ]]; then
 				if [[ "$curTime" -lt "$end"  ]]; then
-					ret="true"
+					#ret="true"
+					ret=$(( $end - $curTime ))
 				fi
 			fi
 		else
 			 # Midnight carryover
 			if [[ "$curTime" -ge "$start" ]]; then
-				ret="true"
+				#ret="true"
+				local minTilMid=$(( 2400 - $curTime ))
+				ret=$(( $minTilMid + $end ))
 			fi
 			if [[ "$curTime" -lt "$end" ]]; then
-				ret="true"
+				ret=$(( $end - $curTime ))
 			fi
 		fi
 	fi
 	echo $ret
 
 }
+
+GetProfileName() {
+	local thisMachine=$1
+
+	local thisProfile=$(GetCurrentProfile $thisMachine)
+	local Donate=$(DonationActive)
+
+	if [[ "$Donate" ]]; then
+		echo "Donation (via AutoDonate) - $Donate minutes remaining."
+	elif [[ "$thisProfile" == "-2" ]]; then
+		echo "Donation (Manual selection)"
+	elif [[ "$thisProfile" == "-1" ]]; then
+		echo "Automatic"
+	else
+		Q="SELECT name FROM profile WHERE pk_profile=$thisProfile;"
+		R=$(RunSQL "$Q")
+		echo $(Field 1 "$R")
+	fi
+}
+
+NotImplemented()
+{
+	clear
+	ShowHeader
+	echo "This feature has not been implemented yet!"
+	sleep 3
+}
+DisplayMenu()
+{	
+	local fieldArray="$1"
+
+	for item in $fieldArray; do
+	num=$(Field 2 "$item")
+	listing=$(Field 3 "$item")
+	echo -e  "$num) $listing"
+	done
+
+
+}
+#var=$(GetMenuSelection "$M" "default value")
+GetMenuSelection()
+{
+	local fieldArray=$1
+	local default=$2
+
+	read -e -i "$default" chosen
+
+	for item in $fieldArray; do
+		choice=$(Field 2 "$item")
+		if [[ "$chosen" == "$choice" ]]; then
+			echo $(Field 1 "$item")
+			return 0
+		fi
+	done
+	echo "ERROR"
+}
+
+# GetPrimaryKeySelection var "$Q" "$E" "default value"
+GetPrimaryKeySelection()
+{
+	local _ret=$1
+	local Q=$2
+	local msg=$3
+	local default=$4
+	local fieldArray=$5	# You can pass in a pre-populated field array to add on to
+
+
+	local PK	#Primary key of name (not shown in menu)
+	local Name	#Name displayed in menu
+	local M=""	#Menu FieldArray
+	local i=0		#Index count
+
+
+	if [[ "$fieldArray" ]]; then
+		for thisRecord in $fieldArray; do
+			
+			PK=$(Field 1 "$thisRecord")
+			index=$(Field 2 "$thisRecord")
+			Name=$(Field 3 "$thisRecord")
+			M=$M$(FieldArrayAdd "$PK	$index	$Name")
+		done
+		i=$index
+	fi
+
+	
+
+	UseDB "smartcoin"
+	R=$(RunSQL "$Q")
+	for Row in $R; do
+		let i++
+		PK=$(Field 1 "$Row")
+		Name=$(Field 2 "$Row")
+		M=$M$(FieldArrayAdd "$PK	$i	$Name")
+	done
+	DisplayMenu "$M"
+	echo "$msg"
+	PK="ERROR"
+	until [[ "$PK" != "ERROR" ]]; do
+		PK=$(GetMenuSelection "$M" "$default")
+		if [[ "$PK" == "ERROR" ]]; then
+			echo "Invalid selection. Please try again."
+		fi
+	done
+	eval $_ret="'$PK'"
+}
+#GetYesNoSelection var "$E" "default value"
+GetYesNoSelection() {                                                                                
+	resp="-1"  
+	local available
+
+	local _retyn=$1
+	local msg=$2
+	local default=$3
+	
+	if [[ "$default" == "1" ]]; then
+		default="y"
+	elif [[  "$default" == "0" ]]; then
+		default="n"
+	else
+		default=""
+	fi
+
+	echo -e "$msg"                                             
+	until [[ "$resp" != "-1" ]]; do                                         
+		read -e -i "$default" available                                                  
+		                                                        
+		available=`echo $available | tr '[A-Z]' '[a-z]'`                
+		if [[ "$available" == "y" ]]; then                              
+			resp=1                                                
+		elif [[ "$available" == "n" ]]; then                            
+			resp=0                                                
+		else                                                            
+			echo "Invalid response!"                                
+		fi                                                              
+	done    
+	
+	eval $_retyn="'$resp'"
+}
+DisplayError()
+{
+	msg=$1
+	dly=$2
+	clear
+	ShowHeader
+
+	echo "ERROR! $msg"
+	sleep $dly
+	#test
+}
+
+AddEditDelete()
+{
+	# TODO: Add view option
+	msg=$1
+	clear
+	ShowHeader
+
+	echo "Would you like to (A)dd, (E)dit or (D)elete $msg?"
+	echo "(X) to exit back to the main menu."
+#test
+}
+GetAEDSelection()
+{
+	# TODO: Add view option
+	read chosen
+	chosen=`echo $chosen | tr '[A-Z]' '[a-z]'`
+	case "$chosen" in
+	a)
+		echo "ADD"
+		;;
+	e)
+		echo "EDIT"
+		;;
+	d)
+		echo "DELETE"
+		;;
+  x)
+    echo "EXIT"
+    ;;
+	*)
+		echo "ERROR"
+		;;	
+	esac
+}
+
+# ### END UI HELPER FUNCTIONS ###
+
+
+
+
+
+
+
+# Lets fix up our $LD_LIBRARY_PATH
+Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
+R=$(RunSQL "$Q")
+amd_sdk_location=$(Field 1 "$R")
+
+Q="SELECT value FROM settings WHERE data='phoenix_location';"
+R=$(RunSQL "$Q")
+phoenix_location=$(Field 1 "$R")
+
+if [[ "$amd_sdk_location" ]]; then
+	export LD_LIBRARY_PATH=$amd_sdk_location:$LD_LIBRARY_PATH
+fi
+if [[ "$phoenix_location" ]]; then
+	export LD_LIBRARY_PATH=$phoenix_location:$LD_LIBRARY_PATH
+fi	
+
 
