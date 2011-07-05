@@ -6,7 +6,11 @@
 # This script only handles database interaction, and doesn't launch or kill any other processes directly.
 
 
-CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
 . $CUR_LOCATION/smartcoin_ops.sh
 
 

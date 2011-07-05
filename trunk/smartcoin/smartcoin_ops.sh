@@ -8,7 +8,11 @@ if [[ -n "$HEADER_smartcoin_ops" ]]; then
         return 0
 fi
 HEADER_smartcoin_ops="included"
-CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
 . $CUR_LOCATION/sql_ops.sh
 
 
