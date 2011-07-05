@@ -58,7 +58,7 @@ Log "	Permission Granted."
 
 # Create  SymLink
 Log "Creating symlink..." 1
-sudo ln -s $INSTALL_LOCATION/smartcoin/smartcoin.sh /usr/bin/smartcoin 2> /dev/null
+sudo ln -s $INSTALL_LOCATION/smartcoin.sh /usr/bin/smartcoin 2> /dev/null
 echo "done."
 echo ""
 
