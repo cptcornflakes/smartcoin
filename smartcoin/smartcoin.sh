@@ -9,7 +9,7 @@ CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 
 
 
-echo "Starting SmartCoin..."
+echo "Starting SmartCoin at location: $CUR_LOCATION..."
 
 running=`screen -ls 2> /dev/null | grep $sessionName`
 
