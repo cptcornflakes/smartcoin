@@ -8,6 +8,8 @@ if [[ -n "$HEADER_smartcoin_ops" ]]; then
         return 0
 fi
 HEADER_smartcoin_ops="included"
+CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+. $CUR_LOCATION/sql_ops.sh
 
 
 GetRevision() {
@@ -44,70 +46,6 @@ ShowHeader() {
 	echo "smartcoin Management System r$REVISION"    $(date)
 	echo "--------------------------------------------------------------------------------"
 }
-
-MYSQL_DB_CRED=""
-if [ "$MySqlHost" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -h$MySqlHost"; fi
-if [ "$MySqlPort" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -P$MySqlPort"; fi
-if [ "$MySqlUser" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -u$MySqlUser"; fi
-if [ "$MySqlPassword" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -p$MySqlPassword"; fi
-# Make sure to trim excess spaces
-MYSQL_DB_CRED=`echo $MYSQL_DB_CRED`
-export MYSQL_DB_CRED
-
-
-
-RunSQL()
-{
-        local Q
-        Q="$*"
-        if [[ -n "$Q" ]]; then
-                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED -e "$Q;" | Field_Translate
-		sqlite3 -noheader -separator "	" $HOME/smartcoin/smartcoin.db "$Q;" | Field_Translate
-        fi
-                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED | Field_Translate
-	        #fi
-}
-
-
-#Usage:
-#  Field=$(Field 1 "<SQL row>")
-#Used in a 'for' loop to extract a field value from a FieldArray row
-Field()
-{
-        local Row FieldNumber
-        FieldNumber="$1"; shift
-        Row="$*"
-        echo "$Row" | cut -d$'\x01' -f"$FieldNumber" | tr $'\x02' ' '
-}
-
-#Usage:
-#  UseDB "<DB name>"
-#Changes the default database
-UseDB()
-{
-        SQL_DB="$1"
-        if [[ -z "$SQL_DB" ]]; then
-                SQL_DB="$MySqlDBName"
-        fi
-}
-
-UseDB "smartcoin"
-
-Field_Translate()
-{
-        tr '\n\t ' $'\x20'$'\x01'$'\x02' | sed 's/ *$//'
-}
-Field_Prepare(){
-	echo -ne "$1" | Field_Translate
-}
-FieldArrayAdd()
-{
-	menuItem=$(Field_Prepare "$1")
-	echo "$menuItem "
-}
-
-
-
 
 
 tableIsEmpty() {
@@ -194,8 +132,8 @@ RotateLogs() {
 
 
 DeleteTemporaryFiles() {
-	rm -rf /tmp/smartcoin* 2>/dev/null
-	rm -rf /tmp/Miner* 2>/dev/null
+	rm -rf /tmp/.smartcoin* 2>/dev/null
+	rm -rf /tmp/.Miner* 2>/dev/null
 }
 
 
@@ -392,7 +330,7 @@ AddTime()
 	local totalMinutes=$(($minutes+$minutesToAdd))
 	local carryOver=$(($totalMinutes/60))
 	local correctedMinutes=$(($totalMinutes%60))
-	correctedMinutes=$(seq $correctedMinutes $correctedMinutes) #`printf "%02d" $correctedMinutes`
+	correctedMinutes=`printf "%02d" $correctedMinutes`
 	
 	# Add remainder to hours
 	local correctedHours=$(($hours+carryOver))
@@ -435,7 +373,6 @@ DonationActive() {
 	local end=$(AddTime "$start" "$duration")
 
 	local curTime=`date +%k%M`
-  curTime=$(seq $curTime $curTime) # strips any preceeding zeros)
 
 	ret=""
 

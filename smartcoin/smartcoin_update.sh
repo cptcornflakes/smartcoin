@@ -32,7 +32,7 @@ else
 
  
 	#make sure that we backup the database before playing around with it!
-	cp $HOME/smartcoin/smartcoin.db $HOME/smartcoin/smarcoin.db.backup
+	cp $HOME/.smartcoin/smartcoin.db $HOME/.smartcoin/smarcoin.db.backup
 
 	echo ""
 	Log "Applying post update patches..." 1
@@ -45,15 +45,15 @@ else
 		case $i in
 	
 
-		#     270)
-		#        # Update schema going into r270
-		#         echo "Applying r$i patch..."
-		#        # Set up by default for stable updates!
-		#        Q="DELETE FROM settings WHERE data='dev_branch';"
-		#        RunSQL "$Q"
-		#        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
-		#        RunSQL "$Q"
-		#TODO: Uncomment all of this and update the revision number when ready to roll out experimental/stable updates        ;;
+		     300)
+		        # Update schema going into r300
+		         echo "Applying r$i patch..."
+		        # Set up by default for stable updates!
+		        Q="DELETE FROM settings WHERE data='dev_branch';"
+		        RunSQL "$Q"
+		        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
+		        RunSQL "$Q"
+			;;
     		*)
         		Log "No patches to apply to r$i" 1
         		;;

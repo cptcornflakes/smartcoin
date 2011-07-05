@@ -1,11 +1,7 @@
 #!/bin/bash
+CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 
-. $HOME/smartcoin/smartcoin_ops.sh
-
-
-# SmartCoin installer script
-# TODO:
-# [ ] Check on better way to interactively install packages...
+. $CUR_LOCATION/smartcoin_ops.sh
 
 INSTALL_LOCATION=$1
 
@@ -38,61 +34,69 @@ findAMDSDK()
 	echo "$location"
 }
 
+#################
+# BEGIN INSTALLER
+#################
+Log "==========Beginning Installation============"
 
 clear
 CheckIfAlreadyInstalled
 
-
-
+Log "Asking user for permission to install"
 echo "SmartCoin requires root permissions to install dependencies, create SymLinks and set up the database."
 echo "You will be prompted for  your password when needed."
 echo "Do you wish to continue? (y/n)"
 read getPermission
 echo ""
 
-
 getPermission=`echo $getPermission | tr '[A-Z]' '[a-z]'`
 if  [[ "$getPermission" != "y"  ]]; then
-     echo "Exiting  SmartCoin installer."
-     exit
+	echo "Exiting  SmartCoin installer."
+	Log "	Permission Denied."
+	exit
 fi
-sudo updatedb #needed for the linux `locate` command to work reliably
+Log "	Permission Granted."
 
-
-# Lets see if we can auto-detect the AMD SDK
-amd_sdk_location=$(findAMDSDK)
-echo "Smartcoin needs to know the location of the AMD/ATI SDK library in order to work properly."
-echo "I have tried to locate it for you, but you may need to type it manually below."
-echo "The path may resemble something similar to /home/user/AMD-APP-SDK-v2.4-lnx32/lib/x86/, for example"
-echo "Enter the path below:"
+# Create .smartcoin directory
+Log "Creating .smartcoin directory..." 1
+if [[ -d "$HOME/.smartcoin" ]]; then
+	mkdir "$HOME/.smartcoin"
+fi
+echo "done."
 echo ""
 
-read -e -i "$amd_sdk_location" location
-
-Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
-RunSQL "$Q"
-
+# Move the database
+Log "Creating database in $HOME/.smartcoin/smartcoin.db"
+cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
+echo "done."
+echo ""
 
 # Create  SymLink
-echo "Creating symlink..."
+Log "Creating symlink..." 1
 sudo ln -s $INSTALL_LOCATION/smartcoin/smartcoin.sh /usr/bin/smartcoin 2> /dev/null
 echo "done."
 echo ""
 
 # Install dependencies
-echo  "Installing dependencies, please be patient..."
-sudo apt-get install -f  -y bc sysstat sqlite3 openssh-server #2> /dev/null
+Log  "Installing dependencies" 1
+echo "Please be patient..."
+sudo apt-get install -f  -y bc sysstat sqlite3 openssh-server 2> /dev/null
 echo "done."
 echo ""
 
 
+# SQL DB calls start now, make sure we set the database
+UseDB "smartcoin.db"
 
 # Set up the local machine
+Log "Setting up local machine in database..." 1
 Q="INSERT INTO machine (name,server,ssh_port,username,auto_allow,disabled) VALUES ('localhost','127.0.0.1',22,'$USER',1,0);"
 RunSQL "$Q"
+echo "done."
 
 
 # Populate the database with default pools
+Log "Populating database with pool information...."
 Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('DeepBit','deepbit.net',NULL,8332,60,1,0);"
 R=$(RunSQL "$Q")
 Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoin.cz (slush)','mining.bitcoin.cz',NULL,8332,60,1,0);"
@@ -152,6 +156,19 @@ for device in $D; do
 done
 echo "done."
 echo ""
+echo "These are the locally installed devices that I have found: "
+echo "Name	Device #"
+echo "----	--------"
+Q="SELECT name,device FROM device WHERE disabled=0 ORDER BY device ASC;"
+R=$(RunSQL "$Q")
+for row in $R; do
+	devName=$(Field 1 "$row")
+	devID=$(Field 2 "$row")
+	echo "$devName	$devID"	
+done
+echo ""
+echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
+echo ""
 
 # Autodetect miners
 echo "Auto detecting local installed miners..."
@@ -208,6 +225,7 @@ if [[ "$phoenixMiner" != "" ]]; then
 fi
 
 # Detect poclbm install location
+# TODO: poclbm support needs added!
 #poclbmMiner=`locate poclbm.py | grep -vi svn`
 #poclbmMiner=${poclbmMiner%"poclbm.py"}
 if [[ "$poclbmMiner" != "" ]]; then
@@ -217,10 +235,12 @@ if [[ "$poclbmMiner" != "" ]]; then
 fi
 
 # Set the default miner
-
-# TODO: I should add more logic to determining a default.... Perhaps ask the user which one?
-Q="UPDATE miner SET default_miner='1' WHERE pk_miner=1;"
+Q="SELECT pk_miner,name FROM miner ORDER BY pk_miner ASC;"
+E="Which miner listed above do you want to be the default miner?"
+GetPrimaryKeySelection thisMiner "$Q" "$E"
+Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
 RunSQL "$Q"
+Log "Default miner set to $thisMiner"
 
 # Set the current profile! 
 # Defaults to Automatic profile until the user gets one set up
@@ -228,6 +248,33 @@ Q="DELETE from current_profile WHERE fk_machine=1;"	#A little paranoid, but why 
 RunSQL "$Q"
 Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES (1,-1);"
 RunSQL "$Q"
+Log "Current profile set to Automatic for localhost"
+
+
+
+# Lets see if we can auto-detect the AMD SDK
+Log "Asking user if they wish to autodetect the AMD/ATI SDK location."
+echo "Smartcoin needs to know the location of the AMD/ATI SDK library in order to work properly."
+echo "You can choose to have this location auto-detected, or you can enter it manually."
+echo "Note:  Autodetection relies on the linux 'locate' command.  This can take a long time on large file systems."
+E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
+GetYesNoSelection autoDetectSDKLocation "$E" "y"
+
+if [[ "$autoDetectSDKLocation" == "1" ]]; then
+	Log "	User chose to autodetect"
+	sudo updatedb #needed for the linux `locate` command to work reliably
+	amd_sdk_location=$(findAMDSDK)
+	echo "Please make sure the path below is correct, and change if necessary:"
+else
+	Log "User chose NOT to autodetect"
+	echo "Enter the AMD/ATI SDK path below:"
+fi
+read -e -i "$amd_sdk_location" location
+
+Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
+RunSQL "$Q"
+Log "AMD/ATI SDK location set to $location"
+
 
 # ----------------
 # Ask for donation
@@ -265,6 +312,7 @@ echo ""
 echo ""
 
 # Set up by default for stable updates!
+Log "Setting update system to 'stable'"
 Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
 RunSQL "$Q"
 
