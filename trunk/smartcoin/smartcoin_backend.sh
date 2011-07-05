@@ -7,7 +7,8 @@
 # Most of the programming here was for testing purposes...
 
 
-. $HOME/smartcoin/smartcoin_ops.sh
+CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+. $CUR_LOCATION/smartcoin_ops.sh
 
 # Create the command pipe to the backend...                                     
 trap "rm -f $commPipe" EXIT                                                    

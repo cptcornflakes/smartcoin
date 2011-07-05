@@ -6,14 +6,15 @@
 # This script only handles database interaction, and doesn't launch or kill any other processes directly.
 
 
-. $HOME/smartcoin/smartcoin_ops.sh
+CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+. $CUR_LOCATION/smartcoin_ops.sh
 
 
 
 # Update system
 Do_Update()
 {
-  local svn_rev=`svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}'`
+  local svn_rev=`svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}'`
   clear
   ShowHeader
   E="Your current version is r$svn_rev.\n"
@@ -25,7 +26,7 @@ Do_Update()
   fi
   # First, lets update only the update script!
   echo "Bring update script up to current..."
-  svn update $HOME/smartcoin/smartcoin_update.sh
+  svn update $CUR_LOCATION/smartcoin_update.sh
   echo ""
   
   Q="SELECT value FROM settings WHERE data='dev_branch';"
@@ -35,9 +36,9 @@ Do_Update()
   branch="stable" # TODO: Remove this once the stable/experimental system is finished and users are up to date!
   
   if [[ "$branch" == "stable" ]]; then
-     $HOME/smartcoin/smartcoin_update.sh
+     $CUR_LOCATION/smartcoin_update.sh
   elif [[ "$branch" == "experimental" ]]; then
-    $HOME/smartcoin/smartcoin_update.sh 1
+    $CUR_LOCATION/smartcoin_update.sh 1
   else
     echo ""
     echo "Error! Specified branch must be either \"experimental\" or \"stable\"."
@@ -935,7 +936,7 @@ Edit_Device()
 	read -e -i "$cname" deviceName
 	echo ""
 
-	D=`$HOME/smartcoin/smartcoin_devices.py`
+	D=`$CUR_LOCATION/smartcoin_devices.py`
 	D=$(Field_Prepare "$D")
 	for device in $D; do
 		devID=$(Field 1 "$device")
