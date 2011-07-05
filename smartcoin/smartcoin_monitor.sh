@@ -1,5 +1,6 @@
 #!/bin/bash
 
-. $HOME/smartcoin/smartcoin_ops.sh
+CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+. $CUR_LOCATION/smartcoin_ops.sh
 
 # Reserved for future use

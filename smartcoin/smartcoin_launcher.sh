@@ -2,7 +2,8 @@
 #clear
 #echo "Starting..."
 
-. $HOME/smartcoin/smartcoin_ops.sh
+CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+. $CUR_LOCATION/smartcoin_ops.sh
 
 machine=$1
 device=$2
@@ -12,7 +13,7 @@ worker=$4
 
 
 
-UseDB "smartcoin"
+UseDB "smartcoin.db"
 
 # Get additional information on the device
 

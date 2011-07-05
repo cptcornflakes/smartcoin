@@ -13,7 +13,7 @@ CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 
 
 GetRevision() {
-  echo $(svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}')
+  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')
 }
 
 
@@ -30,7 +30,7 @@ export REVISION=$(GetRevision)
 STABLE=1
 EXPERIMENTAL=2
 
-commPipe=$HOME/smartcoin/smartcoin.cmd
+commPipe=$HOME/.smartcoin/smartcoin.cmd
 statusRefresh="5"
 MySqlHost="127.0.0.1"
 MySqlPort=""
@@ -79,7 +79,7 @@ startMiners() {
 		local pk_miner=$(Field 3 "$row")
 		local pk_worker=$(Field 4 "$row")
 		Log "Starting miner $key!" 1
-		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+		local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
 		if [[ "$i" == "1" ]]; then
 			screen -d -m -S $minerSession -t "$key" $cmd
 			sleep 2 # Lets give screen some time to start up before hammering it with calls
@@ -119,7 +119,7 @@ Log() {
   local announce="$2"
   
 	local dte=`date "+%D %T"`
-	echo -e "$dte\t$line\n" >> $HOME/smartcoin/smartcoin.log
+	echo -e "$dte\t$line\n" >> $HOME/.smartcoin/smartcoin.log
    
   if [[ "$announce" == "1" ]]; then
     echo -e $line
@@ -127,7 +127,7 @@ Log() {
 }
 
 RotateLogs() {
-	mv $HOME/smartcoin/smartcoin.log $HOME/smartcoin/smartcoin.log.previous
+	mv $HOME/.smartcoin/smartcoin.log $HOME/.smartcoin/smartcoin.log.previous
 }
 
 
