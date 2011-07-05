@@ -52,12 +52,22 @@ else
 
 		     300)
 		        # Update schema going into r300
-		         echo "Applying r$i patch..."
+		         Log "Applying r$i patch..." 1
+             Log "Setting up ~/.smartcoin and copying over database"
+             mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
+
+               
+               
+             Log "Setting the dev_branch setting variable"
 		        # Set up by default for stable updates!
 		        Q="DELETE FROM settings WHERE data='dev_branch';"
 		        RunSQL "$Q"
 		        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
 		        RunSQL "$Q"
+             
+           
+            
+                
 			;;
     		*)
         		Log "No patches to apply to r$i" 1
