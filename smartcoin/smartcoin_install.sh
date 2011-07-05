@@ -36,10 +36,7 @@ Log "==========Beginning Installation============"
 clear
 CheckIfAlreadyInstalled
 # Move the database
-echo "Creating database in $HOME/.smartcoin/smartcoin.db"
 mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
-echo "done."
-echo ""
 . $CUR_LOCATION/smartcoin_ops.sh
 Log "Database created in $HOME/.smartcoin/smartcoin.db"
 
@@ -58,15 +55,6 @@ if  [[ "$getPermission" != "y"  ]]; then
 	exit
 fi
 Log "	Permission Granted."
-
-# Create .smartcoin directory
-Log "Creating .smartcoin directory..." 1
-if [[ -d "$HOME/.smartcoin" ]]; then
-	mkdir "$HOME/.smartcoin"
-fi
-echo "done."
-echo ""
-
 
 # Create  SymLink
 Log "Creating symlink..." 1
