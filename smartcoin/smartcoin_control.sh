@@ -695,15 +695,8 @@ Add_Profile()
 		fi
 	done
 
-	Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
-	E="Please select the miner from the list above to use with this profile"
-	GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
-	echo ""
 	
-	Q="SELECT name FROM miner WHERE pk_miner=$thisMiner;"
-	R=$(RunSQL "$Q")
-	minerName=$(Field 1 "$R")
-
+	
 	instance=0	
 	profileProgress=""
 	addedInstances=""
@@ -712,13 +705,19 @@ Add_Profile()
 		let instance++
 		clear
 		ShowHeader
-		profileProgress="Profile: $profileName using miner $minerName (adding miner instance #$instance)\n"
+		profileProgress="Profile: $profileName (adding miner instance #$instance)\n"
 		#profileProgress="$profileProgress--------------------------------------------------------------------------------\n"
 
 
 
 		echo -e "$profileProgress"
 		echo -e "$addedInstances"
+
+		Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
+		E="Please select the miner from the list above to use with this profile"
+		GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
+		echo ""
+
 		Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 		E="Please select the pool worker from the list above to use with this profile"
 		GetPrimaryKeySelection thisWorker "$Q" "$E"
@@ -735,14 +734,15 @@ Add_Profile()
 
 		clear
 		ShowHeader
-		Q="SELECT device.name, pool.name || '.' || worker.name AS fullName FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
+		Q="SELECT device.name, pool.name || '.' || worker.name AS fullName, miner.name FROM profile_map LEFT JOIN miner ON profile_map.fk_miner = miner.pk_miner LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
 "
 		R=$(RunSQL "$Q")
 		addedInstances=""
 		for row in $R; do
 			addedDevice=$(Field 1 "$row")
 			addedWorker=$(Field 2 "$row")
-			addedInstances="$addedInstances $addedDevice - $addedWorker\n"
+			addedMiner=$(Field 3 "$row")
+			addedInstances="$addedInstances $addedMiner - $addedDevice - $addedWorker\n"
 		done
 		addedInstances="$addedInstances\n"
 		echo -e "$profileProgress"
