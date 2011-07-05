@@ -1,13 +1,10 @@
 #!/usr/bin/python
 import pyopencl as cl
 
-platforms = cl.get_platforms()
-devices = platforms[-1].get_devices()
-for i in xrange(len(devices)):
-	if "CPU" in devices[i].name:
-		print '%d\tCPU[%d]\t1\tcpu' % (i,i) 
-	else:
-		print '%d\tGPU[%d]\t0\tgpu' % (i,i)
+for p in cl.get_platforms():
+  devices = p.get_devices(device_type=cl.device_type.GPU)
+  for i in xrange(len(devices)):
+    print '%d\tGPU[%d]\t0\tgpu' % (i,i)
 
 
 

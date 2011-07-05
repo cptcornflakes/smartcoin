@@ -11,6 +11,7 @@
 
 . $HOME/smartcoin/smartcoin_ops.sh
 
+
 MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
@@ -45,7 +46,7 @@ LoadProfileOnChange()
 	changed=$(WorkersChanged)
 
 	if [[ "$newProfile" == "-1" ]]; then
-		Log "We are running in AUTO"
+
 		if [[  "$changed" ]]; then
 			Q="SELECT COUNT(*) FROM worker;"
 			R=$(RunSQL "$Q")
@@ -78,6 +79,7 @@ LoadProfileOnChange()
 
 
 ShowStatus() {
+	export DISPLAY=:0
 	status=""
 
 	Q="SELECT name FROM machine WHERE pk_machine=$MACHINE"
@@ -97,9 +99,9 @@ ShowStatus() {
 		deviceType=$(Field 3 "$device")
 		if [[ "$deviceType" == "gpu" ]]; then
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
-		        temperature=`aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';`
+		        temperature=$(aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';)
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
-			usage=`aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';`
+      usage=$(aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';)
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
@@ -141,7 +143,7 @@ ShowStatus() {
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-			status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
+			status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
 			compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 			compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 			compositeRejected=`expr $compositeRejected + $totalRejected`
@@ -154,8 +156,20 @@ ShowStatus() {
 			status=$status"\e[01;32m--------$pool--------\e[00m\n"
 		fi
 
-		screen -d -r $minerSession -p $key -X hardcopy "$HOME/smartcoin/.$key"
-		cmd=`cat  "$HOME/smartcoin/.$key" | grep Mhash`
+		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
+		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
+    cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
+    #cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
+    if [[ "$cmd" == *GHash* ]]; then
+      hashUnits="GHash"
+    elif [[ "$cmd" == *Mhash* ]]; then
+      hashUnits="Mhash"
+    elif [[ "$cmd" == *khash* ]]; then
+      hashUnits="khash"
+    else
+      hashUnits="hash"
+    fi  
+      
 		if [ -z "$cmd" ]; then
 			cmd="\e[00;31m<<<DOWN>>>\e[00m"
 			hashes="0.00"
@@ -187,14 +201,15 @@ ShowStatus() {
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
-	percentRejected=$(echo "scale=2; $compositeRejected / $compositeAccepted* 100" | bc -l)
+	percentRejected=`echo "scale=3;a=($compositeRejected*100) ; b=$compositeAccepted; c=a/b; print c" | bc -l`
+	
 	if [ -z "$percentRejected" ]; then
-		percentRejected="0"
+		percentRejected="0.00"
 	fi
-	status=$status"Grand Total: [$compositeHashes Mhash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected% Rejected]"
+	status=$status"Grand Total: [$compositeHashes $hashUnits/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
 
 	echo  $status
-	screen -d -r $sessionName -p status -X hardcopy "$HOME/smartcoin/.smartcoin.status"
+	#screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
 
 
 

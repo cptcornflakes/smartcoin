@@ -10,6 +10,8 @@ miner=$3
 worker=$4
 
 
+
+
 UseDB "smartcoin"
 
 # Get additional information on the device
@@ -40,9 +42,11 @@ minerLaunch=${minerLaunch//<#pass#>/$workerPass}
 minerLaunch=${minerLaunch//<#server#>/$workerServer}
 minerLaunch=${minerLaunch//<#port#>/$workerPort}
 minerLaunch=${minerLaunch//<#device#>/$thisDevice}
+minerLaunch=${minerLaunch//<#path#>/$minerPath}
 
 echo "LAUNCH: $minerLaunch"
+Log "Launching miner with launch string: $minerLaunch" 1
 
-#pushd $minerPath
-cd $minerPath && ./$minerLaunch
-#popd
+
+cd $minerPath && $minerLaunch
+

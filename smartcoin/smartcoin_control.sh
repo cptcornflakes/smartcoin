@@ -10,170 +10,44 @@
 
 
 
-NotImplemented()
+# Update system
+Do_Update()
 {
-	clear
-	ShowHeader
-	echo "This feature has not been implemented yet!"
-	sleep 3
+  local svn_rev=`svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}'`
+  clear
+  ShowHeader
+  E="Your current version is r$svn_rev.\n"
+  E=$E"Are you sure that you wish to perform an update?"
+	GetYesNoSelection doInstall "$E"
+
+  if [[ "$doInstall" == "0" ]]; then
+    return
+  fi
+  # First, lets update only the update script!
+  echo "Bring update script up to current..."
+  svn update $HOME/smartcoin/smartcoin_update.sh
+  echo ""
+  
+  Q="SELECT value FROM settings WHERE data='dev_branch';"
+  R=$(RunSQL "$Q")
+  local branch=$(Field 1 "$R")
+  
+  branch="stable" # TODO: Remove this once the stable/experimental system is finished and users are up to date!
+  
+  if [[ "$branch" == "stable" ]]; then
+     $HOME/smartcoin/smartcoin_update.sh
+  elif [[ "$branch" == "experimental" ]]; then
+    $HOME/smartcoin/smartcoin_update.sh 1
+  else
+    echo ""
+    echo "Error! Specified branch must be either \"experimental\" or \"stable\"."
+    sleep 5    
+  fi
+  
+  # Lets update the master revision variable
+  export REVISION=$(GetRevision)
+
 }
-DisplayMenu()
-{	
-	local fieldArray="$1"
-
-	for item in $fieldArray; do
-	num=$(Field 2 "$item")
-	listing=$(Field 3 "$item")
-	echo -e  "$num) $listing"
-	done
-
-
-}
-#var=$(GetMenuSelection "$M" "default value")
-GetMenuSelection()
-{
-	local fieldArray=$1
-	local default=$2
-
-	read -e -i "$default" chosen
-
-	for item in $fieldArray; do
-		choice=$(Field 2 "$item")
-		if [[ "$chosen" == "$choice" ]]; then
-			echo $(Field 1 "$item")
-			return 0
-		fi
-	done
-	echo "ERROR"
-}
-
-# GetPrimaryKeySelection var "$Q" "$E" "default value"
-GetPrimaryKeySelection()
-{
-	local _ret=$1
-	local Q=$2
-	local msg=$3
-	local default=$4
-	local fieldArray=$5	# You can pass in a pre-populated field array to add on to
-
-
-	local PK	#Primary key of name (not shown in menu)
-	local Name	#Name displayed in menu
-	local M=""	#Menu FieldArray
-	local i=0		#Index count
-
-
-	if [[ "$fieldArray" ]]; then
-		for thisRecord in $fieldArray; do
-			
-			PK=$(Field 1 "$thisRecord")
-			index=$(Field 2 "$thisRecord")
-			Name=$(Field 3 "$thisRecord")
-			M=$M$(FieldArrayAdd "$PK	$index	$Name")
-		done
-		i=$index
-	fi
-
-	
-
-	UseDB "smartcoin"
-	R=$(RunSQL "$Q")
-	for Row in $R; do
-		let i++
-		PK=$(Field 1 "$Row")
-		Name=$(Field 2 "$Row")
-		M=$M$(FieldArrayAdd "$PK	$i	$Name")
-	done
-	DisplayMenu "$M"
-	echo "$msg"
-	PK="ERROR"
-	until [[ "$PK" != "ERROR" ]]; do
-		PK=$(GetMenuSelection "$M" "$default")
-		if [[ "$PK" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
-	eval $_ret="'$PK'"
-}
-#GetYesNoSelection var "$E" "default value"
-GetYesNoSelection() {                                                                                
-	resp="-1"  
-	local available
-
-	local _retyn=$1
-	local msg=$2
-	local default=$3
-	
-	if [[ "$default" == "1" ]]; then
-		default="y"
-	elif [[  "$default" == "0" ]]; then
-		default="n"
-	else
-		default=""
-	fi
-
-	echo "$msg"                                             
-	until [[ "$resp" != "-1" ]]; do                                         
-		read -e -i "$default" available                                                  
-		                                                        
-		available=`echo $available | tr '[A-Z]' '[a-z]'`                
-		if [[ "$available" == "y" ]]; then                              
-			resp=1                                                
-		elif [[ "$available" == "n" ]]; then                            
-			resp=0                                                
-		else                                                            
-			echo "Invalid response!"                                
-		fi                                                              
-	done    
-	
-	eval $_retyn="'$resp'"
-}
-DisplayError()
-{
-	msg=$1
-	dly=$2
-	clear
-	ShowHeader
-
-	echo "ERROR! $msg"
-	sleep $dly
-	#test
-}
-
-AddEditDelete()
-{
-	# TODO: Add view option
-	msg=$1
-	clear
-	ShowHeader
-
-	echo "Would you like to (A)dd, (E)dit or (D)elete"
-	echo $msg"?"
-#test
-}
-GetAEDSelection()
-{
-	# TODO: Add view option
-	read chosen
-	chosen=`echo $chosen | tr '[A-Z]' '[a-z]'`
-	case "$chosen" in
-	a)
-		echo "ADD"
-		;;
-	e)
-		echo "EDIT"
-		;;
-	d)
-		echo "DELETE"
-		;;
-	*)
-		echo "ERROR"
-		;;	
-	esac
-}
-
-# ### END UI HELPER FUNCTIONS ###
-
 # Profile Menu
 Do_ChangeProfile() {
 
@@ -194,7 +68,13 @@ Do_ChangeProfile() {
 	GetPrimaryKeySelection thisProfile "$Q" "$E" "" "$autoEntry"
 	
 	SetCurrentProfile "$thisMachine" "$thisProfile"
-	GotoStatus
+	
+	# Lets see if we can automatically go to the status screen
+	Q="SELECT name FROM machine WHERE pk_machine=$thisMachine;"
+	R=$(RunSQL "$Q")
+	machineName=$(Field 1 "$R")
+
+	screen -r $sessionName -X screen -p 1
 
 }
 Do_Settings() {
@@ -255,6 +135,9 @@ Do_Miners() {
 	EDIT)
 		Edit_Miners
 		;;
+  EXIT)
+    return
+    ;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;	
@@ -287,7 +170,7 @@ Add_Miners()
 	GetYesNoSelection defaultMiner "$E"
 
 	echo "Adding Miner..."
-	Q="INSERT INTO miner SET name='$minerName', launch='$minerLaunch', path='$minerPath', fk_machine=$thisMachine"
+	Q="INSERT INTO miner (name,launch,path,fk_machine) VALUES ('$minerName','$minerLaunch','$minerPath','$thisMachine');"
 	RunSQL "$Q"
 
 
@@ -430,7 +313,10 @@ clear
                                                                                 
         EDIT)                                                                   
                 Edit_Pool                                                    
-                ;;                                                              
+                ;;  
+        EXIT)
+                return
+                ;;                
         *)                                                                      
                 DisplayError "Invalid selection!" "5"                           
                 ;;                                                              
@@ -463,10 +349,11 @@ Add_Pool()
 	echo "Enter a disconnection timeout for this pool"
 	read poolTimeout
 	echo ""
+  
+  # TODO: auto_allow and disabled aren't used yet (if ever?)
+  #       fix hard coding once a decision is made
 
-        echo "Adding Pool..."
-
-        Q="INSERT INTO pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout'"
+        Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('$poolName','$poolServer','$poolAlternate','$poolPort','$poolTimeout',1,0);"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
@@ -489,7 +376,7 @@ Edit_Pool()
 	E="Please select the pool from the list above to edit"
 	GetPrimaryKeySelection thisPool "$Q" "$E"
         
-	Q="SELECT name,server,alternateServer,port,timeout  FROM pool WHERE pk_pool=$thisPool;"
+	Q="SELECT name,server,alternate_server,port,timeout  FROM pool WHERE pk_pool=$thisPool;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	cserver=$(Field 2 "$R")
@@ -525,7 +412,7 @@ Edit_Pool()
 
         echo "Updating Pool..."
 
-        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternateServer='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$thisPool"
+        Q="UPDATE pool SET name='$poolName', server='$poolServer', alternate_server='$poolAlternate', port='$poolPort', timeout='$poolTimeout' WHERE pk_pool=$thisPool"
         RunSQL "$Q"
 	echo "done."
 	sleep 1
@@ -594,6 +481,9 @@ Do_Workers() {
         EDIT)
                 Edit_Workers
                 ;;
+        EXIT)
+                return
+                ;;
         *)
                 DisplayError "Invalid selection!" "5"
                 ;;      
@@ -661,7 +551,7 @@ Edit_Workers()
 	fi
 
 	echo "SELECT WORKER TO EDIT"
-	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+	Q="SELECT pk_worker, pool.name || '.' || worker.name as fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
 
@@ -705,7 +595,7 @@ Edit_Workers()
 
 	echo "Updating Worker..."
 
-	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority=$workerPriority, auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
+	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority='$workerPriority', auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
 	RunSQL "$Q"
 	echo "done"
 	sleep 1
@@ -727,7 +617,7 @@ Delete_Workers()
 	fi
 
 	echo "SELECT WORKER TO DELETE"
-	Q="SELECT pk_worker, CONCAT(pool.name,\".\", worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+	Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 	E="Please select the worker from the list above to delete"
 	GetPrimaryKeySelection thisWorker "$Q" "$E"
 	
@@ -761,6 +651,9 @@ Do_Profile() {
 	EDIT)
 		Edit_Profile
 		;;
+  EXIT)
+    return
+    ;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;      
@@ -778,7 +671,7 @@ Add_Profile()
 	echo "Enter a name for this profile"
 	read profileName
 	echo ""
-	Q="INSERT INTO profile set name='$profileName', fk_machine='$thisMachine';"
+	Q="INSERT INTO profile (name,fk_machine) VALUES ('$profileName','$thisMachine');"
 	R=$(RunSQL "$Q")
 		
 	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
@@ -821,7 +714,7 @@ Add_Profile()
 
 		echo -e "$profileProgress"
 		echo -e "$addedInstances"
-		Q="SELECT pk_worker, CONCAT(pool.name,'.', worker.name) FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+		Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
 		E="Please select the pool worker from the list above to use with this profile"
 		GetPrimaryKeySelection thisWorker "$Q" "$E"
 		echo ""
@@ -837,7 +730,7 @@ Add_Profile()
 
 		clear
 		ShowHeader
-		Q="SELECT device.name, CONCAT(pool.name,'.',worker.name) FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
+		Q="SELECT device.name, pool.name || '.' || worker.name AS fullName FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
 "
 		R=$(RunSQL "$Q")
 		addedInstances=""
@@ -937,7 +830,7 @@ Delete_Profile()
 	sleep 1
 }
 
-onfigure Devices Menu
+
 Do_Devices() {
 	clear
 	ShowHeader
@@ -955,6 +848,9 @@ Do_Devices() {
 	EDIT)
 		Edit_Device
 		;;
+  EXIT)
+    return
+    ;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;      
@@ -991,7 +887,7 @@ Add_Device()
 	
         echo "Adding Device..."
 	#TODO: Fix hard coded type
-        Q="INSERT INTO device SET name='$deviceName', device='$deviceDevice', disabled='$deviceDisabled', fk_machine='$thisMachine', auto_allow='$deviceAllow', type='gpu'"
+        Q="INSERT INTO device (name,device,disabled,fk_machine,auto_allow,type) VALUES ('$deviceName','$deviceDevice','$deviceDisabled','$thisMachine','$deviceAllow','gpu');"
         RunSQL "$Q"
 	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
@@ -1118,6 +1014,7 @@ do
 	echo "8) Configure Profiles"
 	echo "9) Configure Devices"
 	echo "10) Configure Pools"
+  echo "11) Update Smartcoin"
 
 	read selection
 
@@ -1140,11 +1037,13 @@ do
 				fi
 			done	
 			if [[ "$resp" == "1" ]]; then
-				echo " Going down for a reboot!"
+				Log "Reboot option selected" 1
+				echo "Going down for a reboot."
 				sudo reboot
 			fi
 			;;
 		2)
+			Log "Exit option selected"
 			# Kill the miners
 			killMiners
 			# Commit suicide
@@ -1152,34 +1051,45 @@ do
 			;;
 			
 		3)
+			Log "Disconnect option selected"
 			screen -d $sessionName
 			;;
 
 		4)
+			Log "Settings option selected"
 			Do_Settings
 			;;
 		5)
+			Log "Change Profile option selected"
 			Do_ChangeProfile
 			;;
 		6)	
+			Log "Configure Miners option selected"
 			Do_Miners
 			;;
 		7)
+			Log "Configure Workers option selected"
 			Do_Workers
 			;;
 
 		8)
+			Log "Configure Profiles option selected"
 			Do_Profile
 			;;
 	
 		9)
+			Log "Configure Devices option selected"
 			Do_Devices
 			;;
 
 		10)
+			Log "Configure Pools option selected"
 			Do_Pools
 			;;
-			
+		11)
+			Log "Update option selected"
+      			Do_Update
+      			;;
 		*)
 
 			;;
