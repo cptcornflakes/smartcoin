@@ -13,17 +13,11 @@ AMD_SDK_PATH=""
 
 
 CheckIfAlreadyInstalled() {
-	Q="SELECT COUNT(*) FROM settings;"
-	R=$(RunSQL "$Q")
-	cnt=$(Field 1 "$R")
-
-
-	if [[ "$cnt" -ge 1 ]]; then
+	if [[ -f "$HOME/.smartcoin/smartcoin.db" ]]; then
 		echo "The installer has already been run before.  You cannot run it again"
 		echo "Perhaps you should do a full reinstall, and try again."
 		exit
-	fi
-	
+	fi	
 }
 
 
@@ -41,7 +35,15 @@ Log "==========Beginning Installation============"
 
 clear
 CheckIfAlreadyInstalled
+# Move the database
+echo "Creating database in $HOME/.smartcoin/smartcoin.db"
+cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
+echo "done."
+echo ""
+. $CUR_LOCATION/smartcoin_ops.sh
+Log "Database created in $HOME/.smartcoin/smartcoin.db"
 
+# Ask for user permission
 Log "Asking user for permission to install"
 echo "SmartCoin requires root permissions to install dependencies, create SymLinks and set up the database."
 echo "You will be prompted for  your password when needed."
@@ -65,11 +67,6 @@ fi
 echo "done."
 echo ""
 
-# Move the database
-Log "Creating database in $HOME/.smartcoin/smartcoin.db"
-cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
-echo "done."
-echo ""
 
 # Create  SymLink
 Log "Creating symlink..." 1
@@ -86,7 +83,6 @@ echo ""
 
 
 # SQL DB calls start now, make sure we set the database
-. $CUR_LOCATION/smartcoin_ops.sh
 UseDB "smartcoin.db"
 
 # Set up the local machine
