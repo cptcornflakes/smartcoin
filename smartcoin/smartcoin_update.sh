@@ -72,4 +72,3 @@ echo ""
 echo "Update is now complete!  You should now restart smartcoin. Please hit any key to continue."
 read blah
 
-
