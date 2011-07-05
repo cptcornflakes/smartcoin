@@ -1,5 +1,8 @@
 #!/bin/bash
 #SMART (Simple Miner Administration for Remote Terminals)
+echo "Dirname "$( dirname "$0")
+echo "pwd " pwd
+
 CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 . $CUR_LOCATION/smartcoin_ops.sh
 
