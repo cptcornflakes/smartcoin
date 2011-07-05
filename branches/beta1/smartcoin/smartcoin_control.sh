@@ -6,14 +6,19 @@
 # This script only handles database interaction, and doesn't launch or kill any other processes directly.
 
 
-. $HOME/smartcoin/smartcoin_ops.sh
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
+. $CUR_LOCATION/smartcoin_ops.sh
 
 
 
 # Update system
 Do_Update()
 {
-  local svn_rev=`svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}'`
+  local svn_rev=`svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}'`
   clear
   ShowHeader
   E="Your current version is r$svn_rev.\n"
@@ -25,7 +30,7 @@ Do_Update()
   fi
   # First, lets update only the update script!
   echo "Bring update script up to current..."
-  svn update $HOME/smartcoin/smartcoin_update.sh
+  svn update $CUR_LOCATION/smartcoin_update.sh
   echo ""
   
   Q="SELECT value FROM settings WHERE data='dev_branch';"
@@ -35,9 +40,9 @@ Do_Update()
   branch="stable" # TODO: Remove this once the stable/experimental system is finished and users are up to date!
   
   if [[ "$branch" == "stable" ]]; then
-     $HOME/smartcoin/smartcoin_update.sh
+     $CUR_LOCATION/smartcoin_update.sh
   elif [[ "$branch" == "experimental" ]]; then
-    $HOME/smartcoin/smartcoin_update.sh 1
+    $CUR_LOCATION/smartcoin_update.sh 1
   else
     echo ""
     echo "Error! Specified branch must be either \"experimental\" or \"stable\"."
@@ -690,15 +695,8 @@ Add_Profile()
 		fi
 	done
 
-	Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
-	E="Please select the miner from the list above to use with this profile"
-	GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
-	echo ""
 	
-	Q="SELECT name FROM miner WHERE pk_miner=$thisMiner;"
-	R=$(RunSQL "$Q")
-	minerName=$(Field 1 "$R")
-
+	
 	instance=0	
 	profileProgress=""
 	addedInstances=""
@@ -707,21 +705,27 @@ Add_Profile()
 		let instance++
 		clear
 		ShowHeader
-		profileProgress="Profile: $profileName using miner $minerName (adding miner instance #$instance)\n"
+		profileProgress="Profile: $profileName (adding miner instance #$instance)\n"
 		#profileProgress="$profileProgress--------------------------------------------------------------------------------\n"
 
 
 
 		echo -e "$profileProgress"
 		echo -e "$addedInstances"
+
+		Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
+		E="Please select the miner from the list above to use with this instance"
+		GetPrimaryKeySelection thisMiner "$Q" "$E" "$selectIndex"
+		echo ""
+
 		Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
-		E="Please select the pool worker from the list above to use with this profile"
+		E="Please select the pool worker from the list above to use with this instance"
 		GetPrimaryKeySelection thisWorker "$Q" "$E"
 		echo ""
 	
 	
 		Q="SELECT pk_device, name FROM device WHERE disabled=0;"
-		E="Please select the device from the list above to use with this profile"
+		E="Please select the device from the list above to use with this instance"
 		GetPrimaryKeySelection thisDevice "$Q" "$E"
 
 		
@@ -730,14 +734,15 @@ Add_Profile()
 
 		clear
 		ShowHeader
-		Q="SELECT device.name, pool.name || '.' || worker.name AS fullName FROM profile_map LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
+		Q="SELECT device.name, pool.name || '.' || worker.name AS fullName, miner.name FROM profile_map LEFT JOIN miner ON profile_map.fk_miner = miner.pk_miner LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = $profileID ORDER BY pk_profile_map ASC;
 "
 		R=$(RunSQL "$Q")
 		addedInstances=""
 		for row in $R; do
 			addedDevice=$(Field 1 "$row")
 			addedWorker=$(Field 2 "$row")
-			addedInstances="$addedInstances $addedDevice - $addedWorker\n"
+			addedMiner=$(Field 3 "$row")
+			addedInstances="$addedInstances $addedMiner - $addedDevice - $addedWorker\n"
 		done
 		addedInstances="$addedInstances\n"
 		echo -e "$profileProgress"
@@ -935,7 +940,7 @@ Edit_Device()
 	read -e -i "$cname" deviceName
 	echo ""
 
-	D=`$HOME/smartcoin/smartcoin_devices.py`
+	D=`$CUR_LOCATION/smartcoin_devices.py`
 	D=$(Field_Prepare "$D")
 	for device in $D; do
 		devID=$(Field 1 "$device")

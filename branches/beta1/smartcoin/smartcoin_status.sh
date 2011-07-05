@@ -9,7 +9,12 @@
 
 
 
-. $HOME/smartcoin/smartcoin_ops.sh
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
+. $CUR_LOCATION/smartcoin_ops.sh
 
 
 MACHINE=$1
@@ -87,7 +92,7 @@ ShowStatus() {
 	hostName=$(Field 1 "$R")
 
 	status="\e[01;33mHost: $hostName\e[00m\n"
-	UseDB "smartcoin"
+	UseDB "smartcoin.db"
 	Q="Select name,device,type from device WHERE fk_machine=$MACHINE AND disabled=0 ORDER BY device ASC";
 	R=$(RunSQL "$Q")
 
