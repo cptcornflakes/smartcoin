@@ -37,7 +37,7 @@ clear
 CheckIfAlreadyInstalled
 # Move the database
 echo "Creating database in $HOME/.smartcoin/smartcoin.db"
-cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
+mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
 echo "done."
 echo ""
 . $CUR_LOCATION/smartcoin_ops.sh
