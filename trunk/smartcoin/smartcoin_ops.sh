@@ -302,7 +302,7 @@ GetWorkerInfo()
 GetCurrentDBProfile() {
 	local thisMachine=$1
 
-	UseDB "smartcoin"
+	UseDB "smartcoin.db"
 	Q="SELECT fk_profile from current_profile WHERE fk_machine=$thisMachine;"
 	R=$(RunSQL "$Q")
 	echo $(Field 1 "$R")
@@ -486,7 +486,7 @@ GetPrimaryKeySelection()
 
 	
 
-	UseDB "smartcoin"
+	UseDB "smartcoin.db"
 	R=$(RunSQL "$Q")
 	for Row in $R; do
 		let i++
