@@ -8,10 +8,16 @@ if [[ -n "$HEADER_smartcoin_ops" ]]; then
         return 0
 fi
 HEADER_smartcoin_ops="included"
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
+. $CUR_LOCATION/sql_ops.sh
 
 
 GetRevision() {
-  echo $(svn info $HOME/smartcoin/ | grep "^Revision" | awk '{print $2}')
+  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')
 }
 
 
@@ -28,7 +34,7 @@ export REVISION=$(GetRevision)
 STABLE=1
 EXPERIMENTAL=2
 
-commPipe=$HOME/smartcoin/smartcoin.cmd
+commPipe=$HOME/.smartcoin/smartcoin.cmd
 statusRefresh="5"
 MySqlHost="127.0.0.1"
 MySqlPort=""
@@ -44,70 +50,6 @@ ShowHeader() {
 	echo "smartcoin Management System r$REVISION"    $(date)
 	echo "--------------------------------------------------------------------------------"
 }
-
-MYSQL_DB_CRED=""
-if [ "$MySqlHost" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -h$MySqlHost"; fi
-if [ "$MySqlPort" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -P$MySqlPort"; fi
-if [ "$MySqlUser" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -u$MySqlUser"; fi
-if [ "$MySqlPassword" ] ; then MYSQL_DB_CRED="$MYSQL_DB_CRED -p$MySqlPassword"; fi
-# Make sure to trim excess spaces
-MYSQL_DB_CRED=`echo $MYSQL_DB_CRED`
-export MYSQL_DB_CRED
-
-
-
-RunSQL()
-{
-        local Q
-        Q="$*"
-        if [[ -n "$Q" ]]; then
-                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED -e "$Q;" | Field_Translate
-		sqlite3 -noheader -separator "	" $HOME/smartcoin/smartcoin.db "$Q;" | Field_Translate
-        fi
-                #mysql -A -N "$SQL_DB" $MYSQL_DB_CRED | Field_Translate
-	        #fi
-}
-
-
-#Usage:
-#  Field=$(Field 1 "<SQL row>")
-#Used in a 'for' loop to extract a field value from a FieldArray row
-Field()
-{
-        local Row FieldNumber
-        FieldNumber="$1"; shift
-        Row="$*"
-        echo "$Row" | cut -d$'\x01' -f"$FieldNumber" | tr $'\x02' ' '
-}
-
-#Usage:
-#  UseDB "<DB name>"
-#Changes the default database
-UseDB()
-{
-        SQL_DB="$1"
-        if [[ -z "$SQL_DB" ]]; then
-                SQL_DB="$MySqlDBName"
-        fi
-}
-
-UseDB "smartcoin"
-
-Field_Translate()
-{
-        tr '\n\t ' $'\x20'$'\x01'$'\x02' | sed 's/ *$//'
-}
-Field_Prepare(){
-	echo -ne "$1" | Field_Translate
-}
-FieldArrayAdd()
-{
-	menuItem=$(Field_Prepare "$1")
-	echo "$menuItem "
-}
-
-
-
 
 
 tableIsEmpty() {
@@ -141,7 +83,7 @@ startMiners() {
 		local pk_miner=$(Field 3 "$row")
 		local pk_worker=$(Field 4 "$row")
 		Log "Starting miner $key!" 1
-		local cmd="$HOME/smartcoin/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+		local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
 		if [[ "$i" == "1" ]]; then
 			screen -d -m -S $minerSession -t "$key" $cmd
 			sleep 2 # Lets give screen some time to start up before hammering it with calls
@@ -181,7 +123,7 @@ Log() {
   local announce="$2"
   
 	local dte=`date "+%D %T"`
-	echo -e "$dte\t$line\n" >> $HOME/smartcoin/smartcoin.log
+	echo -e "$dte\t$line\n" >> $HOME/.smartcoin/smartcoin.log
    
   if [[ "$announce" == "1" ]]; then
     echo -e $line
@@ -189,13 +131,13 @@ Log() {
 }
 
 RotateLogs() {
-	mv $HOME/smartcoin/smartcoin.log $HOME/smartcoin/smartcoin.log.previous
+	mv $HOME/.smartcoin/smartcoin.log $HOME/.smartcoin/smartcoin.log.previous
 }
 
 
 DeleteTemporaryFiles() {
-	rm -rf /tmp/smartcoin* 2>/dev/null
-	rm -rf /tmp/Miner* 2>/dev/null
+	rm -rf /tmp/.smartcoin* 2>/dev/null
+	rm -rf /tmp/.Miner* 2>/dev/null
 }
 
 
@@ -364,7 +306,7 @@ GetWorkerInfo()
 GetCurrentDBProfile() {
 	local thisMachine=$1
 
-	UseDB "smartcoin"
+	UseDB "smartcoin.db"
 	Q="SELECT fk_profile from current_profile WHERE fk_machine=$thisMachine;"
 	R=$(RunSQL "$Q")
 	echo $(Field 1 "$R")
@@ -435,7 +377,6 @@ DonationActive() {
 	local end=$(AddTime "$start" "$duration")
 
 	local curTime=`date +%k%M`
-  curTime=$(seq $curTime $curTime) # strips any preceeding zeros)
 
 	ret=""
 
@@ -549,7 +490,7 @@ GetPrimaryKeySelection()
 
 	
 
-	UseDB "smartcoin"
+	UseDB "smartcoin.db"
 	R=$(RunSQL "$Q")
 	for Row in $R; do
 		let i++

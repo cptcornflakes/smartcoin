@@ -7,7 +7,12 @@
 # Most of the programming here was for testing purposes...
 
 
-. $HOME/smartcoin/smartcoin_ops.sh
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
+. $CUR_LOCATION/smartcoin_ops.sh
 
 # Create the command pipe to the backend...                                     
 trap "rm -f $commPipe" EXIT                                                    

@@ -1,21 +1,11 @@
 #!/bin/bash
 #SMART (Simple Miner Administration for Remote Terminals)
-
-# Since LD_LIBRARY_PATH would not work, I did the following!
-#(Though maybe I needed an export LD_LIBRARY_PATH in bash_profile)
-#cd /usr/lib
-#sudo ln -s /home/jondecker76/AMD-APP-SDK-v2.4-lnx32/lib/x86/libOpenCL.so libOpenCL.so
-#sudo ln -s /home/jondecker76/AMD-APP-SDK-v2.4-lnx32/lib/x86/libOpenCL.so.1 libOpenCL.so.1
-#sudo ln -s /home/jondecker76/AMD-APP-SDK-v2.4-lnx32/lib/x86/libamdocl32.so libamdocl32.so
-#sudo ln -s /home/jondecker76/AMD-APP-SDK-v2.4-lnx32/lib/x86/libGLEW.so libGLEW.so
-#sudo ln -s /home/jondecker76/AMD-APP-SDK-v2.4-lnx32/lib/x86/libglut.so libglut.so
-
-
-
-#export LD_LIBRARY_PATH=/home/jondecker76/AMD-APP-SDK-v2.4-lnx32/lib/x86/:$LD_LIBRARY_PATH    
-#export LD_LIBRARY_PATH=/home/jondecker76/phoenix/kernels/:$LD_LIBRARY_PATH  
-
-. $HOME/smartcoin/smartcoin_ops.sh
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(pwd)
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
+. $CUR_LOCATION/smartcoin_ops.sh
 
 # Start the backend service
 #$HOME/smartcoin/smartcoin_backend.sh &
@@ -23,7 +13,7 @@
 
 
 
-echo "Starting SmartCoin..."
+echo "Starting SmartCoin at location: $CUR_LOCATION..."
 
 running=`screen -ls 2> /dev/null | grep $sessionName`
 
@@ -45,7 +35,7 @@ DeleteTemporaryFiles
 RotateLogs
 Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
 Log "Starting main smartcoin screen session..." 1
-screen -d -m -S $sessionName -t control "$HOME/smartcoin/smartcoin_control.sh"
+screen -d -m -S $sessionName -t control "$CUR_LOCATION/smartcoin_control.sh"
 screen -r $sessionName -X zombie ko
 screen -r $sessionName -X chdir
 screen -r $sessionName -X hardstatus on
@@ -61,7 +51,7 @@ for row in $R; do
 	pk_machine=$(Field 1 "$row")
 	machineName=$(Field 2 "$row")
 	Log "	$machineName"
-	screen -r $sessionName -X screen -t $machineName $HOME/smartcoin/smartcoin_status.sh "$pk_machine"
+	screen -r $sessionName -X screen -t $machineName "$CUR_LOCATION/smartcoin_status.sh" "$pk_machine"
 done
 
 
