@@ -53,6 +53,59 @@ Do_Update()
   export REVISION=$(GetRevision)
 
 }
+
+# Failover Order Menu
+Do_SetFailoverOrder()
+{
+	local thisMachine="$1"
+	clear
+	ShowHeader
+
+	local thisProfile
+	local usedProfiles=""
+	local i=0
+
+	Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
+	R=$(RunSQL "$Q")
+	for row in $R; do
+		local thisProfile=$(Field 1 "$row")
+		local thisProfileName=$(Field 2 "$row")
+
+		echo "$thisProfile) $thisProfileName"
+	done
+	echo ""
+	echo "The current profile failover order is listed above."
+
+	E="Do you want to change the failover order, (y)es or (n)o?"
+	GetYesNoSelection changeOrder "$E"
+	echo ""
+
+	if [[ "$changeOrder" == "1"  ]]; then
+		echo "Updating the Failover order..."
+		# Ouch, this is one ugly, ugly hack for now! But it will do the job...
+		Q="UPDATE profile SET failover_order='1000' WHERE true;"
+		RunSQL "$Q"
+
+
+		echo "Enter a comma-separated list of the ID numbers above to define the failover order. I.e. 1,5,2,3"
+		read profileOrder
+		
+		# Filter out spaces
+		profileOrder={$profileOrder//" "/""}
+		# then convert to a list that can be iterated with for
+		profileOrder={$profileOrder//","/" "}
+		for thisProfile in $profileOrder; do
+			let i++
+			Q="UPDATE profile SET failover_order='$i' WHERE pk_profile='$thisProfile';"
+		done
+
+		echo "done."
+		sleep 1
+	fi
+		
+	
+}
+
 # Profile Menu
 Do_ChangeProfile() {
 
@@ -1020,7 +1073,8 @@ do
 	echo "8) Configure Profiles"
 	echo "9) Configure Devices"
 	echo "10) Configure Pools"
-  echo "11) Update Smartcoin"
+	echo "11) Update Smartcoin"
+	echo "12) Set Failover Order"
 
 	read selection
 
@@ -1096,6 +1150,10 @@ do
 			Log "Update option selected"
       			Do_Update
       			;;
+		12)
+			Log "Set Failover Order option selected"
+			Do_SetFailoverOrder
+			;;
 		*)
 
 			;;
