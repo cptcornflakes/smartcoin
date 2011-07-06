@@ -88,7 +88,7 @@ Do_SetFailoverOrder()
 	if [[ "$changeOrder" == "1"  ]]; then
 		echo "Updating the Failover order..."
 		# Ouch, this is one ugly, ugly hack for now! But it will do the job...
-		Q="UPDATE profile SET failover_order='1000' WHERE true;"
+		Q="UPDATE profile SET failover_order='1000';"
 		RunSQL "$Q"
 
 
