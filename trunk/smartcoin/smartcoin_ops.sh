@@ -173,7 +173,7 @@ GetCurrentProfile()
 }
 GenCurrentProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 
 	local thisMachine=$1
 	local thisProfile=$(GetCurrentProfile "$thisMachine")
@@ -200,7 +200,7 @@ GenCurrentProfile()
 		FieldArray=$(GenAutoProfile "$thisMachine")
 	else
 		# Generate the FieldArray via the database
-		Q="SELECT 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
+		Q="SELECT fk_profile, 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
         	FieldArray=$(RunSQL "$Q")
 	fi
 	
@@ -210,7 +210,7 @@ GenCurrentProfile()
 
 GenAutoProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 	local thisMachine=$1
 
 	local FA
@@ -230,7 +230,7 @@ GenAutoProfile()
 		for thisDevice in $R2; do
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+			FA=$FA$(FieldArrayAdd "-1	Miner.$i	$thisDevice	$thisMiner	$thisWorker")
 		done
 	done
 
@@ -240,7 +240,7 @@ GenAutoProfile()
 
 GenFailoverProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 	local thisMachine=$1
 	local FA
 	local i=0
@@ -267,7 +267,7 @@ GenFailoverProfile()
 			local thisMiner=$(Field 2 "$row2")
 			local thisWorker=$(Field 3 "$row2")
 
-			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+			FA=$FA$(FieldArrayAdd "$thisProfile	Miner.$i	$thisDevice	$thisMiner	$thisWorker")
 		done
 		if [[ "$isDown" == "0" ]]; then
 			# We found the first failover profile that isn't down, lets get out of here
@@ -280,7 +280,7 @@ GenFailoverProfile()
 }
 GenDonationProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 	local thisMachine=$1
 	local FA
 	local i=0
@@ -301,7 +301,7 @@ GenDonationProfile()
 		
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker")
+			FA=$FA$(FieldArrayAdd "-2	Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker")
 		done
 	done
 
