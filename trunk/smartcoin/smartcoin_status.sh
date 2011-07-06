@@ -42,12 +42,13 @@ WorkersChanged() {
 
 # Automaticall load a profile whenever it changes
 oldProfile=""
-
+oldFA=""
 
 LoadProfileOnChange()
 {
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
+	newFA=$(GenCurrentProfile "$MACHINE")
 	changed=$(WorkersChanged)
 
 	if [[ "$newProfile" == "-1" ]]; then
@@ -65,6 +66,7 @@ LoadProfileOnChange()
 			echo "The number of workers has changed.  Regenerating the automatic profile...."
 			startMiners $MACHINE	
 		fi
+		return
 	fi
 	if [[ "$newProfile" != "$oldProfile" ]]; then
 		Log "NEW PROFILE DETECTED!"
@@ -77,7 +79,21 @@ LoadProfileOnChange()
 		ShowHeader
 		echo "A configuration change has been detected.  Loading the new profile...."
 		startMiners $MACHINE	
-	fi		
+		return
+	fi
+	# This should only happen if a failover event takes place	
+	if [[ "$newFA" != "$oldFA"  ]]; then
+		Log "A change was detected in the failover system"
+		oldFA=$newFA
+		killMiners
+		clear
+		ShowHeader
+		echo "A configuration change has been detected. Reconfiguring Failover..."
+		startMiners $MACHINE	
+		return
+	fi
+
+		
 }
 
 MarkFailedProfiles()
