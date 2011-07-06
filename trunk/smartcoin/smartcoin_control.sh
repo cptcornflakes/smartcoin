@@ -57,13 +57,18 @@ Do_Update()
 # Failover Order Menu
 Do_SetFailoverOrder()
 {
-	local thisMachine="$1"
+	local thisMachine
 	clear
 	ShowHeader
 
 	local thisProfile
 	local usedProfiles=""
 	local i=0
+
+
+	Q="SELECT pk_machine, name from machine;"
+	E="Please select the machine from the list above that you wish to edit Failover order on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
 	Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
 	R=$(RunSQL "$Q")
