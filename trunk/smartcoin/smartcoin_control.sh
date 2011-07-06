@@ -103,11 +103,12 @@ Do_SetFailoverOrder()
 		for thisProfile in $profileOrder; do
 			let i++
 			Q="UPDATE profile SET failover_order='$i' WHERE pk_profile='$thisProfile';"
+			echo "$Q"
 			RunSQL "$Q"
 		done
 
 		echo "done."
-		sleep 1
+		sleep 10
 	fi
 		
 	
