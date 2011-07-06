@@ -78,10 +78,10 @@ startMiners() {
 	for row in $FA; do
 			
 		let i++
-		local key=$(Field 1 "$row")
-		local pk_device=$(Field 2 "$row")
-		local pk_miner=$(Field 3 "$row")
-		local pk_worker=$(Field 4 "$row")
+		local key=$(Field 2 "$row")
+		local pk_device=$(Field 3 "$row")
+		local pk_miner=$(Field 4 "$row")
+		local pk_worker=$(Field 5 "$row")
 		Log "Starting miner $key!" 1
 		local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
 		if [[ "$i" == "1" ]]; then
