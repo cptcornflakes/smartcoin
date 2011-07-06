@@ -97,10 +97,10 @@ Do_SetFailoverOrder()
 		
 		echo "Updating the Failover order..."
 		# Filter out spaces
-		profileOrder=${$profileOrder//" "/""}
+		profileOrder=${profileOrder//" "/""}
 		echo $profileOrder
 		# then convert to a list that can be iterated with for
-		profileOrder=${$profileOrder//","/" "}
+		profileOrder=${profileOrder//","/" "}
 echo $profileOrder
 		for thisProfile in $profileOrder; do
 			let i++
