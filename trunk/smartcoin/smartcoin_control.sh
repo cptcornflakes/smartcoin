@@ -62,6 +62,7 @@ Do_ChangeProfile() {
 	# Add the flags for the dynamically generated profiles
 	autoEntry=$(FieldArrayAdd "-2	1	Donation")
 	autoEntry=$autoEntry$(FieldArrayAdd "-1	2	Automatic")
+	autoEntry=$autoEntry$(FieldArrayAdd "-3	3	Failover")
 
 	# Display menu
 	Q="SELECT pk_machine,name from machine"

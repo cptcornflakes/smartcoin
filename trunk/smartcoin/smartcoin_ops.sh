@@ -187,6 +187,9 @@ GenCurrentProfile()
 		# Generate the FieldArray via DonateProfile
 		Log "Generating Donation Profile"
 		FieldArray=$(GenDonationProfile "$thisMachine")
+	elif [[ "$thisProfile" == "-3" ]]; then
+		# Generate the FieldArray via Failover
+		FieldArray=$(GenFailoverProfile "$thisMachine")
 	elif [[ "$thisProfile" == "-2" ]]; then
 		# Generous user manually chose the Donation profile!
 		FieldArray=$(GenDonationProfile "$thisMachine")
@@ -235,7 +238,46 @@ GenAutoProfile()
 }
 
 
+GenFailoverProfile()
+{
+	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	local thisMachine=$1
+	local FA
+	local i=0
 
+	# Return, in order, all failover profiles to the point that one not marked as "down" is found, and return them all.
+	local firstActive=""
+	
+	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	R=$(RunSQL "$Q")
+	thisMiner=$(Field 1 "$R")
+
+	Q="SELECT pk_profile, name, down FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
+	R=$(RunSQL "$Q")
+
+	for row in $R; do
+		local thisProfile=$(Field 1 "$row")
+		local isDown=$(Field 3 "$row")
+		# Build the FieldArray until we get a profile that isn't down
+		Q2="SELECT fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
+		R2=$(RunSQL "$Q2")
+		for row2  in $R2; do
+			let i++
+			local thisDevice=$(Field 1 "$row2")
+			local thisMiner=$(Field 2 "$row2")
+			local thisWorker=$(Field 3 "$row2")
+
+			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+		done
+		if [[ "$isDown" == "0" ]]; then
+			# We found the first failover profile that isn't down, lets get out of here
+			break
+		fi
+	done
+
+	echo "$FA"
+
+}
 GenDonationProfile()
 {
 	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
@@ -347,10 +389,6 @@ AddTime()
 
 
 
-DonationActive2() {
-	echo ""
-}
-
 
 # DonationActive returns either nothing if the donation isn't active,
 # or a positive number representing the number of minutes remaining in the donation cycle
@@ -413,6 +451,8 @@ GetProfileName() {
 
 	if [[ "$Donate" ]]; then
 		echo "Donation (via AutoDonate) - $Donate minutes remaining."
+	elif [[ "$thisProfile" == "-3" ]]; then
+		echo "Failover"
 	elif [[ "$thisProfile" == "-2" ]]; then
 		echo "Donation (Manual selection)"
 	elif [[ "$thisProfile" == "-1" ]]; then

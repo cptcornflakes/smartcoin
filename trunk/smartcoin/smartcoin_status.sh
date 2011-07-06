@@ -80,7 +80,13 @@ LoadProfileOnChange()
 	fi		
 }
 
+MarkFailedProfiles()
+{
+	local blah
 
+
+
+}
 
 
 ShowStatus() {
@@ -118,6 +124,8 @@ ShowStatus() {
 
 	# Get current profile for the machine number
 	profileName=$(GetProfileName "$MACHINE")
+
+
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
 	FA=$(GenCurrentProfile "$MACHINE")
 
@@ -128,7 +136,7 @@ ShowStatus() {
 	accepted="0"
 	totalAccepted="0"
 	compositeAccepted="0"
-	rejected="0"
+	rejected="0.00"
 	totalRejected="0"
 	compositeRejected="0"
 
@@ -163,17 +171,17 @@ ShowStatus() {
 
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
-    cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
-    #cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
-    if [[ "$cmd" == *GHash* ]]; then
-      hashUnits="GHash"
-    elif [[ "$cmd" == *Mhash* ]]; then
-      hashUnits="Mhash"
-    elif [[ "$cmd" == *khash* ]]; then
-      hashUnits="khash"
-    else
-      hashUnits="hash"
-    fi  
+		cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
+		#cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
+		if [[ "$cmd" == *GHash* ]]; then
+			hashUnits="GHash"
+		elif [[ "$cmd" == *Mhash* ]]; then
+			hashUnits="Mhash"
+		elif [[ "$cmd" == *khash* ]]; then
+			hashUnits="khash"
+		else
+			hashUnits="hash"
+		fi  
       
 		if [ -z "$cmd" ]; then
 			cmd="\e[00;31m<<<DOWN>>>\e[00m"
@@ -201,6 +209,11 @@ ShowStatus() {
 		totalAccepted=`expr $totalAccepted + $accepted`
 		totalRejected=`expr $totalRejected + $rejected`
 	done
+
+	if [[ "$profileName" == "Failover" ]]; then
+		# We're in Failover mode.
+		# Mark the last profile as down if ...???
+	fi
 
 	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
