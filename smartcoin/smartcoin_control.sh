@@ -86,7 +86,7 @@ Do_SetFailoverOrder()
 	echo ""
 
 	if [[ "$changeOrder" == "1"  ]]; then
-		echo "Updating the Failover order..."
+		
 		# Ouch, this is one ugly, ugly hack for now! But it will do the job...
 		Q="UPDATE profile SET failover_order='1000';"
 		RunSQL "$Q"
@@ -95,6 +95,7 @@ Do_SetFailoverOrder()
 		echo "Enter a comma-separated list of the ID numbers above to define the failover order. I.e. 1,5,2,3"
 		read profileOrder
 		
+		echo "Updating the Failover order..."
 		# Filter out spaces
 		profileOrder={$profileOrder//" "/""}
 		# then convert to a list that can be iterated with for
