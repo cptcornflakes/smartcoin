@@ -73,6 +73,7 @@ LoadProfileOnChange()
 		Log "	Switching from profile: $oldProfile to profile: $newProfile"
 		DeleteTemporaryFiles
 		oldProfile=$newProfile
+		oldFA=$newFA
 		# Reload the miner screen session
 		killMiners
 		clear
@@ -144,6 +145,7 @@ ShowStatus() {
 
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
 	FA=$(GenCurrentProfile "$MACHINE")
+	local profileFailed=0
 
 	oldPool=""
 	hashes="0.00"
