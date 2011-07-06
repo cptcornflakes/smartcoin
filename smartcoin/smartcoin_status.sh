@@ -141,10 +141,11 @@ ShowStatus() {
 	compositeRejected="0"
 
 	for Row in $FA; do
-		key=$(Field 1 "$Row")
-		device=$(Field 2 "$Row")
-		miner=$(Field 3 "$Row")
-		worker=$(Field 4 "$Row")
+		thisProfile=$(Field 1 "$Row")
+		key=$(Field 2 "$Row")
+		device=$(Field 3 "$Row")
+		miner=$(Field 4 "$Row")
+		worker=$(Field 5 "$Row")
 
 		FAworker=$(GetWorkerInfo "$worker")
 		pool=$(Field 5 "$FAworker")
@@ -213,6 +214,11 @@ ShowStatus() {
 	if [[ "$profileName" == "Failover" ]]; then
 		# We're in Failover mode.
 		# Mark the last profile as down if ...???
+
+		Q="UPDATE profile SET down='1' WHERE pk_profile=$thisProfile;"
+		Q="UPDATE profile SET down='0' WHERE pk_profile=$thisProfile;"
+		
+
 	fi
 
 	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
