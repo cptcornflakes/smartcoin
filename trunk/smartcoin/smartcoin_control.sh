@@ -98,19 +98,18 @@ Do_SetFailoverOrder()
 		echo "Updating the Failover order..."
 		# Filter out spaces
 		profileOrder=${profileOrder//" "/""}
-		echo $profileOrder
+
 		# then convert to a list that can be iterated with for
 		profileOrder=${profileOrder//","/" "}
 echo $profileOrder
 		for thisProfile in $profileOrder; do
 			let i++
 			Q="UPDATE profile SET failover_order='$i' WHERE pk_profile='$thisProfile';"
-			echo "$Q"
 			RunSQL "$Q"
 		done
 
 		echo "done."
-		sleep 10
+		sleep 1
 	fi
 		
 	
@@ -588,16 +587,11 @@ Add_Workers()
         read password
 	echo " "
 
-	echo "Enter a priority for this worker"
-	echo "Note: this is not yet in use"
-	read workerPriority
-	echo " "
-
 	E="Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
 	GetYesNoSelection workerAllow "$E" 1
 
 	echo "Adding Worker..."
-        Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ('$thisPool','$workerName','$userName','$password','$workerPriority','$workerAllow','0');"
+        Q="INSERT INTO worker (fk_pool, name, user, pass, auto_allow, disabled) VALUES ('$thisPool','$workerName','$userName','$password','$workerAllow','0');"
         R=$(RunSQL "$Q")
 	echo "done."
 	sleep 1
@@ -624,14 +618,13 @@ Edit_Workers()
 	E="Please select the worker from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
 
-	Q="SELECT fk_pool,name,user,pass,priority,auto_allow FROM worker WHERE pk_worker=$EditPK;"
+	Q="SELECT fk_pool,name,user,pass,auto_allow FROM worker WHERE pk_worker=$EditPK;"
 	R=$(RunSQL "$Q")
 	cpool=$(Field 1 "$R")
 	cname=$(Field 2 "$R")
 	cuser=$(Field 3 "$R")
 	cpass=$(Field 4 "$R")
-	cpriority=$(Field 5 "$R")
-	callow=$(Field 6 "$R")
+	callow=$(Field 5 "$R")
 
 
 	clear
@@ -655,16 +648,13 @@ Edit_Workers()
 	read -e -i "$cpass" workerPass
 	echo ""
 
-	echo "Enter the priority for this worker"
-	echo "Note: this is not yet in use"
-	read -e -i "$cpriority" workerPriority
 
 	E="Do you want to allow this worker to be added to the automatic profile?"
 	GetYesNoSelection workerAllow "$E" "$callow"
 
 	echo "Updating Worker..."
 
-	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority='$workerPriority', auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
+	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass', auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
 	RunSQL "$Q"
 	echo "done"
 	sleep 1

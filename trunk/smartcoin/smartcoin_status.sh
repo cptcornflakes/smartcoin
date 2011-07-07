@@ -102,7 +102,7 @@ MarkFailedProfiles()
 	local theProfile=$1
 	local failure=$2
 
-	Log "DEBUG: In MarkFailedProfiles()"
+	#Log "DEBUG: In MarkFailedProfiles()"
 	if [[ "$profileName" == "Failover" ]]; then
 		# We're in Failover mode.
 
@@ -120,20 +120,20 @@ MarkFailedProfiles()
 		else
 			db_count=0
 		fi
-		Log "DEBUG: failure=$failure"
-		Log "DEBUG: db_count=$db_count"
-		Log "DEBUG: db_failed=$db_failed"
+		#Log "DEBUG: failure=$failure"
+		#Log "DEBUG: db_count=$db_count"
+		#Log "DEBUG: db_failed=$db_failed"
 
 		Q="UPDATE profile SET failover_count='$db_count' WHERE pk_profile='$theProfile';"
 		RunSQL "$Q"
-		Log "DEBUG: $Q"
+		#Log "DEBUG: $Q"
 
 		# TODO: replace hard-coded max count with a setting?
 		if [[ "$db_count" -ge "10" ]]; then
 			let db_failed=db_failed^1
 			Q="UPDATE profile SET down='$db_failed' WHERE pk_profile='$theProfile';"
 			RunSQL "$Q"
-			Log "DEBUG: $Q"
+			#Log "DEBUG: $Q"
 		fi
 			
 	fi
