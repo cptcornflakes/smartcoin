@@ -61,6 +61,18 @@ Do_SetFailoverOrder()
 	clear
 	ShowHeader
 
+	Q="SELECT COUNT(*) FROM profile;"
+	R=$(RunSQL "$Q")
+	local count=$(Field 1 "$R")
+	if [[ "$count" -le "1" ]]; then
+		E="You need at least 2 manual profiles set up to use the failover system. "
+		E=$E"Please set up some profiles, then come back here to set a specific failover order."
+		echo "$E"
+		sleep 5
+		return
+	fi
+	
+
 	local thisProfile
 	local usedProfiles=""
 	local i=0
