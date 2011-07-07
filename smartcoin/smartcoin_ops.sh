@@ -451,7 +451,7 @@ GetProfileName() {
 	local Donate=$(DonationActive)
 
 	if [[ "$Donate" ]]; then
-		echo "Donation (via AutoDonate) - $Donate minutes remaining."
+		echo "Donation (via AutoDonate) " # - $Donate minutes remaining."
 	elif [[ "$thisProfile" == "-3" ]]; then
 		echo "Failover"
 	elif [[ "$thisProfile" == "-2" ]]; then

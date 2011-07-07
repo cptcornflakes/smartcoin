@@ -62,15 +62,15 @@ else
 		        RunSQL "$Q"
              		;;
            
-		346)            
+		351)            
                 	Log "Applying r$i patch..." 1
 			Log "Altering the profile table for the new Failover system"
 			Q="ALTER TABLE profile ADD down bool NOT NULL DEFAULT(0);"
-			RunSQL "Q"
+			RunSQL "$Q"
 			Q="ALTER TABLE profile ADD failover_order int NOT NULL DEFAULT(0);"
-			RunSQL "Q"
+			RunSQL "$Q"
 			Q="ALTER TABLE profile ADD failover_count int NOT NULL DFAULT(0);"
-			RunSQL "Q"
+			RunSQL "$Q"
 			;;
     		*)
         		Log "No patches to apply to r$i"
