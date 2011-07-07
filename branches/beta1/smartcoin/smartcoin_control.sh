@@ -53,6 +53,80 @@ Do_Update()
   export REVISION=$(GetRevision)
 
 }
+
+# Failover Order Menu
+Do_SetFailoverOrder()
+{
+	local thisMachine
+	clear
+	ShowHeader
+
+	Q="SELECT COUNT(*) FROM profile;"
+	R=$(RunSQL "$Q")
+	local count=$(Field 1 "$R")
+	if [[ "$count" -le "1" ]]; then
+		E="You need at least 2 manual profiles set up to use the failover system. "
+		E=$E"Please set up some profiles, then come back here to set a specific failover order."
+		echo "$E"
+		sleep 5
+		return
+	fi
+	
+
+	local thisProfile
+	local usedProfiles=""
+	local i=0
+
+
+	Q="SELECT pk_machine, name from machine;"
+	E="Please select the machine from the list above that you wish to edit Failover order on"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+	Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
+	R=$(RunSQL "$Q")
+	for row in $R; do
+		local thisProfile=$(Field 1 "$row")
+		local thisProfileName=$(Field 2 "$row")
+
+		echo "$thisProfile) $thisProfileName"
+	done
+	echo ""
+	echo "The current profile failover order is listed above."
+
+	E="Do you want to change the failover order, (y)es or (n)o?"
+	GetYesNoSelection changeOrder "$E"
+	echo ""
+
+	if [[ "$changeOrder" == "1"  ]]; then
+		
+		# Ouch, this is one ugly, ugly hack for now! But it will do the job...
+		Q="UPDATE profile SET failover_order='1000';"
+		RunSQL "$Q"
+
+
+		echo "Enter a comma-separated list of the ID numbers above to define the failover order. I.e. 1,5,2,3"
+		read profileOrder
+		
+		echo "Updating the Failover order..."
+		# Filter out spaces
+		profileOrder=${profileOrder//" "/""}
+
+		# then convert to a list that can be iterated with for
+		profileOrder=${profileOrder//","/" "}
+
+		for thisProfile in $profileOrder; do
+			let i++
+			Q="UPDATE profile SET failover_order='$i' WHERE pk_profile='$thisProfile';"
+			RunSQL "$Q"
+		done
+
+		echo "done."
+		sleep 1
+	fi
+		
+	
+}
+
 # Profile Menu
 Do_ChangeProfile() {
 
@@ -62,6 +136,7 @@ Do_ChangeProfile() {
 	# Add the flags for the dynamically generated profiles
 	autoEntry=$(FieldArrayAdd "-2	1	Donation")
 	autoEntry=$autoEntry$(FieldArrayAdd "-1	2	Automatic")
+	autoEntry=$autoEntry$(FieldArrayAdd "-3	3	Failover")
 
 	# Display menu
 	Q="SELECT pk_machine,name from machine"
@@ -524,16 +599,11 @@ Add_Workers()
         read password
 	echo " "
 
-	echo "Enter a priority for this worker"
-	echo "Note: this is not yet in use"
-	read workerPriority
-	echo " "
-
 	E="Would you like this worker to be available to the automatic profile? (y)es or (n)o?"
 	GetYesNoSelection workerAllow "$E" 1
 
 	echo "Adding Worker..."
-        Q="INSERT INTO worker (fk_pool, name, user, pass, priority, auto_allow, disabled) VALUES ('$thisPool','$workerName','$userName','$password','$workerPriority','$workerAllow','0');"
+        Q="INSERT INTO worker (fk_pool, name, user, pass, auto_allow, disabled) VALUES ('$thisPool','$workerName','$userName','$password','$workerAllow','0');"
         R=$(RunSQL "$Q")
 	echo "done."
 	sleep 1
@@ -560,14 +630,13 @@ Edit_Workers()
 	E="Please select the worker from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
 
-	Q="SELECT fk_pool,name,user,pass,priority,auto_allow FROM worker WHERE pk_worker=$EditPK;"
+	Q="SELECT fk_pool,name,user,pass,auto_allow FROM worker WHERE pk_worker=$EditPK;"
 	R=$(RunSQL "$Q")
 	cpool=$(Field 1 "$R")
 	cname=$(Field 2 "$R")
 	cuser=$(Field 3 "$R")
 	cpass=$(Field 4 "$R")
-	cpriority=$(Field 5 "$R")
-	callow=$(Field 6 "$R")
+	callow=$(Field 5 "$R")
 
 
 	clear
@@ -591,16 +660,13 @@ Edit_Workers()
 	read -e -i "$cpass" workerPass
 	echo ""
 
-	echo "Enter the priority for this worker"
-	echo "Note: this is not yet in use"
-	read -e -i "$cpriority" workerPriority
 
 	E="Do you want to allow this worker to be added to the automatic profile?"
 	GetYesNoSelection workerAllow "$E" "$callow"
 
 	echo "Updating Worker..."
 
-	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass',priority='$workerPriority', auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
+	Q="UPDATE worker SET fk_pool='$workerPool', name='$workerName', user='$workerUser', pass='$workerPass', auto_allow='$workerAllow' WHERE pk_worker=$EditPK"
 	RunSQL "$Q"
 	echo "done"
 	sleep 1
@@ -1019,7 +1085,8 @@ do
 	echo "8) Configure Profiles"
 	echo "9) Configure Devices"
 	echo "10) Configure Pools"
-  echo "11) Update Smartcoin"
+	echo "11) Update Smartcoin"
+	echo "12) Set Failover Order"
 
 	read selection
 
@@ -1095,6 +1162,10 @@ do
 			Log "Update option selected"
       			Do_Update
       			;;
+		12)
+			Log "Set Failover Order option selected"
+			Do_SetFailoverOrder
+			;;
 		*)
 
 			;;

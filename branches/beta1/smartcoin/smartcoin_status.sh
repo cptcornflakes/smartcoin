@@ -42,12 +42,13 @@ WorkersChanged() {
 
 # Automaticall load a profile whenever it changes
 oldProfile=""
-
+oldFA=""
 
 LoadProfileOnChange()
 {
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
+	newFA=$(GenCurrentProfile "$MACHINE")
 	changed=$(WorkersChanged)
 
 	if [[ "$newProfile" == "-1" ]]; then
@@ -65,23 +66,82 @@ LoadProfileOnChange()
 			echo "The number of workers has changed.  Regenerating the automatic profile...."
 			startMiners $MACHINE	
 		fi
+		return
 	fi
 	if [[ "$newProfile" != "$oldProfile" ]]; then
 		Log "NEW PROFILE DETECTED!"
 		Log "	Switching from profile: $oldProfile to profile: $newProfile"
 		DeleteTemporaryFiles
 		oldProfile=$newProfile
+		oldFA=$newFA
 		# Reload the miner screen session
 		killMiners
 		clear
 		ShowHeader
 		echo "A configuration change has been detected.  Loading the new profile...."
 		startMiners $MACHINE	
-	fi		
+		return
+	fi
+	# This should only happen if a failover event takes place	
+	if [[ "$newFA" != "$oldFA"  ]]; then
+		Log "A change was detected in the failover system"
+		oldFA=$newFA
+		killMiners
+		clear
+		ShowHeader
+		echo "A configuration change has been detected. Reconfiguring Failover..."
+		startMiners $MACHINE	
+		return
+	fi
+
+		
+}
+
+MarkFailedProfiles()
+{
+	local theProfile=$1
+	local failure=$2
+
+	#Log "DEBUG: In MarkFailedProfiles()"
+	if [[ "$profileName" == "Failover" ]]; then
+		# We're in Failover mode.
+
+		Q="SELECT down,failover_count FROM profile WHERE pk_profile='$theProfile';"
+		R=$(RunSQL "$Q")
+		local db_failed=$(Field 1 "$R")
+		local db_count=$(Field 2 "$R")
+
+		if [[ "$failure" -gt "0" ]]; then
+			failure=1
+		fi
+
+		if [[ "$failure" != "$db_failed" ]]; then
+			let db_count++
+		else
+			db_count=0
+		fi
+		#Log "DEBUG: failure=$failure"
+		#Log "DEBUG: db_count=$db_count"
+		#Log "DEBUG: db_failed=$db_failed"
+
+		Q="UPDATE profile SET failover_count='$db_count' WHERE pk_profile='$theProfile';"
+		RunSQL "$Q"
+		#Log "DEBUG: $Q"
+
+		# TODO: replace hard-coded max count with a setting?
+		if [[ "$db_count" -ge "10" ]]; then
+			let db_failed=db_failed^1
+			Q="UPDATE profile SET down='$db_failed' WHERE pk_profile='$theProfile';"
+			RunSQL "$Q"
+			#Log "DEBUG: $Q"
+		fi
+			
+	fi
 }
 
 
-
+profileDownCount="0"
+profileDown="0"
 
 ShowStatus() {
 	export DISPLAY=:0
@@ -118,25 +178,33 @@ ShowStatus() {
 
 	# Get current profile for the machine number
 	profileName=$(GetProfileName "$MACHINE")
+
+
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
 	FA=$(GenCurrentProfile "$MACHINE")
+	local profileFailed=0
 
 	oldPool=""
+	oldProfile=""
+	profileFailed="0"
 	hashes="0.00"
 	totalHashes="0.00"
 	compositeHashes="0.00"
 	accepted="0"
 	totalAccepted="0"
 	compositeAccepted="0"
-	rejected="0"
+	rejected="0.00"
 	totalRejected="0"
 	compositeRejected="0"
+	
+	
 
 	for Row in $FA; do
-		key=$(Field 1 "$Row")
-		device=$(Field 2 "$Row")
-		miner=$(Field 3 "$Row")
-		worker=$(Field 4 "$Row")
+		thisProfile=$(Field 1 "$Row")
+		key=$(Field 2 "$Row")
+		device=$(Field 3 "$Row")
+		miner=$(Field 4 "$Row")
+		worker=$(Field 5 "$Row")
 
 		FAworker=$(GetWorkerInfo "$worker")
 		pool=$(Field 5 "$FAworker")
@@ -145,16 +213,33 @@ ShowStatus() {
 		deviceName=$(RunSQL "$Q")
 
 		
+
+		if [[ "$oldProfile" != "$thisProfile" ]]; then
+			if [[ "$oldProfile" != "" ]]; then
+				MarkFailedProfiles $oldProfile $profileFailed
+				profileFailed=0
+			fi
+			oldProfile=$thisProfile
+		fi
+
+
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-			status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
-			compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
-			compositeAccepted=`expr $compositeAccepted + $totalAccepted`
-			compositeRejected=`expr $compositeRejected + $totalRejected`
-			totalHashes="0.00"
-			totalAccepted="0"
-			totalRejected="0"
+				status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
+				compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
+				compositeAccepted=`expr $compositeAccepted + $totalAccepted`
+				compositeRejected=`expr $compositeRejected + $totalRejected`
+			
+				
+				
+				
+		
+
+
+				totalHashes="0.00"
+				totalAccepted="0"
+				totalRejected="0"
 			fi
 
 			oldPool=$pool
@@ -163,21 +248,20 @@ ShowStatus() {
 
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
-    cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
-    #cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
-    if [[ "$cmd" == *GHash* ]]; then
-      hashUnits="GHash"
-    elif [[ "$cmd" == *Mhash* ]]; then
-      hashUnits="Mhash"
-    elif [[ "$cmd" == *khash* ]]; then
-      hashUnits="khash"
-    else
-      hashUnits="hash"
-    fi  
+		cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
+		#cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
+		if [[ "$cmd" == *GHash* ]]; then
+			hashUnits="GHash"
+		elif [[ "$cmd" == *Mhash* ]]; then
+			hashUnits="Mhash"
+		elif [[ "$cmd" == *khash* ]]; then
+			hashUnits="khash"
+		else
+			hashUnits="hash"
+		fi  
       
 		if [ -z "$cmd" ]; then
-			cmd="\e[00;31m<<<DOWN>>>\e[00m"
-			hashes="0.00"
+			hashes="0"
 			accepted="0"
 			rejected="0"
 		else
@@ -185,6 +269,16 @@ ShowStatus() {
 			accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
 			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		fi
+
+
+		if [[ "$hashes" == "0" ]]; then
+			# Is it safe to say the profile is down?
+			cmd="\e[00;31m<<<DOWN>>>\e[00m"
+			let profileFailed++
+
+		fi
+
+
 		status=$status"$deviceName:\t$cmd\n"                    
                 
 		if [ -z "$hashes" ]; then
@@ -201,6 +295,8 @@ ShowStatus() {
 		totalAccepted=`expr $totalAccepted + $accepted`
 		totalRejected=`expr $totalRejected + $rejected`
 	done
+
+	MarkFailedProfiles $oldProfile $profileFailed
 
 	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
