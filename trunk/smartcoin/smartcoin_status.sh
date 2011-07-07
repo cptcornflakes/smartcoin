@@ -99,12 +99,42 @@ LoadProfileOnChange()
 
 MarkFailedProfiles()
 {
-	local blah
+	local theProfile=$1
+	local failure=$2
 
+	if [[ "$profileName" == "Failover" ]]; then
+		# We're in Failover mode.
 
+		Q="SELECT down,failover_count FROM profile WHERE pk_profile='$theProfile';"
+		R=$(RunSQL "$Q")
+		local db_failed=$(Field 1 "$R")
+		local db_count=$(Field 2 "$R")
 
+		if [[ "$failure" -gt "0" ]]; then
+			failure=1
+		fi
+
+		if [[ "$failure" != "$db_failed" ]]; then
+			let db_count++
+		else
+			db_count=0
+		fi
+		Q="UPDATE profile SET failover_count='$db_count' WHERE pk_profile='$theProfile';"
+		RunSQL "$Q"
+
+		# TODO: replace hard-coded max count with a setting?
+		if [[ "$db_count" -ge "10" ]]; then
+			let db_failed=db_failed^1
+			Q="UPDATE profile SET down='$db_failed' WHERE pk_profile='$theProfile';"
+			RunSQL "$Q"
+		fi
+			
+	fi
 }
 
+
+profileDownCount="0"
+profileDown="0"
 
 ShowStatus() {
 	export DISPLAY=:0
@@ -148,6 +178,8 @@ ShowStatus() {
 	local profileFailed=0
 
 	oldPool=""
+	oldProfile=""
+	profileFailed="0"
 	hashes="0.00"
 	totalHashes="0.00"
 	compositeHashes="0.00"
@@ -157,6 +189,8 @@ ShowStatus() {
 	rejected="0.00"
 	totalRejected="0"
 	compositeRejected="0"
+	
+	
 
 	for Row in $FA; do
 		thisProfile=$(Field 1 "$Row")
@@ -172,16 +206,33 @@ ShowStatus() {
 		deviceName=$(RunSQL "$Q")
 
 		
+
+		if [[ "$oldProfile" != "$thisProfile" ]]; then
+			if [[ "$oldProfile" != "" ]]; then
+				MarkFailedProfiles $oldProfile $profileFailed
+				profileFailed=0
+			fi
+			oldProfile=$thisProfile
+		fi
+
+
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-			status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
-			compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
-			compositeAccepted=`expr $compositeAccepted + $totalAccepted`
-			compositeRejected=`expr $compositeRejected + $totalRejected`
-			totalHashes="0.00"
-			totalAccepted="0"
-			totalRejected="0"
+				status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
+				compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
+				compositeAccepted=`expr $compositeAccepted + $totalAccepted`
+				compositeRejected=`expr $compositeRejected + $totalRejected`
+			
+				
+				
+				
+		
+
+
+				totalHashes="0.00"
+				totalAccepted="0"
+				totalRejected="0"
 			fi
 
 			oldPool=$pool
@@ -203,8 +254,7 @@ ShowStatus() {
 		fi  
       
 		if [ -z "$cmd" ]; then
-			cmd="\e[00;31m<<<DOWN>>>\e[00m"
-			hashes="0.00"
+			hashes="0"
 			accepted="0"
 			rejected="0"
 		else
@@ -212,6 +262,16 @@ ShowStatus() {
 			accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
 			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		fi
+
+
+		if [[ "$hashes" == "0" ]]; then
+			# Is it safe to say the profile is down?
+			cmd="\e[00;31m<<<DOWN>>>\e[00m"
+			let profileFailed++
+
+		fi
+
+
 		status=$status"$deviceName:\t$cmd\n"                    
                 
 		if [ -z "$hashes" ]; then
@@ -229,15 +289,7 @@ ShowStatus() {
 		totalRejected=`expr $totalRejected + $rejected`
 	done
 
-	if [[ "$profileName" == "Failover" ]]; then
-		# We're in Failover mode.
-		# Mark the last profile as down if ...???
-
-		Q="UPDATE profile SET down='1' WHERE pk_profile=$thisProfile;"
-		Q="UPDATE profile SET down='0' WHERE pk_profile=$thisProfile;"
-		
-
-	fi
+	MarkFailedProfiles $oldProfile $profileFailed
 
 	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
