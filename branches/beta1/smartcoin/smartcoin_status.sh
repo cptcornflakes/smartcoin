@@ -46,13 +46,12 @@ oldFA=""
 
 LoadProfileOnChange()
 {
-	Log "DEBUG: In LoadProfileOnChange"
+	
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
 	newFA=$(GenCurrentProfile "$MACHINE")
 	changed=$(WorkersChanged)
-	Log "DEBUG: lastProfile=$lastProfile"
-	Log "DEBUG: newProfile=$newProfile"
+
 
 	if [[ "$newProfile" == "-1" ]]; then
 
