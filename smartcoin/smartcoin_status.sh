@@ -68,8 +68,9 @@ LoadProfileOnChange()
 			ShowHeader
 			echo "The number of workers has changed.  Regenerating the automatic profile...."
 			startMiners $MACHINE	
+			return
 		fi
-		return
+		
 	fi
 	if [[ "$newProfile" != "$lastProfile" ]]; then
 		Log "NEW PROFILE DETECTED!"
