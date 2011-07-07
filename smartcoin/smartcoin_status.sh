@@ -263,7 +263,7 @@ ShowStatus() {
 			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		fi
 
-svn commit
+
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			cmd="\e[00;31m<<<DOWN>>>\e[00m"
