@@ -376,7 +376,7 @@ AddTime()
 	local totalMinutes=$(($minutes+$minutesToAdd))
 	local carryOver=$(($totalMinutes/60))
 	local correctedMinutes=$(($totalMinutes%60))
-	correctedMinutes=`printf "%02d" $correctedMinutes`
+	correctedMinutes=$(seq $correctedMinutes $correctedMinutes) #`printf "%02d" $correctedMinutes`
 	
 	# Add remainder to hours
 	local correctedHours=$(($hours+carryOver))
