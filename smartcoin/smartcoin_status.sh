@@ -46,10 +46,13 @@ oldFA=""
 
 LoadProfileOnChange()
 {
+	Log "DEBUG: In LoadProfileOnChange"
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
 	newFA=$(GenCurrentProfile "$MACHINE")
 	changed=$(WorkersChanged)
+	Log "DEBUG: lastProfile=$lastProfile"
+	Log "DEBUG: newProfile=$newProfile"
 
 	if [[ "$newProfile" == "-1" ]]; then
 
@@ -131,7 +134,7 @@ MarkFailedProfiles()
 		# TODO: replace hard-coded max count with a setting?
 		if [[ "$db_count" -ge "10" ]]; then
 			let db_failed=db_failed^1
-			Q="UPDATE profile SET down='$db_failed', failover_count='0' WHERE pk_profile='$theProfile';"
+			Q="UPDATE profile SET down='$db_failed' WHERE pk_profile='$theProfile';"
 			RunSQL "$Q"
 			#Log "DEBUG: $Q"
 		fi
