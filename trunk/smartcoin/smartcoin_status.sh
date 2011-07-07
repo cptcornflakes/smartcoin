@@ -102,6 +102,7 @@ MarkFailedProfiles()
 	local theProfile=$1
 	local failure=$2
 
+	Log "DEBUG: In MarkFailedProfiles()"
 	if [[ "$profileName" == "Failover" ]]; then
 		# We're in Failover mode.
 
