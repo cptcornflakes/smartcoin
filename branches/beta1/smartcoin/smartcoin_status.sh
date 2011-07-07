@@ -41,7 +41,7 @@ WorkersChanged() {
 }
 
 # Automaticall load a profile whenever it changes
-oldProfile=""
+lastProfile=""
 oldFA=""
 
 LoadProfileOnChange()
@@ -68,11 +68,11 @@ LoadProfileOnChange()
 		fi
 		return
 	fi
-	if [[ "$newProfile" != "$oldProfile" ]]; then
+	if [[ "$newProfile" != "$lastProfile" ]]; then
 		Log "NEW PROFILE DETECTED!"
-		Log "	Switching from profile: $oldProfile to profile: $newProfile"
+		Log "	Switching from profile: $lastProfile to profile: $newProfile"
 		DeleteTemporaryFiles
-		oldProfile=$newProfile
+		lastProfile=$newProfile
 		oldFA=$newFA
 		# Reload the miner screen session
 		killMiners
