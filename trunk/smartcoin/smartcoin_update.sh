@@ -48,29 +48,32 @@ else
   
 	for ((i=$patchStart; i<=$patchEnd; i++)); do
 		case $i in
-	
-
-		     300)
-		        # Update schema going into r300
-		         Log "Applying r$i patch..." 1
-             Log "Setting up ~/.smartcoin and copying over database"
-             mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
-
-               
-               
-             Log "Setting the dev_branch setting variable"
+		300)
+			# Update schema going into r300
+			Log "Applying r$i patch..." 1
+			Log "Setting up ~/.smartcoin and copying over database"
+			mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
+       
+			Log "Setting the dev_branch setting variable"
 		        # Set up by default for stable updates!
 		        Q="DELETE FROM settings WHERE data='dev_branch';"
 		        RunSQL "$Q"
 		        Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
 		        RunSQL "$Q"
-             
+             		;;
            
-            
-                
+		346)            
+                	Log "Applying r$i patch..." 1
+			Log "Altering the profile table for the new Failover system"
+			Q="ALTER TABLE profile ADD down bool NOT NULL DEFAULT(0);"
+			RunSQL "Q"
+			Q="ALTER TABLE profile ADD failover_order int NOT NULL DEFAULT(0);"
+			RunSQL "Q"
+			Q="ALTER TABLE profile ADD failover_count int NOT NULL DFAULT(0);"
+			RunSQL "Q"
 			;;
     		*)
-        		Log "No patches to apply to r$i" 1
+        		Log "No patches to apply to r$i"
         		;;
      		esac
 	done
