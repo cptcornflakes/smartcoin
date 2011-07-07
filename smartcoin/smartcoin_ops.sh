@@ -78,10 +78,10 @@ startMiners() {
 	for row in $FA; do
 			
 		let i++
-		local key=$(Field 1 "$row")
-		local pk_device=$(Field 2 "$row")
-		local pk_miner=$(Field 3 "$row")
-		local pk_worker=$(Field 4 "$row")
+		local key=$(Field 2 "$row")
+		local pk_device=$(Field 3 "$row")
+		local pk_miner=$(Field 4 "$row")
+		local pk_worker=$(Field 5 "$row")
 		Log "Starting miner $key!" 1
 		local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
 		if [[ "$i" == "1" ]]; then
@@ -173,7 +173,7 @@ GetCurrentProfile()
 }
 GenCurrentProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 
 	local thisMachine=$1
 	local thisProfile=$(GetCurrentProfile "$thisMachine")
@@ -187,6 +187,9 @@ GenCurrentProfile()
 		# Generate the FieldArray via DonateProfile
 		Log "Generating Donation Profile"
 		FieldArray=$(GenDonationProfile "$thisMachine")
+	elif [[ "$thisProfile" == "-3" ]]; then
+		# Generate the FieldArray via Failover
+		FieldArray=$(GenFailoverProfile "$thisMachine")
 	elif [[ "$thisProfile" == "-2" ]]; then
 		# Generous user manually chose the Donation profile!
 		FieldArray=$(GenDonationProfile "$thisMachine")
@@ -197,7 +200,7 @@ GenCurrentProfile()
 		FieldArray=$(GenAutoProfile "$thisMachine")
 	else
 		# Generate the FieldArray via the database
-		Q="SELECT 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
+		Q="SELECT fk_profile, 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
         	FieldArray=$(RunSQL "$Q")
 	fi
 	
@@ -207,7 +210,7 @@ GenCurrentProfile()
 
 GenAutoProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 	local thisMachine=$1
 
 	local FA
@@ -227,7 +230,7 @@ GenAutoProfile()
 		for thisDevice in $R2; do
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+			FA=$FA$(FieldArrayAdd "-1	Miner.$i	$thisDevice	$thisMiner	$thisWorker")
 		done
 	done
 
@@ -235,10 +238,49 @@ GenAutoProfile()
 }
 
 
+GenFailoverProfile()
+{
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
+	local thisMachine=$1
+	local FA
+	local i=0
 
+	# Return, in order, all failover profiles to the point that one not marked as "down" is found, and return them all.
+	local firstActive=""
+	
+	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	R=$(RunSQL "$Q")
+	thisMiner=$(Field 1 "$R")
+
+	Q="SELECT pk_profile, name, down FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
+	R=$(RunSQL "$Q")
+
+	for row in $R; do
+		local thisProfile=$(Field 1 "$row")
+		local isDown=$(Field 3 "$row")
+		# Build the FieldArray until we get a profile that isn't down
+		Q2="SELECT fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
+		R2=$(RunSQL "$Q2")
+		for row2  in $R2; do
+			let i++
+			local thisDevice=$(Field 1 "$row2")
+			local thisMiner=$(Field 2 "$row2")
+			local thisWorker=$(Field 3 "$row2")
+
+			FA=$FA$(FieldArrayAdd "$thisProfile	Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+		done
+		if [[ "$isDown" == "0" ]]; then
+			# We found the first failover profile that isn't down, lets get out of here
+			break
+		fi
+	done
+
+	echo "$FA"
+
+}
 GenDonationProfile()
 {
-	# Return FieldArray containing windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
 	local thisMachine=$1
 	local FA
 	local i=0
@@ -259,7 +301,7 @@ GenDonationProfile()
 		
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker")
+			FA=$FA$(FieldArrayAdd "-2	Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker")
 		done
 	done
 
@@ -334,7 +376,7 @@ AddTime()
 	local totalMinutes=$(($minutes+$minutesToAdd))
 	local carryOver=$(($totalMinutes/60))
 	local correctedMinutes=$(($totalMinutes%60))
-	correctedMinutes=`printf "%02d" $correctedMinutes`
+	correctedMinutes=$(seq $correctedMinutes $correctedMinutes) #`printf "%02d" $correctedMinutes`
 	
 	# Add remainder to hours
 	local correctedHours=$(($hours+carryOver))
@@ -346,10 +388,6 @@ AddTime()
 }
 
 
-
-DonationActive2() {
-	echo ""
-}
 
 
 # DonationActive returns either nothing if the donation isn't active,
@@ -377,6 +415,7 @@ DonationActive() {
 	local end=$(AddTime "$start" "$duration")
 
 	local curTime=`date +%k%M`
+	curTime=$(seq $curTime $curTime)
 
 	ret=""
 
@@ -413,6 +452,8 @@ GetProfileName() {
 
 	if [[ "$Donate" ]]; then
 		echo "Donation (via AutoDonate) - $Donate minutes remaining."
+	elif [[ "$thisProfile" == "-3" ]]; then
+		echo "Failover"
 	elif [[ "$thisProfile" == "-2" ]]; then
 		echo "Donation (Manual selection)"
 	elif [[ "$thisProfile" == "-1" ]]; then
