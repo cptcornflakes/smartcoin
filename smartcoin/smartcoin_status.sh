@@ -120,6 +120,8 @@ MarkFailedProfiles()
 		else
 			db_count=0
 		fi
+		Log "DEBUG: failure=$failure"
+
 		Q="UPDATE profile SET failover_count='$db_count' WHERE pk_profile='$theProfile';"
 		RunSQL "$Q"
 
