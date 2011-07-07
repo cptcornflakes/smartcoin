@@ -101,7 +101,7 @@ Do_SetFailoverOrder()
 
 		# then convert to a list that can be iterated with for
 		profileOrder=${profileOrder//","/" "}
-echo $profileOrder
+
 		for thisProfile in $profileOrder; do
 			let i++
 			Q="UPDATE profile SET failover_order='$i' WHERE pk_profile='$thisProfile';"
