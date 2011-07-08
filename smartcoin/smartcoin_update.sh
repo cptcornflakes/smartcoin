@@ -78,7 +78,7 @@ else
          echo "The procmail package needs installed for the new database lock system"
          echo "Please enter your root passsword when prompted"
          
-         sudo apt-get install procmail
+         sudo apt-get install -f  -y procmail
          
          ;;
     		*)
