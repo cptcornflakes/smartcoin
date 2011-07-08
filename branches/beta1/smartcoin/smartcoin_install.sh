@@ -1,4 +1,5 @@
 #!/bin/bash
+
 if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
 	CUR_LOCATION=$(dirname $(readlink -f $( dirname "$0" )/smartcoin))
 else
