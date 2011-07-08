@@ -9,9 +9,13 @@ fi
 experimental_update=$1
 
 Log "Preparing to do an Update..." 1
+echo "Getting current revision..."
 svn_rev_start=`svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}'`
+echo "Getting the current repo..."
 svn_current_repo=`svn info $CUR_LOCATION/ | grep "^URL" | awk '{print $2}'`
+echo "Getting the repo current revision number..."
 svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
+echo "Checking stable update flag..."
 safe_update=`svn diff $CUR_LOCATION/ -r $svn_rev_start:$svn_rev_end update.ver`
 
 # Make a list of "breakpoints"
