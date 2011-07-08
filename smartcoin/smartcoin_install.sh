@@ -145,7 +145,7 @@ Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabl
 R=$(RunSQL "$Q")
 
 # Autodetect cards
-E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?
+E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?"
 GetYesNoSelection detectCards "$E" "y"
 
 if [[ "$detectCards" == "1" ]]; then
@@ -182,7 +182,7 @@ fi
 # Autodetect miners
 
 echo "Auto detecting local installed miners..."
-E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or (n)o?
+E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or (n)o?"
 GetYesNoSelection detectMiners "$E" "y"
 
 if [[ "$detectMiners" == "1" ]]; then
