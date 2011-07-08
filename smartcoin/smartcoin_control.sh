@@ -37,7 +37,6 @@ Do_Update()
   R=$(RunSQL "$Q")
   local branch=$(Field 1 "$R")
   
-  branch="stable" # TODO: Remove this once the stable/experimental system is finished and users are up to date!
   
   if [[ "$branch" == "stable" ]]; then
      $CUR_LOCATION/smartcoin_update.sh
