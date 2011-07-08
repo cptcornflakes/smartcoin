@@ -14,23 +14,46 @@ svn_current_repo=`svn info $CUR_LOCATION/ | grep "^URL" | awk '{print $2}'`
 svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
 safe_update=1 #TODO: UNCOMMENT THIS WHEN READY FOR STABLE UPDATES!`svn diff $CUR_LOCATION/ -r $svn_rev_start:$svn_rev_end update.ver`
 
+# Make a list of "breakpoints"
+# Breakpoints are revision numbers where the smartcoin software must be restarted before applying any more updates or patches.
+# This way, users that are badly out of date will have to update several times to get to current, and the smartcoin software
+# will be sure to be in the correct state to accept further updates and patches.
+BP="300 "	# The database moves in this update
+BR=$BP"357 "	# The database gets locking in this update, so a restart is important!
+
+
+
+bp_message=""
+# Determine where the new svn_rev_end should be
+for thisBP in $BP; do
+	if [[ "$thisBP" -gt "$svn_rev_start" ]]; then
+		if [[ "$thisBP" -lt "$svn_rev_end" ]]; then
+			svn_rev_end="$thisBP"
+			bp_message="Update breakpoints have been detected! "
+			bp_message=$bp_message"This means that you will have to run a partial update, restart smartcoin, then run an update again. "
+			bp_message=$bp_message"You may have to repeat this several time to get fully up to date!"
+			break		
+		fi	
+	fi
+done
 
 
 if [[ "$svn_rev_start" == "$svn_rev_end" ]]; then
 	Log "You are already at the current revision r$svn_rev_start!" 1
 else
+	echo "$bp_message"
 	if [[ "$experimental_update" ]]; then
 		#Do an experimental update!
 		Log "Preparing experimental update from r$svn_rev_start to r$svn_rev_end" 1
-		svn update $CUR_LOCATION/
+		svn update -r $svn_rev_end $CUR_LOCATION/
 	else
     		if [[ "$safe_update" ]]; then
      			Log "Preparing safe update from r$svn_rev_start to r$svn_rev_end" 1
-     			svn update $CUR_LOCATION/
+     			svn update -r $svn_rev_end $CUR_LOCATION/
    		 else
       			Log "There are new experimental updates, but they aren't proven safe yet. Not updating." 1
     		fi
-	fi
+	fi 
 
 
 
@@ -72,15 +95,6 @@ else
 			Q="ALTER TABLE profile ADD failover_count int NOT NULL DFAULT(0);"
 			RunSQL "$Q"
 			;;
-         
-     360)
-         Log "Applying r$i patch..." 1
-         echo "The procmail package needs installed for the new database lock system"
-         echo "Please enter your root passsword when prompted"
-         
-         sudo apt-get install -f  -y procmail
-         
-         ;;
     		*)
         		Log "No patches to apply to r$i"
         		;;
