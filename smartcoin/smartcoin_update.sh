@@ -95,6 +95,13 @@ else
 			Q="ALTER TABLE profile ADD failover_count int NOT NULL DFAULT(0);"
 			RunSQL "$Q"
 			;;
+		360)
+			Log "Applying r$i patch..." 1
+			echo "The procmail package needs installed for the new database lock system"
+			echo "Please enter your root passsword when prompted"
+
+			sudo apt-get install -f -y procmail
+			;;
     		*)
         		Log "No patches to apply to r$i"
         		;;
