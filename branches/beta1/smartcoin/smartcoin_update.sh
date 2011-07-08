@@ -76,6 +76,7 @@ else
 			Log "Applying r$i patch..." 1
 			Log "Setting up ~/.smartcoin and copying over database"
 			mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
+			rm $CUR_LOCATION/smartcoin.db	#No reason to have it here. It will be updated to current on the next update.
        
 			Log "Setting the dev_branch setting variable"
 		        # Set up by default for stable updates!
