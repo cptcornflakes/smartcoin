@@ -19,8 +19,8 @@ safe_update=1 #TODO: UNCOMMENT THIS WHEN READY FOR STABLE UPDATES!`svn diff $CUR
 # This way, users that are badly out of date will have to update several times to get to current, and the smartcoin software
 # will be sure to be in the correct state to accept further updates and patches.
 BP="300 "	# The database moves in this update
-BR=$BP"357 "	# The database gets locking in this update, so a restart is important!
-
+BP=$BP"360 "	# The database gets locking in r358 and procmail dependency gets satisfied in this update, so a restart is important!
+BP=$BP"365 "	# Stable/experimental branch stuff goes live
 
 
 bp_message=""
@@ -102,8 +102,17 @@ else
 
 			sudo apt-get install -f -y procmail
 			;;
+		365)
+			Log "Applying r$i patch..." 1
+			Q="DELETE FROM settings WHERE data='dev_branch';"
+			RunSQL "$Q"
+			Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
+			RunSQL "$Q"
+
+			;;
     		*)
         		Log "No patches to apply to r$i"
+
         		;;
      		esac
 	done
