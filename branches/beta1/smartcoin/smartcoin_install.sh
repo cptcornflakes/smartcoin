@@ -18,7 +18,7 @@ AMD_SDK_PATH=""
 
 CheckIfAlreadyInstalled() {
 	if [[ -f "$HOME/.smartcoin/smartcoin.db" ]]; then
-		echo "The installer has already been run before.  You cannot run it again"
+		echo "The installer has already been run before.  You cannot run it again."
 		echo "Perhaps you should do a full reinstall, and try again."
 		exit
 	fi	
@@ -60,7 +60,22 @@ if  [[ "$getPermission" != "y"  ]]; then
 fi
 Log "	Permission Granted."
 
+echo ""
+Log "Asking user if they wish to run ubdatedb."
+E="In order for smartcoin to try to reliably determine the location of installed miners and the AMD/ATI SDK for you, "
+E=$E"the linux command 'updatedb' should be run.  This can take quite a long time on machines with large filesystems."
+echo "$E"
+E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
+GetYesNoSelection runupdatedb "$E" "y"
+
+if [[ "$runupdatedb" == "1" ]]; then
+  Log "Running 'updatedb'... Please be patient" 1
+  sudo updatedb
+fi
+
+
 # Create  SymLink
+echo ""
 Log "Creating symlink..." 1
 sudo ln -s $INSTALL_LOCATION/smartcoin.sh /usr/bin/smartcoin 2> /dev/null
 echo "done."
@@ -130,6 +145,10 @@ Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabl
 R=$(RunSQL "$Q")
 
 # Autodetect cards
+E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?
+GetYesNoSelection detectCards "$E" "y"
+
+if [[ "$detectCards" == "1" ]]; then
 echo "Adding available local devices. Please be patient..."
 D=`./smartcoin_devices.py`
 D=$(Field_Prepare "$D")
@@ -158,11 +177,15 @@ done
 echo ""
 echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
 echo ""
+fi
 
 # Autodetect miners
+
 echo "Auto detecting local installed miners..."
+E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or (n)o?
+GetYesNoSelection detectMiners "$E" "y"
 
-
+if [[ "$detectMiners" == "1" ]]; then
 #detect phoenix install location
 phoenixMiner=`locate phoenix.py | grep -vi svn`
 #phoenixMiner=${phoenixMiner%"phoenix.py"}
@@ -231,6 +254,7 @@ GetPrimaryKeySelection thisMiner "$Q" "$E"
 Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
 RunSQL "$Q"
 Log "Default miner set to $thisMiner"
+fi
 
 # Set the current profile! 
 # Defaults to Automatic profile until the user gets one set up
@@ -242,18 +266,12 @@ Log "Current profile set to Automatic for localhost"
 
 
 
-# Lets see if we can auto-detect the AMD SDK
-echo ""
-Log "Asking user if they wish to autodetect the AMD/ATI SDK location."
-echo "Smartcoin needs to know the location of the AMD/ATI SDK library in order to work properly."
-echo "You can choose to have this location auto-detected, or you can enter it manually."
-echo "Note:  Autodetection relies on the linux 'locate' command.  This can take a long time on large file systems."
+
 E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
 GetYesNoSelection autoDetectSDKLocation "$E" "y"
 
 if [[ "$autoDetectSDKLocation" == "1" ]]; then
 	Log "	User chose to autodetect"
-	sudo updatedb #needed for the linux `locate` command to work reliably
 	amd_sdk_location=$(findAMDSDK)
 	echo "Please make sure the path below is correct, and change if necessary:"
 else
