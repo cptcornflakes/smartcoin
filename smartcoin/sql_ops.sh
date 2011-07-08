@@ -11,7 +11,9 @@ RunSQL()
         local Q
         Q="$*"
         if [[ -n "$Q" ]]; then
-		sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate
+          lockfile -1 -l 10 /tmp/smartcoin_db.lock
+          sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate
+          rm -f /tmp/smartcoin_db.lock
         fi
 }
 
