@@ -16,7 +16,7 @@ svn_current_repo=`svn info $CUR_LOCATION/ | grep "^URL" | awk '{print $2}'`
 echo "Getting the repo current revision number..."
 svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
 echo "Checking stable update flag..."
-safe_update=`svn diff $CUR_LOCATION/ -r $svn_rev_start:$svn_rev_end update.ver`
+safe_update=`svn diff -r $svn_rev_start:$svn_rev_end $CUR_LOCATION/update.ver`
 
 # Make a list of "breakpoints"
 # Breakpoints are revision numbers where the smartcoin software must be restarted before applying any more updates or patches.
