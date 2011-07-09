@@ -17,7 +17,9 @@ fi
 
 # SVN STUFF
 GetRevision() {
-  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')
+  Q="SELECT value FROM settings WHERE data='dev_branch';"
+  local branch=$(RunSQL "$Q")
+  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')"($branch)"
 }
 
 GetRepo() {
