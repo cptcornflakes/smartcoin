@@ -8,15 +8,25 @@ fi
 . $CUR_LOCATION/smartcoin_ops.sh
 experimental_update=$1
 
+if [[ "$RESTART_REQ" ]]; then
+	Log "Previous update changes have not yet been applied." 1
+	echo "You must restart smartcoin before you attempt another update."
+	sleep 5
+	exit
+fi
+
 Log "Preparing to do an Update..." 1
-echo "Getting current revision..."
-svn_rev_start=`svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}'`
-echo "Getting the current repo..."
-svn_current_repo=`svn info $CUR_LOCATION/ | grep "^URL" | awk '{print $2}'`
-echo "Getting the repo current revision number..."
-svn_rev_end=`svn info $svn_current_repo | grep "^Revision" | awk '{print $2}'`
-echo "Checking stable update flag..."
+Log "Getting current revision..."
+svn_rev_start=$(GetRevision)
+Log "Getting repo information..."
+svn_current_repo=$(GetRepo)
+Log "Getting the current experimental revision number..."
+svn_rev_end=$(GetHead "$svn_current_repo")
+Log "Getting the current stable revision number..."
+svn_stable_rev_end=$(GetStableHead "$svn_current_repo")
+Log "Checking stable update flag..."
 safe_update=`svn diff -r $svn_rev_start:$svn_rev_end $CUR_LOCATION/update.ver`
+
 
 # Make a list of "breakpoints"
 # Breakpoints are revision numbers where the smartcoin software must be restarted before applying any more updates or patches.
@@ -33,29 +43,33 @@ for thisBP in $BP; do
 	if [[ "$thisBP" -gt "$svn_rev_start" ]]; then
 		if [[ "$thisBP" -lt "$svn_rev_end" ]]; then
 			svn_rev_end="$thisBP"
-			bp_message="Update breakpoints have been detected! "
-			bp_message=$bp_message"This means that you will have to run a partial update, restart smartcoin, then run an update again. "
-			bp_message=$bp_message"You may have to repeat this several time to get fully up to date!"
+			export RESTART_REQ="1"
+			bp_message="partial"
+			Log "Partial update detected." 1
+			echo "A partial update has been detected.  This means that you must run the partial update, restart smartcoin, then run an update again in order to bring your copy fully up to date."
+			echo ""
 			break		
 		fi	
 	fi
 done
 
 
+
 if [[ "$svn_rev_start" == "$svn_rev_end" ]]; then
 	Log "You are already at the current revision r$svn_rev_start!" 1
 else
-	echo "$bp_message"
 	if [[ "$experimental_update" ]]; then
 		#Do an experimental update!
-		Log "Preparing experimental update from r$svn_rev_start to r$svn_rev_end" 1
+		Log "Preparing $bp_message experimental update from r$svn_rev_start to r$svn_rev_end" 1
 		svn update -r $svn_rev_end $CUR_LOCATION/
 	else
     		if [[ "$safe_update" ]]; then
-     			Log "Preparing safe update from r$svn_rev_start to r$svn_rev_end" 1
+     			Log "Preparing $bp_message safe update from r$svn_rev_start to r$svn_rev_end" 1
      			svn update -r $svn_rev_end $CUR_LOCATION/
    		 else
       			Log "There are new experimental updates, but they aren't proven safe yet. Not updating." 1
+			sleep 5
+			exit
     		fi
 	fi 
 
@@ -126,6 +140,6 @@ fi
 Log "Update task complete." 1
 
 echo ""
-echo "Update is now complete!  You should now restart smartcoin. Please hit any key to continue."
+echo "Update is now complete!  You should now restart smartcoin for the latest changes to take effect. Please hit any key to continue."
 read blah
 
