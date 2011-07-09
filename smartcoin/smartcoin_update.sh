@@ -9,7 +9,8 @@ fi
 
 # Make sure that any new functions are available too!
 echo "Bring helper functions up to current..."
-svn update $CUR_LOCATION/smartcoin_ops.sh
+svn update $CUR_LOCATION/smartcoin_ops.sh >/dev/null 2>&1
+
 echo ""
 
 . $CUR_LOCATION/smartcoin_ops.sh
