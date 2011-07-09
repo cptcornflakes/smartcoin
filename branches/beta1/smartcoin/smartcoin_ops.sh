@@ -25,7 +25,9 @@ GetRevision() {
 GetRepo() {
 	echo `svn info $CUR_LOCATION/ | grep "^URL" | awk '{print $2}'`
 }
-
+GetLocal() {
+  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')
+}
 GetHead() {
 	local repo="$1"
 	echo `svn info $repo | grep "^Revision" | awk '{print $2}'`

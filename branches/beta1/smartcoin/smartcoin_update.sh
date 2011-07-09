@@ -18,7 +18,7 @@ fi
 
 Log "Preparing to do an Update..." 1
 Log "Getting current revision..."
-svn_rev_start=$(GetRevision)
+svn_rev_start=$(GetLocal)
 Log "Getting repo information..."
 svn_current_repo=$(GetRepo)
 Log "Getting the current experimental revision number..."
