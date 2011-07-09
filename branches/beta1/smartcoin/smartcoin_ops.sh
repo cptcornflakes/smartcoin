@@ -15,11 +15,23 @@ else
 fi
 . $CUR_LOCATION/sql_ops.sh
 
-
+# SVN STUFF
 GetRevision() {
   echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')
 }
 
+GetRepo() {
+	echo `svn info $CUR_LOCATION/ | grep "^URL" | awk '{print $2}'`
+}
+
+GetHead() {
+	local repo="$1"
+	echo `svn info $repo | grep "^Revision" | awk '{print $2}'`
+}
+GetStableHead() {
+	local repo="$1"
+	echo `svn info $repo/update.ver | grep "Last Changed Rev:" | awk '{print $4}'`
+}
 
 
 
@@ -29,6 +41,8 @@ GetRevision() {
 export sessionName="smartcoin"
 export minerSession="miner"
 export REVISION=$(GetRevision)
+RESTART_REQ=""
+
 
 
 STABLE=1

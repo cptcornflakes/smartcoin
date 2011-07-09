@@ -18,10 +18,15 @@ fi
 # Update system
 Do_Update()
 {
-  local svn_rev=`svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}'`
+  local svn_rev=$(GetRevision)
+  local svn_repo=$(GetRepo)
+  local svn_exp=$(GetHead "$svn_repo")
+  local svn_stb=$(GetStableHead "$svn_repo")
   clear
   ShowHeader
   E="Your current version is r$svn_rev.\n"
+  E=$E"The current experimental version is r$svn_exp\n"
+  E=$E"The current stable version is r$svn_stb\n"
   E=$E"Are you sure that you wish to perform an update?"
 	GetYesNoSelection doInstall "$E"
 
