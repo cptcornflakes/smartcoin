@@ -36,6 +36,7 @@ Do_Update()
     return
   fi
   # First, lets update only the update script!
+  echo ""
   echo "Bring update script up to current..."
   svn update $CUR_LOCATION/smartcoin_update.sh
   echo ""
