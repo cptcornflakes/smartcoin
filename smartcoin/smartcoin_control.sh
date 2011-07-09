@@ -18,12 +18,14 @@ fi
 # Update system
 Do_Update()
 {
+  
+  clear
+  ShowHeader
+  echo "Getting svn information. Please be patient..."
   local svn_rev=$(GetRevision)
   local svn_repo=$(GetRepo)
   local svn_exp=$(GetHead "$svn_repo")
   local svn_stb=$(GetStableHead "$svn_repo")
-  clear
-  ShowHeader
   E="Your current version is r$svn_rev.\n"
   E=$E"The current experimental version is r$svn_exp\n"
   E=$E"The current stable version is r$svn_stb\n"
