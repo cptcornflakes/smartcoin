@@ -67,8 +67,10 @@ else
      			Log "Preparing $bp_message safe update from r$svn_rev_start to r$svn_rev_end" 1
      			svn update -r $svn_rev_end $CUR_LOCATION/
    		 else
-      			Log "There are new experimental updates, but they aren't proven safe yet. Not updating." 1
-			sleep 5
+      			Log "There are new experimental updates, but they aren't proven safe yet." 1
+			echo "Not updating."
+			echo "(press any key to continue)"
+			read 
 			exit
     		fi
 	fi 
