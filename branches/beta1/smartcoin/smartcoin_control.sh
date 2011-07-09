@@ -38,7 +38,8 @@ Do_Update()
   # First, lets update only the update script!
   echo ""
   echo "Bring update script up to current..."
-  svn update $CUR_LOCATION/smartcoin_update.sh
+  svn update $CUR_LOCATION/smartcoin_update.sh >/dev/null 2>&1
+
   echo ""
   
   Q="SELECT value FROM settings WHERE data='dev_branch';"
