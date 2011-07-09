@@ -6,6 +6,12 @@ if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
 else
 	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 fi
+
+# Make sure that any new functions are available too!
+echo "Bring helper functions up to current..."
+svn update $CUR_LOCATION/smartcoin_ops.sh
+echo ""
+
 . $CUR_LOCATION/smartcoin_ops.sh
 experimental_update=$1
 
@@ -15,6 +21,8 @@ if [[ "$RESTART_REQ" ]]; then
 	sleep 5
 	exit
 fi
+
+
 
 Log "Preparing to do an Update..." 1
 Log "Getting current revision..."
