@@ -186,6 +186,11 @@ export REVISION=$(GetRevision)
 Log "Update task complete." 1
 
 echo ""
-echo "Update is now complete!  You should now restart smartcoin for the latest changes to take effect. Please hit any key to continue."
+echo "Update is now complete!"
+if [[ "$RESTART_REQ" == "1" ]]; then
+	echo "You should now restart smartcoin for the latest changes to take effect."
+fi
+
+echo "Please hit any key to continue."
 read blah
 
