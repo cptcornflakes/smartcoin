@@ -132,7 +132,7 @@ MarkFailedProfiles()
 		#Log "DEBUG: $Q"
 
 		# TODO: replace hard-coded max count with a setting?
-		if [[ "$db_count" -ge "10" ]]; then
+		if [[ "$db_count" -ge "5" ]]; then
 			let db_failed=db_failed^1
 			Q="UPDATE profile SET down='$db_failed', failover_count='0' WHERE pk_profile='$theProfile';"
 			RunSQL "$Q"
@@ -221,6 +221,7 @@ ShowStatus() {
 			if [[ "$oldProfile" != "" ]]; then
 				MarkFailedProfiles $oldProfile $profileFailed
 				profileFailed=0
+				echo ""
 			fi
 			oldProfile=$thisProfile
 		fi

@@ -139,6 +139,27 @@ else
 			RunSQL "$Q"
 			Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
 			RunSQL "$Q"
+			
+			;;
+		384)
+			Log "Applying r$i patch..." 1
+			Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Ars Technica','arsbitcoin.com',NULL,8344,60,1,0);"    
+			R=$(RunSQL "$Q")
+
+			Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('TripleMining','eu.triplemining.com',NULL,8344,60,1,0);"    
+			R=$(RunSQL "$Q")
+
+			Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Mainframe','mining.mainframe.nl',NULL,8343,60,1,0);"    
+			R=$(RunSQL "$Q")
+
+			Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoin Monkey','bitcoinmonkey.com',NULL,8332,60,1,0);"    
+			R=$(RunSQL "$Q")
+
+			Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Best Bitcoin','pool.bestbitcoinminingpool.com',NULL,8332,60,1,0);"    
+			R=$(RunSQL "$Q")
+
+			Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Eclipse MC','us.eclipsemc.com',NULL,8337,60,1,0);"    
+			R=$(RunSQL "$Q")
 
 			;;
     		*)
