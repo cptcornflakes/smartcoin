@@ -162,7 +162,17 @@ else
 			R=$(RunSQL "$Q")
 
 			;;
-    		*)
+		387)
+			Log "Applying r$i patch..." 1
+			echo ""
+			echo "Please enter an administration email address where you would like to receive notifications. (You can leave this blank if you do not wish to receive notifications)"
+			read emailAddress
+			Q="INSERT INTO settings (data,value,description) VALUES ('email','$emailAddress','Administrator email address');"
+			RunSQL "$Q"
+			;;
+
+    		*)	
+
         		Log "No patches to apply to r$i"
 
         		;;
