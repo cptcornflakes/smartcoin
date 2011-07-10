@@ -7,6 +7,11 @@ else
 fi
 . $CUR_LOCATION/smartcoin_ops.sh
 
+# Let the user have their own custom initialization script if they want
+if [[ -f "$CUR_LOCATION/init.sh" ]]; then
+	$CUR_LOCATION/init.sh
+fi
+
 # Start the backend service
 #$HOME/smartcoin/smartcoin_backend.sh &
 
