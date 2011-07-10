@@ -298,6 +298,13 @@ RunSQL "$Q"
 Log "AMD/ATI SDK location set to $location"
 
 
+# Administrator email
+echo ""
+echo "Please enter an administration email address where you would like to receive notifications. (You can leave this blank if you do not wish to receive notifications)"
+read emailAddress
+Q="INSERT INTO settings (data,value,description) VALUES ('email','$emailAddress','Administrator email address');"
+RunSQL "$Q"
+
 # ----------------
 # Ask for donation
 # ----------------
