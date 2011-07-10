@@ -182,7 +182,7 @@ else
      		esac
 	done
 fi
-
+export REVISION=$(GetRevision)
 Log "Update task complete." 1
 
 echo ""
