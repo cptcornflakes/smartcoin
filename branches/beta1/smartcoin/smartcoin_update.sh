@@ -169,6 +169,9 @@ else
 			read emailAddress
 			Q="INSERT INTO settings (data,value,description) VALUES ('email','$emailAddress','Administrator email address');"
 			RunSQL "$Q"
+			echo ""
+			echo "Email setting updated."
+			echo ""
 			;;
 
     		*)	
