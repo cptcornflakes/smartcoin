@@ -92,30 +92,30 @@ startMiners() {
 	
 	local FA=$(GenCurrentProfile "$thisMachine")
 
-	i=0
+	# Lets start up the miner session with a dummy window, so that we can set options,
+	# such as zombie mode	
+	screen -dmS $minerSession -t "miner-dummy"
+	screen -r $minerSession -X zombie ko
+	screen -r $minerSession -X chdir
+	screen -r $minerSession -X hardstatus on
+	screen -r $minerSession -X hardstatus alwayslastline
+	screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
+
+	# Start all of the miner windows
 	for row in $FA; do
-			
-		let i++
 		local key=$(Field 2 "$row")
 		local pk_device=$(Field 3 "$row")
 		local pk_miner=$(Field 4 "$row")
 		local pk_worker=$(Field 5 "$row")
 		Log "Starting miner $key!" 1
 		local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
-		if [[ "$i" == "1" ]]; then
-			screen -d -m -S $minerSession -t "$key" $cmd
-			sleep 2 # Lets give screen some time to start up before hammering it with calls
-			screen -r $minerSession -X zombie ko
-			screen -r $minerSession -X chdir
-			screen -r $minerSession -X hardstatus on
-			screen -r $minerSession -X hardstatus alwayslastline
-			screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
-		else
-			#TODO: Use screen -S $minerSession?
-			screen  -d -r $minerSession -X screen -t "$key" $cmd
-		fi
+		screen  -d -r $minerSession -X screen -t "$key" $cmd
 	done
+
+	# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
+	screen -r $minerSession -p "miner-dummy" -X kill
 }
+
 
 killMiners() {
 	Log "Killing Miners...."
