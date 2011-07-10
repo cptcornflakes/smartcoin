@@ -144,6 +144,18 @@ Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabl
 R=$(RunSQL "$Q")
 Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('X8S','pit.x8s.de',NULL,8337,60,1,0);"                              
 R=$(RunSQL "$Q")
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Ars Technica','arsbitcoin.com',NULL,8344,60,1,0);"    
+R=$(RunSQL "$Q")
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('TripleMining','eu.triplemining.com',NULL,8344,60,1,0);"    
+R=$(RunSQL "$Q")
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Mainframe','mining.mainframe.nl',NULL,8343,60,1,0);"    
+R=$(RunSQL "$Q")
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Bitcoin Monkey','bitcoinmonkey.com',NULL,8332,60,1,0);"    
+R=$(RunSQL "$Q")
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Best Bitcoin','pool.bestbitcoinminingpool.com',NULL,8332,60,1,0);"    
+R=$(RunSQL "$Q")
+Q="INSERT INTO pool (name,server,alternate_server,port,timeout,auto_allow,disabled) VALUES ('Eclipse MC','us.eclipsemc.com',NULL,8337,60,1,0);"    
+R=$(RunSQL "$Q")
 
 # Autodetect cards
 E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?"
