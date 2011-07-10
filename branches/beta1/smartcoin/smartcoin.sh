@@ -31,6 +31,9 @@ if [[ "$running" ]]; then
 	exit
 fi
 
+Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
+Log "Starting main smartcoin screen session..." 1
+
 # Let the user have their own custom initialization script if they want
 if [[ -f "$CUR_LOCATION/init.sh" ]]; then
 	Log "User initialization script found. Running initialization script." 1
@@ -39,8 +42,7 @@ fi
 
 DeleteTemporaryFiles
 RotateLogs
-Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
-Log "Starting main smartcoin screen session..." 1
+
 screen -d -m -S $sessionName -t control "$CUR_LOCATION/smartcoin_control.sh"
 screen -r $sessionName -X zombie ko
 screen -r $sessionName -X chdir
