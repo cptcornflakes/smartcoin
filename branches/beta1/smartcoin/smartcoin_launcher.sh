@@ -53,5 +53,5 @@ echo "LAUNCH: $minerLaunch"
 Log "Launching miner with launch string: $minerLaunch" 1
 
 
-cd "$minerPath" && "$minerLaunch" 2>/dev/null
+cd $minerPath && $minerLaunch 2>/dev/null
 
