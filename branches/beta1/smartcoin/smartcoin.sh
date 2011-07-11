@@ -68,9 +68,10 @@ for row in $R; do
 done
 
 
-clear
+
 
 if [[ "$SILENT_MODE" == "1" ]]; then
+	clear
 	GotoStatus
 fi
 
