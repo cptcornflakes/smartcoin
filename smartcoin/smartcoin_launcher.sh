@@ -49,9 +49,10 @@ minerLaunch=${minerLaunch//<#port#>/$workerPort}
 minerLaunch=${minerLaunch//<#device#>/$thisDevice}
 minerLaunch=${minerLaunch//<#path#>/$minerPath}
 
+minerlaunch
 echo "LAUNCH: $minerLaunch"
 Log "Launching miner with launch string: $minerLaunch" 1
 
 
-cd $minerPath && $minerLaunch
+cd "$minerPath" && "$minerLaunch 2>/dev/null"
 
