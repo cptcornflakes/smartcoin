@@ -216,14 +216,22 @@ ShowStatus() {
 		deviceName=$(RunSQL "$Q")
 
 		
+		failOverStatus=""
+		if [[ "$profileName" == "Failover" ]]; then
+			if [[ "$oldProfile" != "$thisProfile" ]]; then
+				if [[ "$oldProfile" != "" ]]; then
+					MarkFailedProfiles $oldProfile $profileFailed
+					profileFailed=0
+					Q="SELECT name FROM profile WHERE pk_profile='$thisProfile';"
+					R=$(RunSQL "$Q")
+					nextProfileName=$(Field 1 "$R")
 
-		if [[ "$oldProfile" != "$thisProfile" ]]; then
-			if [[ "$oldProfile" != "" ]]; then
-				MarkFailedProfiles $oldProfile $profileFailed
-				profileFailed=0
-				echo ""
+				
+
+				fi
+				oldProfile=$thisProfile
+				failOverStatus="\n\e[01;33mFailover to: $nextProfileName\e[00m\n"
 			fi
-			oldProfile=$thisProfile
 		fi
 
 
@@ -231,6 +239,8 @@ ShowStatus() {
 
 			if [ "$oldPool" != "" ]; then
 				status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
+				status="$status$failOverStatus"
+
 				compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 				compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 				compositeRejected=`expr $compositeRejected + $totalRejected`
