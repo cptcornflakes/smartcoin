@@ -750,7 +750,7 @@ Add_Profile()
 	echo "Enter a name for this profile"
 	read profileName
 	echo ""
-	Q="INSERT INTO profile (name,fk_machine) VALUES ('$profileName','$thisMachine');"
+	Q="INSERT INTO profile (name,fk_machine,failover_order) VALUES ('$profileName','$thisMachine','1000');"
 	R=$(RunSQL "$Q")
 		
 	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
