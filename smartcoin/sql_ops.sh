@@ -9,11 +9,18 @@ SQL_DB=""
 RunSQL()
 {
         local Q
+	local res
+
         Q="$*"
         if [[ -n "$Q" ]]; then
-          lockfile -1 -l 10 /tmp/smartcoin_db.lock
-          sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate
-          rm -f /tmp/smartcoin_db.lock
+		res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate)
+
+		while [[ $? -ne 0 ]]; do
+			Log "Query failed, Retrying query..."
+			res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate)
+		done
+		echo "$res"
+
         fi
 }
 
