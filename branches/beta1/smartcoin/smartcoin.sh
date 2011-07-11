@@ -10,6 +10,11 @@ fi
 # Start the backend service
 #$HOME/smartcoin/smartcoin_backend.sh &
 
+if [[ "$1" == "--silent" ]]; then
+	SILENT_MODE=1
+else
+	SILENT_MODE=0
+fi
 
 
 
@@ -64,8 +69,10 @@ done
 
 
 clear
-GotoStatus
 
+if [[ "$SILENT_MODE" == "1" ]]; then
+	GotoStatus
+fi
 
 
 
