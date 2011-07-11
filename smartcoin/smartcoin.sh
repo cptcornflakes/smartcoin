@@ -11,9 +11,9 @@ fi
 #$HOME/smartcoin/smartcoin_backend.sh &
 
 if [[ "$1" == "--silent" ]]; then
-	SILENT_MODE=1
+	SILENT_MODE="1"
 else
-	SILENT_MODE=0
+	SILENT_MODE="0"
 fi
 
 
