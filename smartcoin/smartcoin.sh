@@ -70,7 +70,7 @@ done
 
 
 
-if [[ "$SILENT_MODE" == "1" ]]; then
+if [[ "$SILENT_MODE" == "0" ]]; then
 	clear
 	GotoStatus
 fi
