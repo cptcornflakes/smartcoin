@@ -85,7 +85,7 @@ echo ""
 # Install dependencies
 Log  "Installing dependencies" 1
 echo "Please be patient..."
-sudo apt-get install -f  -y procmail bc sysstat sqlite3 openssh-server 2> /dev/null
+sudo apt-get install -f  -y bc sysstat sqlite3 openssh-server 2> /dev/null
 echo "done."
 echo ""
 

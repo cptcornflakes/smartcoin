@@ -43,7 +43,6 @@ safe_update=`svn diff -r $svn_rev_start:$svn_rev_end $CUR_LOCATION/update.ver`
 # This way, users that are badly out of date will have to update several times to get to current, and the smartcoin software
 # will be sure to be in the correct state to accept further updates and patches.
 BP="300 "	# The database moves in this update
-BP=$BP"360 "	# The database gets locking in r358 and procmail dependency gets satisfied in this update, so a restart is important!
 BP=$BP"365 "	# Stable/experimental branch stuff goes live
 
 
@@ -126,13 +125,7 @@ else
 			Q="ALTER TABLE profile ADD failover_count int NOT NULL DFAULT(0);"
 			RunSQL "$Q"
 			;;
-		360)
-			Log "Applying r$i patch..." 1
-			echo "The procmail package needs installed for the new database lock system"
-			echo "Please enter your root passsword when prompted"
 
-			sudo apt-get install -f -y procmail
-			;;
 		365)
 			Log "Applying r$i patch..." 1
 			Q="DELETE FROM settings WHERE data='dev_branch';"
