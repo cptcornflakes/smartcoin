@@ -73,6 +73,8 @@ done
 if [[ "$SILENT_MODE" == "0" ]]; then
 	clear
 	GotoStatus
+else
+	Log "SmartCoin started in the backround." 1
 fi
 
 
