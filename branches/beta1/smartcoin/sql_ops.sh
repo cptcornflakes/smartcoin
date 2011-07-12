@@ -11,13 +11,24 @@ RunSQL()
         local Q
 	local res
 
+	local i=0
+
         Q="$*"
         if [[ -n "$Q" ]]; then
 		res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate)
 
 		while [[ $? -ne 0 ]]; do
-			Log "Query failed, Retrying query..."
+			let i++
+
 			res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" | Field_Translate)
+			if [[ "$i" -gt 25 ]]; then
+				Log "ERROR: SQL Query failed!"
+				Log "	error code: $?"
+				Log "	query: $Q"
+				Log "	result: $res"
+				res=""
+				break
+			fi
 		done
 		echo "$res"
 
