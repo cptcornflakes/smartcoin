@@ -838,15 +838,8 @@ Add_Profile()
 
 Edit_Profile()
 {
-	clear
-	ShowHeader
-	echo "Editing profiles not yet supported!!! Sorry :("
-	sleep 5
-	return
 
-	# TODO:  A lot!  Profile editing is pretty difficult!
-
-	#select * from profile_map LEFT JOIN profile on profile_map.fk_profile = profile.pk_profile WHERE profile.fk_machine=1;
+	
 	clear
 	ShowHeader
 	echo "SELECT PROFILE TO EDIT"
@@ -855,25 +848,127 @@ Edit_Profile()
 	E="Select the machine you wish to edit the profile on"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
+	echo ""
 	Q="SELECT pk_profile, name FROM profile WHERE fk_machine=$thisMachine;"
 	E="Please select the profile from the list above to edit"
 	GetPrimaryKeySelection thisProfile "$Q" "$E"
 	echo ""
-
-	clear
-	ShowHeader
-
-	Q="SELECT pk_profile_map, worker.name ,miner.name, device.name FROM profile_map LEFT JOIN worker ON profile_map.fk_worker=worker.pk_worker LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner LEFT_JOIN device ON profile_map.fk_device=device.pk_device WHERE fk_profile=$thisProfile;"
+	
+	Q="SELECT name FROM profile WHERE pk_profile='$thisProfile';"
 	R=$(RunSQL "$Q")
-	for row in $R; do
-		deviceName=$(Field 4 "$row")
-		minerName=$(Field 3 "$row")
-		workerName=$(Field 2 "$row")
-		thisProfileMap=$(Field 1 "$row")
+	local profileName=$(Field 1 "$R")
 
-		echo "$deviceName	$workerName"
-	done	
-	sleep 10
+	local exitEditProfile=""
+	while [[ "$exitEditProfile" == "" ]]; do
+		clear
+		ShowHeader
+		echo "EDITING PROFILE: '$profileName'"
+		Q="SELECT pk_profile_map, device.name || ' - ' || pool.name || '.' || worker.name || ' - ' || miner.name AS fullName FROM profile_map LEFT JOIN miner ON profile_map.fk_miner = miner.pk_miner LEFT JOIN device on profile_map.fk_device = device.pk_device LEFT JOIN worker on profile_map.fk_worker = worker.pk_worker LEFT JOIN pool ON worker.fk_pool=pool.pk_pool  WHERE fk_profile = '$thisProfile' ORDER BY device.name ASC, pool.name ASC, worker.name ASC, miner.name ASC, pk_profile_map ASC;"
+		R=$(RunSQL "$Q")
+
+		i=0
+		for row in $R; do
+			let i++
+			pkProfileMap=$(Field 1 "$row")
+			instance=$(Field 2 "$row")
+			echo "$i) $instance‌"
+		done
+	
+		echo ""
+		echo "The instances of this profile are listed above."
+		echo "Would you like to (A)dd, (E)dit or (D)elete profile instances?"
+		echo "(X) to exit back to the main menu if you are finished editing this profile."
+		action=$(GetAEDSelection)
+                echo ""
+
+		case "$action" in
+		ADD)
+			clear
+			ShowHeader
+			echo "ADD PROFILE INSTANCE"
+			echo ""
+			Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
+			E="Please select the miner from the list above to use with this instance"
+			GetPrimaryKeySelection thisMiner "$Q" "$E"
+			echo ""
+
+			Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+			E="Please select the pool worker from the list above to use with this instance"
+			GetPrimaryKeySelection thisWorker "$Q" "$E"
+			echo ""
+	
+	
+			Q="SELECT pk_device, name FROM device WHERE disabled=0;"
+			E="Please select the device from the list above to use with this instance"
+			GetPrimaryKeySelection thisDevice "$Q" "$E"
+
+			echo "Inserting new instance..."
+			Q="INSERT INTO profile_map (fk_device,fk_miner,fk_worker,fk_profile) VALUES ($thisDevice,$thisMiner,$thisWorker,$thisProfile);"
+			RunSQL "$Q"
+			echo "done."
+			sleep 2
+			;;
+		DELETE)
+			clear
+			ShowHeader
+			echo "DELETE PROFILE INSTANCE"
+			echo ""
+			E="Which instance above do you want to delete?"
+			GetPrimaryKeySelection deletePK "$Q" "$E"
+			echo "Deleting instance..."
+			Q="DELETE FROM profile_map WHERE pk_profile_map='$deletePK';"
+			RunSQL "$Q"
+			echo "done."
+			sleep 2
+
+			;;
+		EDIT)
+			clear
+			ShowHeader
+			echo "EDIT PROFILE INSTANCE"
+			echo ""
+			E="Which instance above do you want to edit?"
+			GetPrimaryKeySelection editPK "$Q" "$E"
+			echo ""
+
+			Q="SELECT fk_miner, fk_worker, fk_device FROM profile_map WHERE pk_profile_map='$editPK';"
+			R=$(RunSQL "$Q")
+			cminer=$(Field 1 "$R")
+			cworker=$(Field 2 "$R")
+			cdevice=$(Field 3 "$R")
+
+			Q="Select pk_miner, name from miner WHERE fk_machine=$thisMachine ORDER BY pk_miner;"
+			E="Please select the miner from the list above to use with this instance"
+			GetPrimaryKeySelection thisMiner "$Q" "$E" "$cminer"
+			echo ""
+
+			Q="SELECT pk_worker, pool.name || '.' || worker.name AS fullName FROM worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool;"
+			E="Please select the pool worker from the list above to use with this instance"
+			GetPrimaryKeySelection thisWorker "$Q" "$E" "$cworker"
+			echo ""
+	
+	
+			Q="SELECT pk_device, name FROM device WHERE disabled=0;"
+			E="Please select the device from the list above to use with this instance"
+			GetPrimaryKeySelection thisDevice "$Q" "$E" "$cdevice"
+
+
+			echo "Updating instance..."
+			Q="UPDATE profile_map SET fk_miner='$thisMiner', fk_worker='$thisWorker', fk_device='$thisDevice' WHERE pk_profile_map='$editPK';"
+			RunSQL "$Q"
+			echo "done."
+			sleep 2
+
+			;;
+  		EXIT)
+    			exitEditProfile="1"
+			;;
+		*)
+			DisplayError "Invalid selection!" "5"
+			;;      
+		esac 
+		
+	done
 	
 }
 
