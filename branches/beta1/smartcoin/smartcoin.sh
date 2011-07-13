@@ -39,6 +39,11 @@ RotateLogs
 Log "******************* NEW SMARTCOIN SESSION STARTED *******************" 
 Log "Starting main smartcoin screen session..." 1
 
+host=$(RunningOnLinuxcoin)
+if [[ "$host" == "1" ]]; then
+	Log "It has been detected that you are running on the LinuxCoin distro.  50% of your AutoDonations will go to the LinuxCoin author."
+fi
+
 # Let the user have their own custom initialization script if they want
 if [[ -f "$CUR_LOCATION/init.sh" ]]; then
 	Log "User initialization script found. Running initialization script." 1

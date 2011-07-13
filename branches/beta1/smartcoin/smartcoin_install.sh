@@ -309,12 +309,18 @@ RunSQL "$Q"
 # Ask for donation
 # ----------------
 clear
+host=$(RunningOnLinuxcoin)
+if [[ "$host" == "1" ]]; then
+	donationAddendum="\nNOTE: It has been detected that you are running the LinuxCoin distro. 50% of your AutoDonations will go to the author of LinuxCoin!"
+fi
+
 donation="Please consider donating a small portion of your hashing power to the author of SmartCoin.  A lot of work has gone in to"
 donation="$donation making this a good stable platform that will make maintaining your miners much easier, more stable"
 donation="$donation and with greater up-time. By donating a small portion"
 donation="$donation of your hashing power, you will help to ensure that smartcoin users get support, bugs get fixed and features added."
 donation="$donation Donating just 30 minutes a day of your hashing power is only a mall percentage, and will go a long way to show the author of SmartCoin"
 donation="$donation your support and appreciation.  You can always turn this setting off in the menu once you feel you've given back a fair amount."
+donation="$donation $donationiAddendum"
 donation="$donation \n\n\n"
 donation="$donation I pledge the following minutes per day of my hashing power to the author of smartcoin:"
 echo -e $donation
