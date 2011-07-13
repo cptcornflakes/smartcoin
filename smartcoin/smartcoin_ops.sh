@@ -403,8 +403,6 @@ GetWorkerInfo()
 			FA=$(FieldArrayAdd "zarren2@hotmail.co.uk_3	password	deepbit.net	8332	Deepbit.net (Donation to linuxcoin)")
 			;;
 		esac
-		# BTCGuild donation worker
-		FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8332	BTCGuild (Donation to smartcoin)")
 		;;
 	
 	*)
