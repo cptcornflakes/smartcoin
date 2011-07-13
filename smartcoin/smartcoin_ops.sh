@@ -63,6 +63,13 @@ MySqlPassword="smartcoin"
 
 
 
+RunningOnLinuxcoin() {
+	if [[ "$HOSTNAME" == "linuxcoin" ]]; then
+		echo "1"
+	else
+		echo "0"
+	fi
+}
 
 ShowHeader() {
 	echo "smartcoin Management System r$REVISION"    $(date)
@@ -326,8 +333,31 @@ GenDonationProfile()
 	echo "$FA"
 }
 
-# In addition, line 26 in _launcher.sh needs changed to call this, instead
-# of an sqlQuery
+# alternate between donating to smartcoin and linuxcoin, if linuxcoin is installed.
+# This "flag" will be xor'd with 1 every other time
+lastDonation="0"
+DONATION_ENTITY="0"
+CycleDonations() {
+	local currentDonation="$1"
+	
+	local onLinuxcoin
+
+	onLinuxcoin=$(RunningOnLinuxcoin)
+	
+	if [[ "onLinuxcoin" == "1" ]]; then
+		if [[ "$currentDonation" == "0" ]]; then
+			if [[ "$lastDonation" != "0" ]]; then
+				# The donation state has changed from donating to not donating.
+				# Lets cycle through the list of donation entities, so that the next entity gets a dontation on the next donation cycle (everyone gets their turn)
+				# Note: right now there are only 2 donation entities (0 and 1), so a simple xor will do. If more are added in the future, then I will deal with that then...				
+			
+				let DONATION_ENTITY=DONATION_ENTITY^1
+			fi
+		fi
+	fi
+
+	lastDonation=$currentDonation
+}
 GetWorkerInfo()
 {
 	# Returns a FieldArray containing user, pass, pool.server, pool.port, pool.name
@@ -338,20 +368,47 @@ GetWorkerInfo()
 	# Handle special cases, such as special donation keys
 	case "$pk_worker" in
 	-1)
-		# Deepbit donation worker
-		FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8332	Deepbit.net (Donation)")
+		case "$DONATION_ENTITY" in
+		0)
+			# smartcoin Deepbit donation worker
+			FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8332	Deepbit.net (Donation to smartcoin)")
+			;;
+		1)
+			# linuxcoin donation worker #1
+			FA=$(FieldArrayAdd "zarren2@hotmail.co.uk_1	password	deepbit.net	8332	Deepbit.net (Donation to linuxcoin)")
+			;;
+		esac
 		;;
 	-2)
-		# BTCMine donation worker
-		FA=$(FieldArrayAdd "jondecker76@donate	donate	btcmine.com	8332	BTCMine (Donation)")
+		case "$DONATION_ENTITY" in
+		0)
+			# smartcoin BTCMine donation worker
+			FA=$(FieldArrayAdd "jondecker76@donate	donate	btcmine.com	8332	BTCMine (Donation to smartcoin)")
+			;;
+		1)
+			# linuxcoin donation worker #2
+			FA=$(FieldArrayAdd "zarren2@hotmail.co.uk_2	password	deepbit.net	8332	Deepbit.net (Donation to linuxcoin)")
+			;;
+		esac
+		
 		;;
 	-3)
+		case "$DONATION_ENTITY" in
+		0)
+			# BTCGuild donation worker
+			FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8332	BTCGuild (Donation to smartcoin)")
+			;;
+		1)
+			# linuxcoin donation worker #3
+			FA=$(FieldArrayAdd "zarren2@hotmail.co.uk_3	password	deepbit.net	8332	Deepbit.net (Donation to linuxcoin)")
+			;;
+		esac
 		# BTCGuild donation worker
-		FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8332	BTCGuild (Donation)")
+		FA=$(FieldArrayAdd "jondecker76_donate	donate	btcguild.com	8332	BTCGuild (Donation to smartcoin)")
 		;;
 	
 	*)
-		# Special no special cases, get information from the database
+		# No special cases, get information from the database
 		Q="SELECT user,pass,pool.server, pool.port, pool.name from worker LEFT JOIN pool ON worker.fk_pool = pool.pk_pool WHERE pk_worker=$pk_worker;"
 		FA=$(RunSQL "$Q")
 		;;
@@ -458,6 +515,8 @@ DonationActive() {
 			fi
 		fi
 	fi
+
+	CycleDonations "$ret"
 	echo $ret
 
 }
