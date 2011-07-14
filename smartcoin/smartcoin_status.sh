@@ -147,6 +147,9 @@ profileDownCount="0"
 profileDown="0"
 
 ShowStatus() {
+	xml_out="<?xml version=\"1.0\"?>\n"
+	xml_out=$xml_out"<smartcoin>\n"
+
 	export DISPLAY=:0
 	status=""
 
@@ -246,8 +249,12 @@ ShowStatus() {
 				compositeRejected=`expr $compositeRejected + $totalRejected`
 			
 				
-				
-				
+				xml_out=$xml_out"\t<worker>\n"	
+				xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
+				xml_out=$xml_out"\t\t<hashes>$totalHashes</hashes>\n"
+				xml_out=$xml_out"\t\t<accepted>$totalAccepted</accepted>\n"
+				xml_out=$xml_out"\t\t<rejected>$totalRejected</rejected>\n"
+				xml_out=$xml_out"\t</worker>\n"
 		
 
 
@@ -326,8 +333,16 @@ ShowStatus() {
 	echo  $status
 	#screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
 
-
-
+	
+	xml_out=$xml_out"<grand_total>\n"
+	xml_out=$xml_out"\t<hashes>$compositeHashes</hashes>\n"
+	xml_out=$xml_out"\t<accepted>$compositeAccepted</accepted>\n"
+	xml_out=$xml_out"\t<rejected>$compositeRejected</rejected>\n"
+	xml_out=$xml_out"\t<rejected_percent>$percentRejected</rejected_percent>\n"
+	xml_out=$xml_out"</grand_total>\n"
+	xml_out=$xml_out"</smartcoin>"
+	echo -e "$xml_out" >> /tmp/smartcoin.xml
+	
 
 
 }
