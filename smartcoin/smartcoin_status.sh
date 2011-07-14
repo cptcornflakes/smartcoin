@@ -323,6 +323,15 @@ ShowStatus() {
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
+
+	xml_out=$xml_out"\t<worker>\n"	
+				xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
+	xml_out=$xml_out"\t\t<hashes>$totalHashes</hashes>\n"
+	xml_out=$xml_out"\t\t<accepted>$totalAccepted</accepted>\n"
+	xml_out=$xml_out"\t\t<rejected>$totalRejected</rejected>\n"
+	xml_out=$xml_out"\t</worker>\n"
+
+
 	percentRejected=`echo "scale=3;a=($compositeRejected*100) ; b=$compositeAccepted; c=a/b; print c" | bc -l`
 	
 	if [ -z "$percentRejected" ]; then
@@ -334,14 +343,14 @@ ShowStatus() {
 	#screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
 
 	
-	xml_out=$xml_out"<grand_total>\n"
-	xml_out=$xml_out"\t<hashes>$compositeHashes</hashes>\n"
-	xml_out=$xml_out"\t<accepted>$compositeAccepted</accepted>\n"
-	xml_out=$xml_out"\t<rejected>$compositeRejected</rejected>\n"
-	xml_out=$xml_out"\t<rejected_percent>$percentRejected</rejected_percent>\n"
-	xml_out=$xml_out"</grand_total>\n"
+	xml_out=$xml_out"\t<grand_total>\n"
+	xml_out=$xml_out"\t\t<hashes>$compositeHashes</hashes>\n"
+	xml_out=$xml_out"\t\t<accepted>$compositeAccepted</accepted>\n"
+	xml_out=$xml_out"\t\t<rejected>$compositeRejected</rejected>\n"
+	xml_out=$xml_out"\t\t<rejected_percent>$percentRejected</rejected_percent>\n"
+	xml_out=$xml_out"\t</grand_total>\n"
 	xml_out=$xml_out"</smartcoin>"
-	echo -e "$xml_out" >> /tmp/smartcoin.xml
+	echo -e "$xml_out" > /tmp/smartcoin.xml
 	
 
 
