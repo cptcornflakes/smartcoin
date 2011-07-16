@@ -44,6 +44,10 @@ if [[ "$host" == "1" ]]; then
 	Log "It has been detected that you are running on the LinuxCoin distro.  50% of your AutoDonations will go to the LinuxCoin author."
 fi
 
+# Reset the failover information in the database
+Q="UPDATE profile SET failovercount='0', down='0';"
+RunSQL "$Q"
+
 # Let the user have their own custom initialization script if they want
 if [[ -f "$CUR_LOCATION/init.sh" ]]; then
 	Log "User initialization script found. Running initialization script." 1
