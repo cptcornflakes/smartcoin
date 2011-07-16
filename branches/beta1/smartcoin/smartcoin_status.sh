@@ -241,7 +241,7 @@ ShowStatus() {
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-				status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n"
+				status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected] [$percentRejected%  Rejected]\n"
 				status="$status$failOverStatus"
 
 				compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
@@ -254,6 +254,7 @@ ShowStatus() {
 				xml_out=$xml_out"\t\t<hashes>$totalHashes</hashes>\n"
 				xml_out=$xml_out"\t\t<accepted>$totalAccepted</accepted>\n"
 				xml_out=$xml_out"\t\t<rejected>$totalRejected</rejected>\n"
+				xml_out=$xml_out"\t\t<rejected_percent>$percentRejected</rejected_percent>\n"
 				xml_out=$xml_out"\t</worker>\n"
 		
 
@@ -315,11 +316,12 @@ ShowStatus() {
 		totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)
 		totalAccepted=`expr $totalAccepted + $accepted`
 		totalRejected=`expr $totalRejected + $rejected`
+		percentRejected=`echo "scale=3;a=($totalRejected*100) ; b=$totalAccepted; c=a/b; print c" | bc -l`
 	done
 
 	MarkFailedProfiles $oldProfile $profileFailed
 
-	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected]\n\n"
+	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected] [$percentRejected%  Rejected]\n\n"
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
@@ -330,6 +332,7 @@ xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
 	xml_out=$xml_out"\t\t<hashes>$totalHashes</hashes>\n"
 	xml_out=$xml_out"\t\t<accepted>$totalAccepted</accepted>\n"
 	xml_out=$xml_out"\t\t<rejected>$totalRejected</rejected>\n"
+	xml_out=$xml_out"\t\t<rejected_percent>$percentRejected</rejected_percent>\n"
 	xml_out=$xml_out"\t</worker>\n"
 
 
