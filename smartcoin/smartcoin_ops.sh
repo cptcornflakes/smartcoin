@@ -161,8 +161,7 @@ RotateLogs() {
 
 
 DeleteTemporaryFiles() {
-	rm -rf /tmp/.smartcoin* 2>/dev/null
-	rm -rf /tmp/.Miner* 2>/dev/null
+	rm -rf /tmp/smartcoin* 2>/dev/null
 }
 
 
