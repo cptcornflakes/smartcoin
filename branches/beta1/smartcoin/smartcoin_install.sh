@@ -295,6 +295,7 @@ GetYesNoSelection autoDetectSDKLocation "$E" "y"
 
 if [[ "$autoDetectSDKLocation" == "1" ]]; then
 	Log "	User chose to autodetect"
+	echo "Please be patient, this may take a few minutes..."
 	amd_sdk_location=$(findAMDSDK)
 	echo "Please make sure the path below is correct, and change if necessary:"
 else
