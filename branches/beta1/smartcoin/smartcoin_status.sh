@@ -316,7 +316,7 @@ ShowStatus() {
 		totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)
 		totalAccepted=`expr $totalAccepted + $accepted`
 		totalRejected=`expr $totalRejected + $rejected`
-		percentRejected=`echo "scale=3;a=($totalRejected*100) ; b=$totalAccepted; c=a/b; print c" | bc -l`
+		percentRejected=`echo "scale=3;a=($totalRejected*100) ; b=$totalAccepted; c=a/b; print c" | bc -l 2> /dev/null`
 	done
 
 	MarkFailedProfiles $oldProfile $profileFailed
@@ -328,7 +328,7 @@ ShowStatus() {
 
 	xml_out=$xml_out"\t<worker>\n"	
 	
-xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
+	xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
 	xml_out=$xml_out"\t\t<hashes>$totalHashes</hashes>\n"
 	xml_out=$xml_out"\t\t<accepted>$totalAccepted</accepted>\n"
 	xml_out=$xml_out"\t\t<rejected>$totalRejected</rejected>\n"
@@ -336,7 +336,7 @@ xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
 	xml_out=$xml_out"\t</worker>\n"
 
 
-	percentRejected=`echo "scale=3;a=($compositeRejected*100) ; b=$compositeAccepted; c=a/b; print c" | bc -l`
+	percentRejected=`echo "scale=3;a=($compositeRejected*100) ; b=$compositeAccepted; c=a/b; print c" | bc -l 2> /dev/null`
 	
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0.00"
