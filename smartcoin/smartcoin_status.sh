@@ -325,7 +325,8 @@ ShowStatus() {
 	compositeRejected=`expr $compositeRejected + $totalRejected`
 
 	xml_out=$xml_out"\t<worker>\n"	
-				xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
+	
+xml_out=$xml_out"\t\t<name>$oldPool</name>\n"
 	xml_out=$xml_out"\t\t<hashes>$totalHashes</hashes>\n"
 	xml_out=$xml_out"\t\t<accepted>$totalAccepted</accepted>\n"
 	xml_out=$xml_out"\t\t<rejected>$totalRejected</rejected>\n"

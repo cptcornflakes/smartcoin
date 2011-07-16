@@ -36,13 +36,14 @@ findAMDSDK()
 #################
 # BEGIN INSTALLER
 #################
+. $CUR_LOCATION/smartcoin_ops.sh
 Log "==========Beginning Installation============"
 
 clear
 CheckIfAlreadyInstalled
 # Move the database
 mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
-. $CUR_LOCATION/smartcoin_ops.sh
+
 Log "Database created in $HOME/.smartcoin/smartcoin.db"
 
 # Ask for user permission
