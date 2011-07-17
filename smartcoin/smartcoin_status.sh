@@ -317,6 +317,9 @@ ShowStatus() {
 		totalAccepted=`expr $totalAccepted + $accepted`
 		totalRejected=`expr $totalRejected + $rejected`
 		percentRejected=`echo "scale=3;a=($totalRejected*100) ; b=$totalAccepted; c=a/b; print c" | bc -l 2> /dev/null`
+		if [ -z "$percentRejected" ]; then
+		percentRejected="0.00"
+	fi
 	done
 
 	MarkFailedProfiles $oldProfile $profileFailed
