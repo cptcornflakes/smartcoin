@@ -350,7 +350,7 @@ ShowStatus() {
 		
 		# Fail profile on unusually high rejection percentage
 		# TODO: Get rid of hard-coded limit, and make as a new setting
-		if [[ "$percentRejected" -gt "10" ]]; then
+		if [[ "$percentRejected" -gt "10.0" ]]; then
 			let profileFailed++
 		fi
 	done
