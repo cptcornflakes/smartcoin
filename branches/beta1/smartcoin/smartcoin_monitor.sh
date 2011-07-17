@@ -15,7 +15,7 @@ fi
 
 
 # PHOENIX monitoring
-MonitorPhoenix()
+Monitor_phoenix()
 {
 	cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
 	starting=`grep "starting" "/tmp/smartcoin-$key" | tail -n 1`
@@ -70,4 +70,66 @@ MonitorPhoenix()
 		fi
 	fi
 
+}
+
+Monitor_poclbm()
+{
+	# For now, get hash counting working! Look into accepted/rejected later!
+	cmd=`grep "khash/s" "/tmp/smartcoin-$key" | tail -n 1`
+	
+	if [ "$cmd" ]; then
+		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
+		accepted="0"
+		rejected="0"
+	fi
+
+	# Convert from khash to MHash
+	hashes=`echo "scale=2; $hashes/1000" | bc -l 2> /dev/null`
+
+	output="[$hashes MHash/sec] [$accepted Accepted] [$rejected Rejected]"
+	if [[ "$hashes" == "0" ]]; then
+		# Is it safe to say the profile is down?
+		output="\e[00;31m<<<DOWN>>>\e[00m"
+		let profileFailed++
+	fi
+}
+
+Monitor_cgminer()
+{
+	cmd=`grep "(5s)" "/tmp/smartcoin-$key" | tail -n 1`
+
+	if [[ "$cmd" == *Gh/s* ]]; then
+		hashUnits="Ghash"
+	elif [[ "$cmd" == *Mh/s* ]]; then
+		hashUnits="Mhash"
+	elif [[ "$cmd" == *kh/s* ]]; then
+		hashUnits="khash"
+	fi  
+
+	if [ "$cmd" ]; then
+		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
+		accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f5`
+		rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f6`
+	fi
+
+	# Convert into MHash if needed
+	case $hashUnits in
+	Ghash)
+		hashes=`echo "scale=2; $hashes*1000" | bc -l 2> /dev/null`
+		;;
+	Mhash)
+		# We are already scaled to MHash, do nothing!
+		hashes=$hashes
+		;;
+	khash)
+		hashes=`echo "scale=2; $hashes/1000" | bc -l 2> /dev/null`
+		;;
+	esac
+
+	output="[$hashes MHash/sec] [$accepted Accepted] [$rejected Rejected]"
+	if [[ "$hashes" == "0" ]]; then
+		# Is it safe to say the profile is down?
+		output="\e[00;31m<<<DOWN>>>\e[00m"
+		let profileFailed++
+	fi
 }

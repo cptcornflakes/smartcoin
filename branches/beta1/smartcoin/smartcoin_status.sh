@@ -280,7 +280,13 @@ ShowStatus() {
 
 		case "$minerLaunch" in
 		*phoenix.py*)
-			MonitorPhoenix
+			Monitor_phoenix
+			;;
+		*poclbm.py*)
+			Monitor_poclbm
+			;;
+		*cgminer*)
+			Monitor_cgminer
 			;;
 		esac
 
