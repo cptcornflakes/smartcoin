@@ -307,9 +307,7 @@ ShowStatus() {
 
 		else
 			# Reset counter
-			if [[ -f "/tmp/smartcoin-$key.lockup" ]]; then
-				rm /tmp/smartcoin-$key.lockup 2> /dev/null
-			fi
+			rm /tmp/smartcoin-$key.lockup 2> /dev/null
 		fi
 
 
