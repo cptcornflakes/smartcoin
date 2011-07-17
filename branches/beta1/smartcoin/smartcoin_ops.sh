@@ -435,20 +435,45 @@ SetCurrentProfile() {
 	RunSQL "$Q"
 }
 
+DiffTime()
+{
+	local startTime=$1
+	local endTime=$2
+
+	startTime=$(seq $startTime $startTime)
+	endTime=$(seq $endTime $endTime)
+
+	# Convert both to minutes
+	hours=`expr $startTime / 100`
+	minutes=`expr $startTime % 100`
+	let hourMins=$hours*60
+	let startMinutes=$hourMins+$minutes
+
+	hours=`expr $endTime / 100`
+	minutes=`expr $endTime % 100`
+	let hourMins=$hours*60
+	let endMinutes=$hourMins+$minutes
+
+	echo `expr $endMinutes - $startMinutes`
+
+
+}	
 
 AddTime()
 {
 	local baseTime=$1
 	local minutesToAdd=$2
 
+	basetime=$(seq $baseTime $baseTime)
 	local minutes=`expr $baseTime % 100` #${baseTime:2:3}
 	local hours=`expr $baseTime / 100` #${baseTime:0:2}
+
 
 	# Add minutes and keep between 0 and 60
 	local totalMinutes=$(($minutes+$minutesToAdd))
 	local carryOver=$(($totalMinutes/60))
 	local correctedMinutes=$(($totalMinutes%60))
-	correctedMinutes=$(seq $correctedMinutes $correctedMinutes) #`printf "%02d" $correctedMinutes`
+	correctedMinutes=`printf "%02d" $correctedMinutes` # pad with at least one zero if needed
 	
 	# Add remainder to hours
 	local correctedHours=$(($hours+carryOver))
@@ -461,13 +486,12 @@ AddTime()
 
 
 
-
 # DonationActive returns either nothing if the donation isn't active,
 # or a positive number representing the number of minutes remaining in the donation cycle
 DonationActive() {
 	Q="SELECT value FROM settings WHERE data='donation_start';"
 	R=$(RunSQL "$Q")
-	local start=$(Field 1 "$R")
+	local $(Field 1 "$R")
 	
 	Q="SELECT value FROM settings WHERE data='donation_time';"
 	R=$(RunSQL "$Q")
@@ -485,9 +509,10 @@ DonationActive() {
 	fi
 
 	local end=$(AddTime "$start" "$duration")
-
+	
 	local curTime=`date +%k%M`
 	curTime=$(seq $curTime $curTime)
+
 
 	ret=""
 
@@ -497,18 +522,20 @@ DonationActive() {
 			if [[ "$curTime" -ge "$start" ]]; then
 				if [[ "$curTime" -lt "$end"  ]]; then
 					#ret="true"
-					ret=$(( $end - $curTime ))
+					ret=$(DiffTime $curTime $end)
 				fi
 			fi
 		else
 			 # Midnight carryover
 			if [[ "$curTime" -ge "$start" ]]; then
 				#ret="true"
-				local minTilMid=$(( 2400 - $curTime ))
-				ret=$(( $minTilMid + $end ))
+				local minTilMid=$(DiffTime $curTime "2400")
+				ret=$(AddTime $end $minTilMid)
+				ret=$(seq $ret $ret)
 			fi
 			if [[ "$curTime" -lt "$end" ]]; then
-				ret=$(( $end - $curTime ))
+				ret=$(DiffTime $curTime $end)
+				
 			fi
 		fi
 	fi
@@ -525,7 +552,7 @@ GetProfileName() {
 	local Donate=$(DonationActive)
 
 	if [[ "$Donate" ]]; then
-		echo "Donation (via AutoDonate) " # - $Donate minutes remaining."
+		echo "Donation (via AutoDonate)  - $Donate minutes remaining."
 	elif [[ "$thisProfile" == "-3" ]]; then
 		echo "Failover"
 	elif [[ "$thisProfile" == "-2" ]]; then
