@@ -209,74 +209,84 @@ E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or
 GetYesNoSelection detectMiners "$E" "y"
 
 if [[ "$detectMiners" == "1" ]]; then
-#detect phoenix install location
-phoenixMiner=`locate phoenix.py | grep -vi svn`
-#phoenixMiner=${phoenixMiner%"phoenix.py"}
+	#detect phoenix install location
+	phoenixMiner=`locate phoenix.py | grep -vi svn`
+	#phoenixMiner=${phoenixMiner%"phoenix.py"}
 
-if [[ "$phoenixMiner" != "" ]]; then
-	M=""
-	i=0
+	if [[ "$phoenixMiner" != "" ]]; then
+		Log "Found phoenix miner installed on local system" 1
+		M=""
+		i=0
 
 
-	for thisLocation in $phoenixMiner; do
-		let i++
+		for thisLocation in $phoenixMiner; do
+			let i++
 
-		M=$M$(FieldArrayAdd "$i	$i	$thisLocation")
-	done
-	DisplayMenu "$M"
+			M=$M$(FieldArrayAdd "$i	$i	$thisLocation")
+		done
+		DisplayMenu "$M"
 
-	echo "Select the local phoenix installation from the list above"
-	selected="ERROR"
-	until [[ "$selected" != "ERROR" ]]; do
-		selected=$(GetMenuSelection "$M")
-		if [[ "$selected" == "ERROR" ]]; then
-			echo "Invalid selection. Please try again."
-		fi
-	done
+		echo "Select the local phoenix installation from the list above"
+		selected="ERROR"
+		until [[ "$selected" != "ERROR" ]]; do
+			selected=$(GetMenuSelection "$M")
+			if [[ "$selected" == "ERROR" ]]; then
+				echo "Invalid selection. Please try again."
+			fi
+		done
 	
-	i=0
-	ret=""
-	for thisLocation in $phoenixMiner; do
-		let i++
-		ret=$thisLocation
-		if [[ "$selected" == "$i" ]]; then
-			break
+		i=0
+		ret=""
+		for thisLocation in $phoenixMiner; do
+			let i++
+			ret=$thisLocation
+			if [[ "$selected" == "$i" ]]; then
+				break
+			fi
+		done
+
+		thisLocation=$thisLocation
+		thisLocation=${thisLocation%"phoenix.py"}
+		Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
+		RunSQL "$Q"
+
+
+		if [[ -d $thisLocation/kernels/phatk ]]; then
+			knl="phatk"
+		else
+			knl="poclbm"
 		fi
-	done
-
-	thisLocation=$thisLocation
-	thisLocation=${thisLocation%"phoenix.py"}
-	Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
-	RunSQL "$Q"
-
-
-	if [[ -d $thisLocation/kernels/phatk ]]; then
-		knl="phatk"
-	else
-		knl="poclbm"
+		Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES (1,'phoenix','python <#path#>phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
+		RunSQL "$Q"
 	fi
-	Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES (1,'phoenix','python <#path#>phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
-	RunSQL "$Q"
-fi
 
-# Detect poclbm install location
-# TODO: poclbm support needs added!
-#poclbmMiner=`locate poclbm.py | grep -vi svn`
-#poclbmMiner=${poclbmMiner%"poclbm.py"}
-if [[ "$poclbmMiner" != "" ]]; then
-	echo "Found poclbm miner installed on local system"
-	Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'poclbm','python poclbm.py -d <#device#> --host <#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
-	RunSQL "$Q"
-fi
+	# Detect poclbm install location
+	poclbmMiner=`locate poclbm.py | grep -vi svn`
+	poclbmMiner=${poclbmMiner%"poclbm.py"}
+	if [[ "$poclbmMiner" != "" ]]; then
+		Log "Found poclbm miner installed on local system" 1
+		Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'poclbm','python poclbm.py -d <#device#> --host http://<#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
+		RunSQL "$Q"
+	fi
 
-# Set the default miner
-echo ""
-Q="SELECT pk_miner,name FROM miner ORDER BY pk_miner ASC;"
-E="Which miner listed above do you want to be the default miner?"
-GetPrimaryKeySelection thisMiner "$Q" "$E"
-Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
-RunSQL "$Q"
-Log "Default miner set to $thisMiner"
+
+	# Detect cgminer install location
+	cgminer=`locate cgminer | grep -vi svn`
+	cgminer=${cgminer%"cgminer"}
+	if [[ "$cgminer" != "" ]]l; then
+		Log "Found cgminer miner installed on local system" 1
+		Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'cgminer','<#path#>cgminer -a 4way -g 2 -d <#device#> -o http://<#server#>:<#port#> -u <#user#> -p <#pass#> -I 14','$cgminer',0,0);"
+		RunSQL "$Q"
+	fi
+
+	# Set the default miner
+	echo ""
+	Q="SELECT pk_miner,name FROM miner ORDER BY pk_miner ASC;"
+	E="Which miner listed above do you want to be the default miner?"
+	GetPrimaryKeySelection thisMiner "$Q" "$E"
+	Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
+	RunSQL "$Q"
+	Log "Default miner set to $thisMiner"
 fi
 
 # Set the current profile! 
