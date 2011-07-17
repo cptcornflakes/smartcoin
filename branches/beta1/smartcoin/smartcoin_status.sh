@@ -190,6 +190,7 @@ ShowStatus() {
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
 	FA=$(GenCurrentProfile "$MACHINE")
 	profileFailed=0
+	hardlocked=0
 
 	oldPool=""
 	oldProfile=""
@@ -272,7 +273,46 @@ ShowStatus() {
 			status=$status"\e[01;32m--------$pool--------\e[00m\n"
 		fi
 
+		# TODO: Look for hardlock conditions!
+		oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
+		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
+
+		if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
+			# Increment counter
+			local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
+			if [[ -z "$cnt" ]]; then
+				cnt="0"
+			fi
+		
+			if [[ "$cnt" -lt "10" ]]; then
+				let cnt++
+				echo "$cnt" > /tmp/smartcoin-$key.lockup
+			fi
+
+			if [[ "$cnt" -eq "10" ]]; then
+				let cnt++
+				echo "$cnt" > /tmp/smartcoin-$key.lockup
+				Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
+				Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
+				# Kill the miners
+				killMiners
+				# Commit suicide
+				screen -d -r $sessionName -X quit
+
+				# Send email
+
+			fi
+
+
+		else
+			# Reset counter
+			if [[ -f "/tmp/smartcoin-$key.lockup" ]]; then
+				rm /tmp/smartcoin-$key.lockup
+			fi
+		fi
+
+
 		hashes="0"
 		accepted="0"
 		rejected="0"
@@ -307,8 +347,14 @@ ShowStatus() {
 		totalRejected=`expr $totalRejected + $rejected`
 		percentRejected=`echo "scale=3;a=($totalRejected*100) ; b=$totalAccepted; c=a/b; print c" | bc -l 2> /dev/null`
 		if [ -z "$percentRejected" ]; then
-		percentRejected="0.00"
-	fi
+			percentRejected="0.00"
+		fi
+		
+		# Fail profile on unusually high rejection percentage
+		# TODO: Get rid of hard-coded limit, and make as a new setting
+		if [[ "$percentRejected" -gt "10" ]]; then
+			let profileFailed++
+		fi
 	done
 
 	MarkFailedProfiles $oldProfile $profileFailed
