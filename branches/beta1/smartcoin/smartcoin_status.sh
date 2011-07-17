@@ -296,8 +296,13 @@ ShowStatus() {
 			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		fi
 
-		if [[ "$starting" ]]; then
-			cmd="\e[00;31m<<<STARTING>>>\e[00m"	
+		if [[ -z "$cmd" ]]; then
+			if [[ "$starting" ]]; then
+				cmd="\e[00;31m<<<STARTING>>>\e[00m"	
+			else
+				cmd="\e[00;31m<<<IDLE>>>\e[00m"	
+				# TODO: increment failure counter here??
+			fi
 		else
 			if [[ "$hashes" == "0" ]]; then
 				# Is it safe to say the profile is down?
@@ -306,6 +311,7 @@ ShowStatus() {
 
 			fi
 		fi
+		
 
 		status=$status"$deviceName:\t$cmd\n"                    
                 
