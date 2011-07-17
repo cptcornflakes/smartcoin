@@ -1,4 +1,11 @@
 #!/bin/bash
+if [[ $( dirname "$0" ) == "/usr/bin" ]]; then
+	CUR_LOCATION=$(dirname $(readlink -f $( dirname "$0" )/smartcoin))
+else
+	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
+fi
+. $CUR_LOCATION/smartcoin_ops.sh
+
 
 # Monitoring functions perform the following:
 # 1) Load in /tmp/smartcoin-$key via grep looking for specific strings
@@ -20,7 +27,6 @@ MonitorPhoenix()
 		hashUnits="Mhash"
 	elif [[ "$cmd" == *khash* ]]; then
 		hashUnits="khash"
-	else
 
 	fi  
 
