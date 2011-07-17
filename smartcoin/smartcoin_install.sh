@@ -45,14 +45,14 @@ findAMDSDK()
 #################
 # BEGIN INSTALLER
 #################
-. $CUR_LOCATION/smartcoin_ops.sh
-Log "==========Beginning Installation============"
+
 
 clear
 CheckIfAlreadyInstalled
 # Move the database
 mkdir -p $HOME/.smartcoin && cp $CUR_LOCATION/smartcoin.db $HOME/.smartcoin/smartcoin.db
-
+. $CUR_LOCATION/smartcoin_ops.sh
+Log "==========Beginning Installation============"
 Log "Database created in $HOME/.smartcoin/smartcoin.db"
 
 # Ask for user permission
@@ -273,7 +273,7 @@ if [[ "$detectMiners" == "1" ]]; then
 	# Detect cgminer install location
 	cgminer=`locate cgminer | grep -vi svn`
 	cgminer=${cgminer%"cgminer"}
-	if [[ "$cgminer" != "" ]]l; then
+	if [[ "$cgminer" != "" ]]; then
 		Log "Found cgminer miner installed on local system" 1
 		Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES (1,'cgminer','<#path#>cgminer -a 4way -g 2 -d <#device#> -o http://<#server#>:<#port#> -u <#user#> -p <#pass#> -I 14','$cgminer',0,0);"
 		RunSQL "$Q"
