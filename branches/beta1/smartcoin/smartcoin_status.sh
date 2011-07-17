@@ -271,7 +271,10 @@ ShowStatus() {
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
 		cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
+		starting=`grep "starting" "/tmp/smartcoin-$key" | tail -n 1`
 		#cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
+
+
 		if [[ "$cmd" == *GHash* ]]; then
 			hashUnits="GHash"
 		elif [[ "$cmd" == *Mhash* ]]; then
@@ -282,24 +285,27 @@ ShowStatus() {
 			hashUnits="hash"
 		fi  
       
-		if [ -z "$cmd" ]; then
-			hashes="0"
-			accepted="0"
-			rejected="0"
-		else
+		hashes="0"
+		accepted="0"
+		rejected="0"
+
+
+		if [ "$cmd" ]; then
 			hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
 			accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
 			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
 		fi
 
+		if [[ "$starting" ]]; then
+			cmd="\e[00;31m<<<STARTING>>>\e[00m"	
+		else
+			if [[ "$hashes" == "0" ]]; then
+				# Is it safe to say the profile is down?
+				cmd="\e[00;31m<<<DOWN>>>\e[00m"
+				let profileFailed++
 
-		if [[ "$hashes" == "0" ]]; then
-			# Is it safe to say the profile is down?
-			cmd="\e[00;31m<<<DOWN>>>\e[00m"
-			let profileFailed++
-
+			fi
 		fi
-
 
 		status=$status"$deviceName:\t$cmd\n"                    
                 
