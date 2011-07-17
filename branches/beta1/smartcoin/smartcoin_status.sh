@@ -15,6 +15,7 @@ else
 	CUR_LOCATION="$( cd "$( dirname "$0" )" && pwd )"
 fi
 . $CUR_LOCATION/smartcoin_ops.sh
+. $CUR_LOCATION/smartcoin_monitor.sh
 
 
 MACHINE=$1
@@ -241,7 +242,7 @@ ShowStatus() {
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-				status=$status"Total : [$totalHashes $hashUnits/sec] [$totalAccepted Accepted] [$totalRejected Rejected] [$percentRejected%  Rejected]\n"
+				status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected] [$percentRejected%  Rejected]\n"
 				status="$status$failOverStatus"
 
 				compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
@@ -269,51 +270,16 @@ ShowStatus() {
 		fi
 
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-		#cmd=`tac  "/tmp/smartcoin-$key" | grep hash`
-		cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
-		starting=`grep "starting" "/tmp/smartcoin-$key" | tail -n 1`
-		#cmd=`tail -n 1 /tmp/smartcoin-$key | grep hash`
-
-
-		if [[ "$cmd" == *GHash* ]]; then
-			hashUnits="GHash"
-		elif [[ "$cmd" == *Mhash* ]]; then
-			hashUnits="Mhash"
-		elif [[ "$cmd" == *khash* ]]; then
-			hashUnits="khash"
-		else
-			hashUnits="hash"
-		fi  
-      
 		hashes="0"
 		accepted="0"
 		rejected="0"
+		output=""
 
 
-		if [ "$cmd" ]; then
-			hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
-			accepted=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
-			rejected=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f3`
-		fi
-
-		if [[ -z "$cmd" ]]; then
-			if [[ "$starting" ]]; then
-				cmd="\e[00;31m<<<STARTING>>>\e[00m"	
-			else
-				cmd="\e[00;31m<<<IDLE>>>\e[00m"	
-				# TODO: increment failure counter here??
-			fi
-		else
-			if [[ "$hashes" == "0" ]]; then
-				# Is it safe to say the profile is down?
-				cmd="\e[00;31m<<<DOWN>>>\e[00m"
-				let profileFailed++
-
-			fi
-		fi
+		MonitorPhoenix
 		
 
-		status=$status"$deviceName:\t$cmd\n"                    
+		status=$status"$deviceName:\t$output\n"                    
                 
 		if [ -z "$hashes" ]; then
 			hashes="0.00"
