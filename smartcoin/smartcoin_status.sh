@@ -189,7 +189,7 @@ ShowStatus() {
 
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
 	FA=$(GenCurrentProfile "$MACHINE")
-	local profileFailed=0
+	profileFailed=0
 
 	oldPool=""
 	oldProfile=""
