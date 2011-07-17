@@ -44,6 +44,7 @@ safe_update=`svn diff -r $svn_rev_start:$svn_rev_end $CUR_LOCATION/update.ver`
 # will be sure to be in the correct state to accept further updates and patches.
 BP="300 "	# The database moves in this update
 BP=$BP"365 "	# Stable/experimental branch stuff goes live
+BP=$BP"436 "	# prepend http:// to pool server addresses (mostly for cgminer)
 
 
 bp_message=""
@@ -166,6 +167,23 @@ else
 			echo "Email setting updated."
 			echo ""
 			;;
+		436)
+			Log "Applying r$i patch..." 1
+			echo ""
+			Q="SELECT pk_pool,server FROM pool;"
+			R=$(RunSQL "$Q")
+
+			for row in $R; do
+				thisPool=$(Field 1 "$row")
+				thisServer=$(Field 2 "$row")
+
+				if [[ "$thisServer" != *http://* ]]; then
+					thisServer="http://$thisServer"
+					Q="UPDATE pool SET server='$thisServer' WHERE pk_pool='$thisPool';"
+					RunSQL "$Q"
+				fi
+			done
+			;;
 
     		*)	
 
@@ -181,7 +199,7 @@ Log "Update task complete." 1
 echo ""
 echo "Update is now complete!"
 if [[ "$RESTART_REQ" == "1" ]]; then
-	echo "You should now restart smartcoin for the latest changes to take effect."
+	echo "You should now restart smartcoin for the latest changes to take effect!"
 fi
 
 echo "Please hit any key to continue."
