@@ -78,7 +78,7 @@ Monitor_poclbm()
 	cmd=`grep "khash/s" "/tmp/smartcoin-$key" | tail -n 1`
 	
 	if [ "$cmd" ]; then
-		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f2`
+		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
 		accepted="0"
 		rejected="0"
 	fi
