@@ -1118,8 +1118,7 @@ Edit_Device()
 	read -e -i "$ctype" deviceType
 	echo ""
 
-	echo "Enter the OpenCL device number"
-	echo "(The list above is what is detected as available)"
+	echo "Enter the OpenCL device number (if applicable)"
 	read  -e -i "$cdevice" deviceDevice
 	echo ""
 
