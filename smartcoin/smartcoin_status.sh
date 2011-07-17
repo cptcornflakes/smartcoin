@@ -216,10 +216,13 @@ ShowStatus() {
 		FAworker=$(GetWorkerInfo "$worker")
 		pool=$(Field 5 "$FAworker")
 
+	
+		# TODO: Optimize the following queries by including in the GenCurrentProfile call?
 		Q="SELECT name FROM device WHERE pk_device=$device;"
 		deviceName=$(RunSQL "$Q")
+		Q="SELECT launch FROM miner WHERE pk_miner='$miner';"
+		minerLaunch=$(RunSQL "$Q")		
 
-		
 		failOverStatus=""
 		if [[ "$profileName" == "Failover" ]]; then
 			if [[ "$oldProfile" != "$thisProfile" ]]; then
@@ -275,9 +278,11 @@ ShowStatus() {
 		rejected="0"
 		output=""
 
-
-		MonitorPhoenix
-		
+		case "$minerLaunch" in
+		*phoenix.py*)
+			MonitorPhoenix
+			;;
+		esac
 
 		status=$status"$deviceName:\t$output\n"                    
                 
