@@ -333,7 +333,7 @@ ShowStatus() {
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0.00"
 	fi
-	status=$status"Grand Total: [$compositeHashes $hashUnits/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
+	status=$status"Grand Total: [$compositeHashes MHash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
 
 	echo  $status
 	#screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"
