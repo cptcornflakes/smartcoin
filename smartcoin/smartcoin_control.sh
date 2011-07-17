@@ -1045,7 +1045,11 @@ Add_Device()
 	read deviceName
 	echo ""
 
-	echo "Enter the OpenCL device number"
+	echo "Enter the device type: ('gpu' or 'cpu')"
+	read -e -i "gpu" deviceType
+	echo ""
+
+	echo "Enter the OpenCL device number (if applicable)"
 	read  deviceDevice
 	echo ""
 
@@ -1060,8 +1064,7 @@ Add_Device()
 
 	
         echo "Adding Device..."
-	#TODO: Fix hard coded type
-        Q="INSERT INTO device (name,device,disabled,fk_machine,auto_allow,type) VALUES ('$deviceName','$deviceDevice','$deviceDisabled','$thisMachine','$deviceAllow','gpu');"
+        Q="INSERT INTO device (name,device,disabled,fk_machine,auto_allow,type) VALUES ('$deviceName','$deviceDevice','$deviceDisabled','$thisMachine','$deviceAllow','$deviceType');"
         RunSQL "$Q"
 	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
@@ -1088,12 +1091,14 @@ Edit_Device()
 	E="Please select the device from the list above to edit"
 	GetPrimaryKeySelection EditPK "$Q" "$E"
         
-	Q="SELECT name,device,auto_allow,disabled FROM device WHERE pk_device=$EditPK;"
+	Q="SELECT name,device,auto_allow,disabled,type FROM device WHERE pk_device=$EditPK;"
 	R=$(RunSQL "$Q")
 	cname=$(Field 1 "$R")
 	cdevice=$(Field 2 "$R")
 	callow=$(Field 3 "$R")
 	cdisabled=$(Field 4 "$R")
+	ctype=$(Field 5 "$R")
+
 	cmachine=$thisMachine
 
 	clear
@@ -1109,14 +1114,10 @@ Edit_Device()
 	read -e -i "$cname" deviceName
 	echo ""
 
-	D=`$CUR_LOCATION/smartcoin_devices.py`
-	D=$(Field_Prepare "$D")
-	for device in $D; do
-		devID=$(Field 1 "$device")
-		devName=$(Field 2 "$device")
-		echo "$devID) $devName"
-	done
+	echo "Enter the device type: ('gpu' or 'cpu')"
+	read -e -i "$ctype" deviceType
 	echo ""
+
 	echo "Enter the OpenCL device number"
 	echo "(The list above is what is detected as available)"
 	read  -e -i "$cdevice" deviceDevice
@@ -1131,8 +1132,7 @@ Edit_Device()
 
         echo "Updating Device..."
 
-	# TODO: fix hard-coded type!
-        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine='$thisMachine', disabled='$deviceDisabled', auto_allow='$deviceAllow', type='gpu' WHERE pk_device='$EditPK'"
+        Q="UPDATE device SET name='$deviceName', device='$deviceDevice', fk_machine='$thisMachine', disabled='$deviceDisabled', auto_allow='$deviceAllow', type='$deviceType' WHERE pk_device='$EditPK'"
         RunSQL "$Q"
 	echo done
 	sleep 1
