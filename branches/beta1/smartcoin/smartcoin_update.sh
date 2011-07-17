@@ -44,7 +44,7 @@ safe_update=`svn diff -r $svn_rev_start:$svn_rev_end $CUR_LOCATION/update.ver`
 # will be sure to be in the correct state to accept further updates and patches.
 BP="300 "	# The database moves in this update
 BP=$BP"365 "	# Stable/experimental branch stuff goes live
-BP=$BP"436 "	# prepend http:// to pool server addresses (mostly for cgminer)
+BP=$BP"438 "	# prepend http:// to pool server addresses (mostly for cgminer)
 
 
 bp_message=""
@@ -167,7 +167,7 @@ else
 			echo "Email setting updated."
 			echo ""
 			;;
-		436)
+		438)
 			Log "Applying r$i patch..." 1
 			echo ""
 			Q="SELECT pk_pool,server FROM pool;"
