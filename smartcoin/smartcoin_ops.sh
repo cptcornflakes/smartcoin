@@ -491,7 +491,7 @@ AddTime()
 DonationActive() {
 	Q="SELECT value FROM settings WHERE data='donation_start';"
 	R=$(RunSQL "$Q")
-	local $(Field 1 "$R")
+	local start=$(Field 1 "$R")
 	
 	Q="SELECT value FROM settings WHERE data='donation_time';"
 	R=$(RunSQL "$Q")
