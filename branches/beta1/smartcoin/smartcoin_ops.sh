@@ -102,6 +102,7 @@ startMiners() {
 	# Lets start up the miner session with a dummy window, so that we can set options,
 	# such as zombie mode	
 	screen -dmS $minerSession -t "miner-dummy"
+	sleep 2
 	screen -r $minerSession -X zombie ko
 	screen -r $minerSession -X chdir
 	screen -r $minerSession -X hardstatus on
