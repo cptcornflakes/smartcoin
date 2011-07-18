@@ -45,7 +45,7 @@ if [[ "$host" == "1" ]]; then
 fi
 
 # Reset the failover information in the database
-Q="UPDATE profile SET failovercount='0', down='0';"
+Q="UPDATE profile SET failover_count='0', down='0';"
 RunSQL "$Q"
 
 # Let the user have their own custom initialization script if they want
