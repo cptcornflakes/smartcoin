@@ -285,12 +285,12 @@ ShowStatus() {
 				cnt="0"
 			fi
 		
-			if [[ "$cnt" -lt "10" ]]; then
+			if [[ "$cnt" -lt "50" ]]; then
 				let cnt++
 				echo "$cnt" > /tmp/smartcoin-$key.lockup
 			fi
 
-			if [[ "$cnt" -eq "10" ]]; then
+			if [[ "$cnt" -eq "50" ]]; then
 				let cnt++
 				echo "$cnt" > /tmp/smartcoin-$key.lockup
 				Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"

@@ -37,6 +37,10 @@ svn_stable_rev_end=$(GetStableHead "$svn_current_repo")
 Log "Checking stable update flag..."
 safe_update=`svn diff -r $svn_rev_start:$svn_rev_end $CUR_LOCATION/update.ver`
 
+if [[ -z "$experimental_update" ]]; then
+	svn_rev_end=$svn_stable_rev_end
+fi
+
 
 # Make a list of "breakpoints"
 # Breakpoints are revision numbers where the smartcoin software must be restarted before applying any more updates or patches.
