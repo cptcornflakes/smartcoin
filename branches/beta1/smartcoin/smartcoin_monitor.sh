@@ -17,7 +17,7 @@ fi
 # PHOENIX monitoring
 Monitor_phoenix()
 {
-	cmd=`grep "hash" "/tmp/smartcoin-$key" | tail -n 1`
+	cmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 	starting=`grep "starting" "/tmp/smartcoin-$key" | tail -n 1`
 
 
@@ -75,7 +75,7 @@ Monitor_phoenix()
 Monitor_poclbm()
 {
 	# For now, get hash counting working! Look into accepted/rejected later!
-	cmd=`grep "khash/s" "/tmp/smartcoin-$key" | tail -n 1`
+	cmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 	
 	if [ "$cmd" ]; then
 		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
@@ -96,7 +96,7 @@ Monitor_poclbm()
 
 Monitor_cgminer()
 {
-	cmd=`grep "(5s)" "/tmp/smartcoin-$key" | tail -n 1`
+	cmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 
 	if [[ "$cmd" == *Gh/s* ]]; then
 		hashUnits="Ghash"
