@@ -138,6 +138,7 @@ MarkFailedProfiles()
 			Q="UPDATE profile SET down='$db_failed', failover_count='0' WHERE pk_profile='$theProfile';"
 			RunSQL "$Q"
 			#Log "DEBUG: $Q"
+      
 		fi
 			
 	fi
@@ -299,6 +300,15 @@ ShowStatus() {
 				echo "$cnt" > /tmp/smartcoin-$key.lockup
 				Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
 				Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
+        Log "       Below is a capture of the miner output which caused the error:"
+        Log "$newMinerOutput"
+        
+        # Let the user have their own custom lockup script if they want
+        if [[ -f "$CUR_LOCATION/init.sh" ]]; then
+           Log "User lockup script found. Running lockup script." 1
+           $CUR_LOCATION/lockup.sh
+        fi
+        
 				# Kill the miners
 				killMiners
 				# Commit suicide
