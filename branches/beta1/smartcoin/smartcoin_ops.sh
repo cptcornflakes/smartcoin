@@ -44,7 +44,8 @@ FormatOutput() {
 	local percentage="$4"
 
 	Q="SELECT value FROM settings WHERE data='format';"
-	local format=$(RunSQL "$Q")
+	local R=$(RunSQL "$Q")
+	format=$(Field 1 "$R")
 
 	format=${format//<#hashrate#>/$hashes}
 	format=${format//<#accepted#>/$accepted}
