@@ -38,10 +38,10 @@ GetStableHead() {
 }
 
 FormatOutput() {
-	local hashes=$1
-	local accepted=$2
-	local rejected=$3
-	local percentage=$4
+	local hashes="$1"
+	local accepted="$2"
+	local rejected="$3"
+	local percentage="$4"
 
 	Q="SELECT value FROM settings WHERE data='format';"
 	local format=$(RunSQL "$Q")
