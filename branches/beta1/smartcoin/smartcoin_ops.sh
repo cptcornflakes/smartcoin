@@ -112,7 +112,7 @@ tableIsEmpty() {
 
 startMiners() {
 	local thisMachine=$1
-	
+	DeleteTemporaryFiles
 	local FA=$(GenCurrentProfile "$thisMachine")
 
 	# Lets start up the miner session with a dummy window, so that we can set options,
@@ -143,7 +143,6 @@ startMiners() {
 
 killMiners() {
 	Log "Killing Miners...."
-	DeleteTemporaryFiles
 	screen -d -r $minerSession -X quit 
 	sleep 2
 }
