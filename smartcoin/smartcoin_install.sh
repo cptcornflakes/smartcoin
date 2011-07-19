@@ -373,6 +373,10 @@ Log "Setting update system to 'stable'"
 Q="INSERT INTO settings (data,value,description) VALUES ('dev_branch','stable','Development branch to follow (stable/experimental)');"
 RunSQL "$Q"
 
+# Set up default display format
+Log "Setting up default display format"
+Q="INSERT INTO settings (data,value,description) VALUES ('format','[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]','Miner output format string');"
+RunSQL "Q"
 
 # ---------
 # Finished!

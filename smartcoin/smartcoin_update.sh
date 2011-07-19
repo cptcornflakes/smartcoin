@@ -171,7 +171,13 @@ else
 			echo "Email setting updated."
 			echo ""
 			;;
-		
+		458)
+			Log "Applying r$i patch..." 1
+			echo ""
+			Log "Creating format setting..." 1
+			Q="INSERT INTO settings (data,value,description) VALUES ('format','[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]','Miner output format string');"
+			RunSQL "Q"
+			;;
 
     		*)	
 
