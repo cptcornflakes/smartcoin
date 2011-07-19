@@ -274,10 +274,14 @@ ShowStatus() {
 		fi
 
 		# TODO: Look for hardlock conditions!
+    Q="SELECT down FROM profile WHERE pk_profile='$thisProfile';"
+    down=$(RunSQL "$Q")
+    
 		oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 
+    if [[ "$down" == "0" ]]; then
 		if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
 			# Increment counter
 			local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
@@ -309,6 +313,7 @@ ShowStatus() {
 			# Reset counter
 			rm /tmp/smartcoin-$key.lockup 2> /dev/null
 		fi
+    fi
 
 
 		hashes="0"
