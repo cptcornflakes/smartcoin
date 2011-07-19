@@ -176,7 +176,7 @@ else
 			echo ""
 			Log "Creating format setting..." 1
 			Q="INSERT INTO settings (data,value,description) VALUES ('format','[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]','Miner output format string');"
-			RunSQL "Q"
+			RunSQL "$Q"
 			;;
 
     		*)	
