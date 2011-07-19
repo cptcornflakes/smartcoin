@@ -382,7 +382,7 @@ ShowStatus() {
 		percentRejected="0.00"
 	fi
 
-	formattedOutput=$(FormatOutput $compositeHashes $compositeAccepted $compositeRejected $percentRejected)
+	formattedOutput="$(FormatOutput $compositeHashes $compositeAccepted $compositeRejected $percentRejected)"
 	status=$status"Grand Total : $formattedOutput\n"
 
 	echo  $status

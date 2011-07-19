@@ -50,7 +50,7 @@ FormatOutput() {
 	format=${format//<#accepted#>/$accepted}
 	format=${format//<#rejected#>/$rejected}
 	format=${format//<#rejected_percent#>/$percentage}
-	echo $format
+	echo "$format"
 	
 }
 
