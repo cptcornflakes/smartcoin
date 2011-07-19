@@ -52,8 +52,14 @@ Monitor_phoenix()
 		hashes=`echo "scale=2; $hashes/1000" | bc -l 2> /dev/null`
 		;;
 	esac
+	
+	local percentRejected=`echo "scale=3;a=($rejected*100) ; b=$accepted; c=a/b; print c" | bc -l 2> /dev/null`
+	if [ -z "$percentRejected" ]; then
+		percentRejected="0.00"
+	fi
 
-	output="$cmd"
+	output=$(FormatOutput $hashes $accepted $rejected $percentRejected)
+
 	if [[ -z "$cmd" ]]; then
 		if [[ "$starting" ]]; then
 			output="\e[00;31m<<<STARTING>>>\e[00m"	
@@ -86,7 +92,13 @@ Monitor_poclbm()
 	# Convert from khash to MHash
 	hashes=`echo "scale=2; $hashes/1000" | bc -l 2> /dev/null`
 
-	output="[$hashes MHash/sec] [$accepted Accepted] [$rejected Rejected]"
+	local percentRejected=`echo "scale=3;a=($rejected*100) ; b=$accepted; c=a/b; print c" | bc -l 2> /dev/null`
+	if [ -z "$percentRejected" ]; then
+		percentRejected="0.00"
+	fi
+
+	output=$(FormatOutput $hashes $accepted $rejected $percentRejected)
+
 	if [[ "$hashes" == "0" ]]; then
 		# Is it safe to say the profile is down?
 		output="\e[00;31m<<<DOWN>>>\e[00m"
@@ -126,7 +138,13 @@ Monitor_cgminer()
 		;;
 	esac
 
-	output="[$hashes MHash/sec] [$accepted Accepted] [$rejected Rejected]"
+	local percentRejected=`echo "scale=3;a=($rejected*100) ; b=$accepted; c=a/b; print c" | bc -l 2> /dev/null`
+	if [ -z "$percentRejected" ]; then
+		percentRejected="0.00"
+	fi
+
+	output=$(FormatOutput $hashes $accepted $rejected $percentRejected)
+
 	if [[ "$hashes" == "0" ]]; then
 		# Is it safe to say the profile is down?
 		output="\e[00;31m<<<DOWN>>>\e[00m"

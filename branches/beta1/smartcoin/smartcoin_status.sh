@@ -138,7 +138,6 @@ MarkFailedProfiles()
 			Q="UPDATE profile SET down='$db_failed', failover_count='0' WHERE pk_profile='$theProfile';"
 			RunSQL "$Q"
 			#Log "DEBUG: $Q"
-      
 		fi
 			
 	fi
@@ -247,7 +246,8 @@ ShowStatus() {
 		if [ "$oldPool" != "$pool" ]; then
 
 			if [ "$oldPool" != "" ]; then
-				status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected] [$percentRejected%  Rejected]\n"
+				formattedOutput=$(FormatOutput $totalHashes $totalAccepted $totalRejected $percentRejected)
+				status=$status"Total : $formattedOutput\n"
 				status="$status$failOverStatus"
 
 				compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
@@ -275,14 +275,10 @@ ShowStatus() {
 		fi
 
 		# TODO: Look for hardlock conditions!
-    Q="SELECT down FROM profile WHERE pk_profile='$thisProfile';"
-    down=$(RunSQL "$Q")
-    
 		oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 
-    if [[ "$down" == "0" ]]; then
 		if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
 			# Increment counter
 			local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
@@ -300,15 +296,6 @@ ShowStatus() {
 				echo "$cnt" > /tmp/smartcoin-$key.lockup
 				Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
 				Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
-        Log "       Below is a capture of the miner output which caused the error:"
-        Log "$newMinerOutput"
-        
-        # Let the user have their own custom lockup script if they want
-        if [[ -f "$CUR_LOCATION/init.sh" ]]; then
-           Log "User lockup script found. Running lockup script." 1
-           $CUR_LOCATION/lockup.sh
-        fi
-        
 				# Kill the miners
 				killMiners
 				# Commit suicide
@@ -323,7 +310,6 @@ ShowStatus() {
 			# Reset counter
 			rm /tmp/smartcoin-$key.lockup 2> /dev/null
 		fi
-    fi
 
 
 		hashes="0"
@@ -373,7 +359,9 @@ ShowStatus() {
 
 	MarkFailedProfiles $oldProfile $profileFailed
 
-	status=$status"Total : [$totalHashes MHash/sec] [$totalAccepted Accepted] [$totalRejected Rejected] [$percentRejected%  Rejected]\n\n"
+	formattedOutput=$(FormatOutput $totalHashes $totalAccepted $totalRejected $percentRejected)
+	status=$status"Total : $formattedOutput\n"
+
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
 	compositeRejected=`expr $compositeRejected + $totalRejected`
@@ -393,7 +381,9 @@ ShowStatus() {
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0.00"
 	fi
-	status=$status"Grand Total: [$compositeHashes MHash/sec] [$compositeAccepted Accepted] [$compositeRejected Rejected] [$percentRejected%  Rejected]"
+
+	formattedOutput=$(FormatOutput $compositeHashes $compositeAccepted $compositeRejected $percentRejected)
+	status=$status"Grand Total : $formattedOutput\n"
 
 	echo  $status
 	#screen -d -r $sessionName -p status -X hardcopy "/tmp/smartcoin-status"

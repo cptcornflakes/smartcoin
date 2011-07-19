@@ -37,7 +37,22 @@ GetStableHead() {
 	echo `svn info $repo/update.ver | grep "Last Changed Rev:" | awk '{print $4}'`
 }
 
+FormatOutput() {
+	local hashes=$1
+	local accepted=$2
+	local rejected=$3
+	local percentage=$4
 
+	Q="SELECT value FROM settings WHERE data='format';"
+	local format=$(RunSQL "$Q")
+
+	format=${format//<#hashrate#>/$hashes}
+	format=${format//<#accepted#>/$accepted}
+	format=${format//<#rejected#>/$rejected}
+	format=${format//<#rejected_percent#>/$percentage}
+	echo "$format"
+	
+}
 
 # GLOBAL VARIABLES
 # TODO: some of these will be added to the settings database table eventually.
