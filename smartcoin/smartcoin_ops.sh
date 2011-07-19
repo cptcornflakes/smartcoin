@@ -46,11 +46,11 @@ FormatOutput() {
 	Q="SELECT value FROM settings WHERE data='format';"
 	local format=$(RunSQL "$Q")
 
-	format=${format//<#hashrate#>/"$hashes"}
-	format=${format//<#accepted#>/"$accepted"}
-	format=${format//<#rejected#>/"$rejected"}
-	format=${format//<#rejected_percent#>/"$percentage"}
-	echo -e "$format"
+	format=${format//<#hashrate#>/$hashes}
+	format=${format//<#accepted#>/$accepted}
+	format=${format//<#rejected#>/$rejected}
+	format=${format//<#rejected_percent#>/$percentage}
+	echo $format
 	
 }
 
