@@ -360,7 +360,7 @@ ShowStatus() {
 	MarkFailedProfiles $oldProfile $profileFailed
 
 	formattedOutput=$(FormatOutput $totalHashes $totalAccepted $totalRejected $percentRejected)
-	status=$status"Total : $formattedOutput\n"
+	status=$status"Total : $formattedOutput\n\n"
 
 	compositeHashes=$(echo "scale=2; $compositeHashes+$totalHashes" | bc -l) 
 	compositeAccepted=`expr $compositeAccepted + $totalAccepted`
