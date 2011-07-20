@@ -37,6 +37,9 @@ if [[ "$ARG_DELAY" ]]; then
 fi
 if [[ "$ARG_RELOAD" ]]; then
   killMiners
+  clear
+  ShowHeader
+  echo "Smartcoin was told to reload remotely. Reloading miners..."
   startMiners 1 #TODO fix hard-coded machine number!
   exit
   
