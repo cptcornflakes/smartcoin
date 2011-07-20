@@ -10,12 +10,44 @@ fi
 # Start the backend service
 #$HOME/smartcoin/smartcoin_backend.sh &
 
-if [[ "$1" == "--silent" ]]; then
-	SILENT_MODE="1"
-else
-	SILENT_MODE="0"
-fi
+# Parse command line options
+for arg in $*; do
+  case $arg in
+  --delay=*)  
+    ARG_DELAY=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    ;;
+  --kill)
+    ARG_KILL="1"
+    ;;
+  --silent)
+    ARG_SILENT="1"
+    ;;
+  --restart)
+    ARG_RESTART="1"
+    ;;
+  --reload)
+    ARG_RELOAD="1"
+    ;;
+  esac
+done
 
+# Process command line arguments
+if [[ "$ARG_DELAY" ]]; then
+  sleep "$ARG_DELAY"
+fi
+if [[ "$ARG_RELOAD" ]]; then
+  killMiners
+  startMiners $MACHINE
+fi
+if [[ "$ARG_RESTART" ]]; then
+  smartcoin --sleep=5&
+  killMiners
+  screen -d -r $sessionName -X quit
+fi
+if [[ "$ARG_KILL" ]]; then
+  killMiners
+  screen -d -r $sessionName -X quit
+fi
 
 
 echo "Starting SmartCoin at location: $CUR_LOCATION..."
@@ -79,11 +111,11 @@ done
 
 
 
-if [[ "$SILENT_MODE" == "0" ]]; then
-	clear
-	GotoStatus
+if [[ "$ARG_SILENT" ]]; then
+  Log "SmartCoin started in the backround." 1
 else
-	Log "SmartCoin started in the backround." 1
+	 clear
+	GotoStatus
 fi
 
 
