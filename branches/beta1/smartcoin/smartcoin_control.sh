@@ -26,7 +26,7 @@ Do_Update()
   local svn_repo=$(GetRepo)
   local svn_exp=$(GetHead "$svn_repo")
   local svn_stb=$(GetStableHead "$svn_repo")
-  E="Your current version is r$svn_rev.\n"
+  E="Your current version is r$svn_rev$G_BRANCH.\n"
   E=$E"The current experimental version is r$svn_exp\n"
   E=$E"The current stable version is r$svn_stb\n"
   E=$E"Are you sure that you wish to perform an update?"
