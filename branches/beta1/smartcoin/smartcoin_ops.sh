@@ -227,6 +227,9 @@ GenCurrentProfile()
 		# Generate the FieldArray via DonateProfile
 		Log "Generating Donation Profile"
 		FieldArray=$(GenDonationProfile "$thisMachine")
+  elif [[ "$thisProfile" == "-4" ]]; then
+    # Generate a blank Field array for the "idle" profile
+    FieldArray=""
 	elif [[ "$thisProfile" == "-3" ]]; then
 		# Generate the FieldArray via Failover
 		FieldArray=$(GenFailoverProfile "$thisMachine")
