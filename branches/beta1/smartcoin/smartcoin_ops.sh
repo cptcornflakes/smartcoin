@@ -102,7 +102,7 @@ RunningOnLinuxcoin() {
 }
 
 ShowHeader() {
-	echo "Smartcoin r$REVISION$G_BRANCH_ABBV" $(date "+%m-%d-%y %T")
+	echo "Smartcoin r$REVISION$G_BRANCH_ABBV" $(date "+%T")
 	echo "----------------------"
 }
 
