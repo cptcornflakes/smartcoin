@@ -44,7 +44,7 @@ fi
 if [[ "$ARG_RESTART" ]]; then
   smartcoin --sleep=5&
   killMiners
-  screen -d -r $sessionName -X quit 2> /dev/null
+  DISPLAY=:0 screen -d -r $sessionName -X quit 2> /dev/null
   exit
 fi
 if [[ "$ARG_KILL" ]]; then
