@@ -145,6 +145,7 @@ Do_ChangeProfile() {
 	autoEntry=$(FieldArrayAdd "-2	1	Donation")
 	autoEntry=$autoEntry$(FieldArrayAdd "-1	2	Automatic")
 	autoEntry=$autoEntry$(FieldArrayAdd "-3	3	Failover")
+	autoEntry=$autoEntry$(FieldArrayAdd "-4	4	Idle")
 
 	# Display menu
 	Q="SELECT pk_machine,name from machine"
