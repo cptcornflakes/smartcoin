@@ -114,6 +114,7 @@ for row in $R; do
 	machineName=$(Field 2 "$row")
 	Log "	$machineName"
 	screen -r $sessionName -X screen -t $machineName "$CUR_LOCATION/smartcoin_status.sh" "$pk_machine"
+	screen -r $sessionName -p $machineName -X wrap off
 done
 
 
