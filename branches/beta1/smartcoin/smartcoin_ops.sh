@@ -572,6 +572,8 @@ GetProfileName() {
 
 	if [[ "$Donate" ]]; then
 		echo "Donation (via AutoDonate)  - $Donate minutes remaining."
+	elif [[ "$thisProfile" == "-4" ]]; then
+		echo "Idle"
 	elif [[ "$thisProfile" == "-3" ]]; then
 		echo "Failover"
 	elif [[ "$thisProfile" == "-2" ]]; then
