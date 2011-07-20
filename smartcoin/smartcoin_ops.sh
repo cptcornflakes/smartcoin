@@ -15,6 +15,20 @@ else
 fi
 . $CUR_LOCATION/sql_ops.sh
 
+# GLOBALS
+Q="SELECT value FROM settings WHERE data='dev_branch';"
+R=$(RunSQL "$Q")
+branch=$(Field 1 "$R")
+if [[ "$branch" == "stable" ]]; then
+	G_BRANCH="$branch"
+	G_BRANCH_ABBV="s"
+elif [[ "$branch" == "experimental" ]]; then
+	G_BRANCH="$branch"
+	G_BRANCH_ABBV="e"
+fi
+
+
+
 # SVN STUFF
 GetRevision() {
   Q="SELECT value FROM settings WHERE data='dev_branch';"
@@ -88,8 +102,9 @@ RunningOnLinuxcoin() {
 }
 
 ShowHeader() {
-	echo "smartcoin Management System r$REVISION"    $(date)
-	echo "--------------------------------------------------------------------------------"
+	echo "Smartcoin r$REVISION$G_BRANCH_ABBV" 
+	echo $(date "+%d-%b-%Y %T")
+	echo "----------------------"
 }
 
 
