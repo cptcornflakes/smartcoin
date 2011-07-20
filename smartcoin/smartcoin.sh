@@ -14,7 +14,7 @@ fi
 for arg in $*; do
   case $arg in
   --delay=*)  
-    ARG_DELAY=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+    ARG_DELAY=`echo $arg | sed 's/[-a-zA-Z0-9]*=//'`
     ;;
   --kill)
     ARG_KILL="1"
