@@ -623,13 +623,31 @@ DisplayMenu()
 
 
 }
-#var=$(GetMenuSelection "$M" "default value")
+#var=$(GetMenuSelection "$M" "default pk")
 GetMenuSelection()
 {
 	local fieldArray=$1
 	local default=$2
 
-	read -e -i "$default" chosen
+	local item
+	local pk
+	local select_id
+	local default_pk
+
+	# We need to translate the default (which is a PK) to a selection ID
+	if [[ "$default" ]]; then
+		for item in $fieldArray; do
+			pk=$(Field 1 "$item")
+			selection_id=$(Field 2 "$item")
+			if [[ "$pk" == "$default" ]]; then
+				default_pk="$selection_id"
+				break	
+			fi
+		done
+	fi
+	
+
+	read -e -i "$default_pk" chosen
 
 	for item in $fieldArray; do
 		choice=$(Field 2 "$item")
