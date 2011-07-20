@@ -37,7 +37,9 @@ if [[ "$ARG_DELAY" ]]; then
 fi
 if [[ "$ARG_RELOAD" ]]; then
   killMiners
-  startMiners $MACHINE
+  startMiners 1 #TODO fix hard-coded machine number!
+  exit
+  
 fi
 if [[ "$ARG_RESTART" ]]; then
   smartcoin --sleep=5&
