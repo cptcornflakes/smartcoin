@@ -33,7 +33,7 @@ fi
 GetRevision() {
   Q="SELECT value FROM settings WHERE data='dev_branch';"
   local branch=$(RunSQL "$Q")
-  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')"($branch)"
+  echo $(svn info $CUR_LOCATION/ | grep "^Revision" | awk '{print $2}')
 }
 
 GetRepo() {
@@ -102,8 +102,7 @@ RunningOnLinuxcoin() {
 }
 
 ShowHeader() {
-	echo "Smartcoin r$REVISION$G_BRANCH_ABBV" 
-	echo $(date "+%d-%b-%Y %T")
+	echo "Smartcoin r$REVISION$G_BRANCH_ABBV" $(date "+%m-%d-%y %T")
 	echo "----------------------"
 }
 
