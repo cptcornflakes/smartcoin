@@ -39,7 +39,7 @@ LoadGlobals()
 
 ExternalReloadCheck()
 {
-	local msg=`cat /tmp/smartcoin.reload 2> /dev/null`
+	local msg=$(cat /tmp/smartcoin.reload 2> /dev/null)
 	
 	if [[ "$msg" ]]; then
 		Log "EXTERNAL RELOAD REQUEST FOUND!"
