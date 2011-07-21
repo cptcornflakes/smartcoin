@@ -101,9 +101,9 @@ RunningOnLinuxcoin() {
 ShowHeader() {
 	echo "Smartcoin r$REVISION$G_BRANCH_ABBV" $(date "+%T")
 	local cols=$(tput cols)
-	for i in $(seq $cols); do echo -n "-"; done
+	#for i in $(seq $cols); do echo -n "-"; done
 
-	#echo "----------------------"
+	echo "----------------------------------------"
 }
 
 
