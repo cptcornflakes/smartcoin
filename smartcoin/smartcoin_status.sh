@@ -21,6 +21,19 @@ fi
 MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
+# Get thethreshold values from the database
+Q="SELECT value FROM settings WHERE data='failover_threshold';"
+R=$(RunSQL "$Q")
+G_FAILOVER_THRESHOLD=$(Field 1 "$R")
+
+Q="SELECT value FROM settings WHERE data='failover_rejection';"
+R=$(RunSQL "$Q")                                                                
+G_FAILOVER_REJECTION=$(Field 1 "$R")
+
+Q="SELECT value FROM settings WHERE data='lockup_threshold';"
+R=$(RunSQL "$Q")                                                                
+G_LOCKUP_THRESHOLD=$(Field 1 "$R")
+
 oldWorkers=""
 Q="SELECT COUNT(*) FROM worker;"
 R=$(RunSQL "$Q")
@@ -133,7 +146,7 @@ MarkFailedProfiles()
 		#Log "DEBUG: $Q"
 
 		# TODO: replace hard-coded max count with a setting?
-		if [[ "$db_count" -ge "10" ]]; then
+		if [[ "$db_count" -ge "$G_FAILOVER_THRESHOLD" ]]; then
 			let db_failed=db_failed^1
 			Q="UPDATE profile SET down='$db_failed', failover_count='0' WHERE pk_profile='$theProfile';"
 			RunSQL "$Q"
@@ -293,12 +306,12 @@ ShowStatus() {
 				cnt="0"
 			fi
 		
-			if [[ "$cnt" -lt "50" ]]; then
+			if [[ "$cnt" -lt "$G_LOCKUP_THRESHOLD" ]]; then
 				let cnt++
 				echo "$cnt" > /tmp/smartcoin-$key.lockup
 			fi
 
-			if [[ "$cnt" -eq "50" ]]; then
+			if [[ "$cnt" -eq "$G_LOCKUP_THRESHOLD" ]]; then
 				let cnt++
 				echo "$cnt" > /tmp/smartcoin-$key.lockup
 				Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
@@ -307,7 +320,7 @@ ShowStatus() {
         Log "$newMinerOutput"
 
         # Let the user have their own custom lockup script if they want
-        if [[ -f "$CUR_LOCATION/init.sh" ]]; then
+        if [[ -f "$CUR_LOCATION/lockup.sh" ]]; then
           Log "User lockup script found. Running lockup script." 1
           $CUR_LOCATION/lockup.sh
         fi
@@ -368,7 +381,7 @@ ShowStatus() {
 		# Fail profile on unusually high rejection percentage
 		# TODO: Get rid of hard-coded limit, and make as a new setting
 		percentRejectedInt=`printf %0.f $percentRejected`
-		if [[ "$percentRejectedInt" -gt "10" ]]; then
+		if [[ "$percentRejectedInt" -gt "$G_FAILOVER_REJECTION" ]]; then
 			let profileFailed++
 		fi
 	done

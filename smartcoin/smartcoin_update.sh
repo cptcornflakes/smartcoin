@@ -178,7 +178,19 @@ else
 			Q="INSERT INTO settings (data,value,description) VALUES ('format','[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]','Miner output format string');"
 			RunSQL "$Q"
 			;;
-
+		490)
+			Log "Applying r$i patch..." 1                           
+                        echo "" 		
+			# Set up threshold default values                                               
+			Q="INSERT INTO settings (data,value,description) VALUES ('failover_threshold','10','Failover Threshold');"                                                      
+			RunSQL "$Q"                                                                     
+                                                                                
+			Q="INSERT INTO settings (data,value,description) VALUES ('failover_rejection','10','Failover on rejection % higher than');"                                     
+			RunSQL "$Q"                                                                     
+                                                                                			
+			Q="INSERT INTO settings (data,value,description) VALUES ('lockup_threshold','50','Lockup Threshold');"                                                          
+			RunSQL "$Q"    
+			;;
     		*)	
 
         		Log "No patches to apply to r$i"
