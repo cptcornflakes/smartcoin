@@ -441,6 +441,5 @@ while true; do
 	clear
 	ShowHeader
 	echo -ne $UI
-	sleep $statusRefresh
 done
 
