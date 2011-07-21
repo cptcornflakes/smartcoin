@@ -19,7 +19,7 @@ RunSQL()
 
 		while [[ $? -ne 0 ]]; do
 			let i++
-
+			sleep 0.01
 			res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" 2> /dev/null | Field_Translate)
 			if [[ "$i" -gt 25 ]]; then
 				Log "ERROR: SQL Query failed!"

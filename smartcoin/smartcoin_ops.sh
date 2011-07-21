@@ -84,10 +84,7 @@ EXPERIMENTAL=2
 
 commPipe=$HOME/.smartcoin/smartcoin.cmd
 statusRefresh="5"
-MySqlHost="127.0.0.1"
-MySqlPort=""
-MySqlUser="smartcoin"
-MySqlPassword="smartcoin"
+
 
 
 

@@ -21,18 +21,39 @@ fi
 MACHINE=$1
 Log "Starting status monitor for machine $MACHINE"
 
-# Get thethreshold values from the database
-Q="SELECT value FROM settings WHERE data='failover_threshold';"
-R=$(RunSQL "$Q")
-G_FAILOVER_THRESHOLD=$(Field 1 "$R")
+LoadGlobals()
+{
+	# Get thethreshold values from the database
+	Q="SELECT value FROM settings WHERE data='failover_threshold';"
+	R=$(RunSQL "$Q")
+	G_FAILOVER_THRESHOLD=$(Field 1 "$R")
 
-Q="SELECT value FROM settings WHERE data='failover_rejection';"
-R=$(RunSQL "$Q")                                                                
-G_FAILOVER_REJECTION=$(Field 1 "$R")
+	Q="SELECT value FROM settings WHERE data='failover_rejection';"
+	R=$(RunSQL "$Q")                                                                
+	G_FAILOVER_REJECTION=$(Field 1 "$R")
 
-Q="SELECT value FROM settings WHERE data='lockup_threshold';"
-R=$(RunSQL "$Q")                                                                
-G_LOCKUP_THRESHOLD=$(Field 1 "$R")
+	Q="SELECT value FROM settings WHERE data='lockup_threshold';"
+	R=$(RunSQL "$Q")                                                                
+	G_LOCKUP_THRESHOLD=$(Field 1 "$R")
+}
+
+ExternalReloadCheck()
+{
+	local msg=`cat /tmp/smartcoin.reload 2> /dev/null`
+	
+	if [[ "$msg" ]]; then
+		Log "EXTERNAL RELOAD REQUEST FOUND!"
+		Log "	$msg"
+		
+		LoadGlobals
+		# Reload the miner screen session
+		killMiners
+		clear
+		ShowHeader
+		echo "$msg ...."
+		startMiners $MACHINE
+	fi
+}
 
 oldWorkers=""
 Q="SELECT COUNT(*) FROM worker;"
@@ -289,57 +310,53 @@ ShowStatus() {
 
 		# TODO: Look for hardlock conditions!
     
-    Q="SELECT down FROM profile WHERE pk_profile='$thisProfile';"
-    down=$(RunSQL "$Q")
-    down=$(Field 1 "$down")
+    		Q="SELECT down FROM profile WHERE pk_profile='$thisProfile';"
+		down=$(RunSQL "$Q")
+		down=$(Field 1 "$down")
     
-    oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
+		oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 
   
-      if [[ "$down" == "0" ]]; then 
-      if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
-			# Increment counter
-			local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
-			if [[ -z "$cnt" ]]; then
-				cnt="0"
-			fi
+		if [[ "$down" == "0" ]]; then 
+			if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
+				# Increment counter
+				local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
+				if [[ -z "$cnt" ]]; then
+					cnt="0"
+				fi
 		
-			if [[ "$cnt" -lt "$G_LOCKUP_THRESHOLD" ]]; then
-				let cnt++
-				echo "$cnt" > /tmp/smartcoin-$key.lockup
+				if [[ "$cnt" -lt "$G_LOCKUP_THRESHOLD" ]]; then
+					let cnt++
+					echo "$cnt" > /tmp/smartcoin-$key.lockup
+				fi
+
+				if [[ "$cnt" -eq "$G_LOCKUP_THRESHOLD" ]]; then
+					let cnt++
+					echo "$cnt" > /tmp/smartcoin-$key.lockup
+					Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
+					Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
+       					Log "       Below is a capture of the miner output which caused the error:"
+					Log "$newMinerOutput"
+
+				       	# Let the user have their own custom lockup script if they want
+					if [[ -f "$CUR_LOCATION/lockup.sh" ]]; then
+          					Log "User lockup script found. Running lockup script." 1
+          					$CUR_LOCATION/lockup.sh
+        				fi
+
+					# Kill the miners
+					killMiners
+					# Start Them again
+					startMiners $MACHINE
+
+				fi
+			else
+				# Reset counter
+				rm /tmp/smartcoin-$key.lockup 2> /dev/null
 			fi
-
-			if [[ "$cnt" -eq "$G_LOCKUP_THRESHOLD" ]]; then
-				let cnt++
-				echo "$cnt" > /tmp/smartcoin-$key.lockup
-				Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
-				Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
-        Log "       Below is a capture of the miner output which caused the error:"
-        Log "$newMinerOutput"
-
-        # Let the user have their own custom lockup script if they want
-        if [[ -f "$CUR_LOCATION/lockup.sh" ]]; then
-          Log "User lockup script found. Running lockup script." 1
-          $CUR_LOCATION/lockup.sh
-        fi
-
-        # Kill the miners
-				killMiners
-				# Start Them again
-				startMiners $MACHINE
-
-				# Send email
-
-			fi
-
-
-		else
-			# Reset counter
-			rm /tmp/smartcoin-$key.lockup 2> /dev/null
-		fi
-    fi
+   		fi
 
 		hashes="0"
 		accepted="0"
@@ -433,9 +450,11 @@ ShowStatus() {
 
 clear
 echo "INITIALIZING SMARTCOIN....."
+LoadGlobals
 
 clear
 while true; do
+	ExternalReloadCheck
 	LoadProfileOnChange
 	UI=$(ShowStatus)
 	clear
