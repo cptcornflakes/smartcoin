@@ -50,7 +50,7 @@ ExternalReloadCheck()
 		killMiners
 		clear
 		ShowHeader
-		echo "$msg ...."
+		echo "$msg"
 		startMiners $MACHINE
 	fi
 }
