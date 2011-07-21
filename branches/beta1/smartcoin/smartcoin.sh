@@ -36,19 +36,11 @@ if [[ "$ARG_DELAY" ]]; then
   sleep "$ARG_DELAY"
 fi
 if [[ "$ARG_RELOAD" ]]; then
-  killMiners
-  clear
-  ShowHeader
-  echo "Smartcoin was told to reload remotely. Reloading miners..."
-  startMiners 1 #TODO fix hard-coded machine number!
+  echo "Smartcoin was told to reload remotely from the commandline." > /tmp/smartcoin.reload
   exit
-  
 fi
 if [[ "$ARG_RESTART" ]]; then
-  smartcoin --sleep=2
-  killMiners
-  screen -d -r $sessionName -X quit 2> /dev/null
-  sleep 15
+  echo "Not yet supported!"
   exit
 fi
 if [[ "$ARG_KILL" ]]; then
