@@ -1035,7 +1035,7 @@ Do_Devices() {
 	EDIT)
 		Edit_Device
 		;;
-  	XIT)
+  	EXIT)
     		return
     		;;
 	*)
