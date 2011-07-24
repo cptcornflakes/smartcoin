@@ -158,6 +158,7 @@ ShowStatus() {
 
 	status="\e[01;33mHost: $hostName\e[00m\n"
 	UseDB "smartcoin.db"
+	# TODO: Add all of these to the GenCurrentProfile and loop through the entire FA?
 	Q="Select name,device,type from device WHERE fk_machine=$MACHINE AND disabled=0 ORDER BY device ASC";
 	R=$(RunSQL "$Q")
 
@@ -171,7 +172,7 @@ ShowStatus() {
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
 		        temperature=$(aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';)
 			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
-      usage=$(aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';)
+      			usage=$(aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';)
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
@@ -186,7 +187,7 @@ ShowStatus() {
 
 
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
-	FA=$(GenCurrentProfile "$MACHINE")
+	FA=$newFA # This was already called from the LoadProfileOnChange command... Why call it again? $(GenCurrentProfile "$MACHINE")
 	profileFailed=0
 	hardlocked=0
 
@@ -211,17 +212,15 @@ ShowStatus() {
 		device=$(Field 3 "$Row")
 		miner=$(Field 4 "$Row")
 		worker=$(Field 5 "$Row")
+		deviceName=$(Field 6 "$Row")
+		minerLaunch=$(Field 7 "$Row")
+		down=$(Field 8 "$Row")
+
 
 		FAworker=$(GetWorkerInfo "$worker")
 		pool=$(Field 5 "$FAworker")
 
 	
-		# TODO: Optimize the following queries by including in the GenCurrentProfile call?
-		Q="SELECT name FROM device WHERE pk_device=$device;"
-		deviceName=$(RunSQL "$Q")
-		Q="SELECT launch FROM miner WHERE pk_miner='$miner';"
-		minerLaunch=$(RunSQL "$Q")		
-
 		failOverStatus=""
 		if [[ "$profileName" == "Failover" ]]; then
 			if [[ "$oldProfile" != "$thisProfile" ]]; then
@@ -274,10 +273,7 @@ ShowStatus() {
 
 		# TODO: Look for hardlock conditions!
     
-    		Q="SELECT down FROM profile WHERE pk_profile='$thisProfile';"
-		down=$(RunSQL "$Q")
-		down=$(Field 1 "$down")
-    
+    		  
 		oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
