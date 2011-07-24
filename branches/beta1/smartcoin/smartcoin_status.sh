@@ -414,6 +414,7 @@ LoadGlobals
 
 clear
 while true; do
+	DonationActive #set the G_DONATION_ACTIVE variable for upcoming calls
 	ExternalReloadCheck
 	LoadProfileOnChange
 	UI=$(ShowStatus)
