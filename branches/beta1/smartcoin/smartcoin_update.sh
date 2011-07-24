@@ -191,6 +191,13 @@ else
 			Q="INSERT INTO settings (data,value,description) VALUES ('lockup_threshold','50','Lockup Threshold');"                                                          
 			RunSQL "$Q"    
 			;;
+		502)
+			Log "Applying r$i patch..." 1                           
+                        echo "" 	
+			# Set up loop delay for statu screens
+			Q="INSERT INTO settings (data,value,description) VALUES ('loop_delay','0','Status screen loop delay (higher value runs slower)');"                                                      
+			RunSQL "$Q" 
+			;;
     		*)	
 
         		Log "No patches to apply to r$i"
