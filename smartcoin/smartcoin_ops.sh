@@ -215,7 +215,7 @@ GetCurrentProfile()
 {
 	local thisMachine=$1
 
-	local Donate=$(DonationActive)
+	local Donate=$G_DONATION_ACTIVE
 
 	if [[ "$Donate" ]]; then
 		echo "donate"
@@ -233,7 +233,7 @@ GenCurrentProfile()
 	local thisProfile=$(GetCurrentProfile "$thisMachine")
 	local FieldArray
 	
-	local Donate=$(DonationActive) 
+	local Donate=$G_DONATION_ACTIVE
 
 
 	if [[ "$Donate" ]]; then
@@ -583,7 +583,7 @@ DonationActive() {
 	fi
 
 	CycleDonations "$ret"
-	echo $ret
+	G_DONATION_ACTIVE=$ret
 
 }
 
@@ -591,7 +591,7 @@ GetProfileName() {
 	local thisMachine=$1
 
 	local thisProfile=$(GetCurrentProfile $thisMachine)
-	local Donate=$(DonationActive)
+	local Donate=$G_DONATION_ACTIVE
 
 	if [[ "$Donate" ]]; then
 		echo "Donation (via AutoDonate)  - $Donate minutes remaining."
