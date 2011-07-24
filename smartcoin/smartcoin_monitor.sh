@@ -61,18 +61,13 @@ Monitor_phoenix()
 	output=$(FormatOutput $hashes $accepted $rejected $percentRejected)
 
 	if [[ -z "$cmd" ]]; then
-		if [[ "$starting" ]]; then
-			output="\e[00;31m<<<STARTING>>>\e[00m"	
-		else
-			output="\e[00;31m<<<IDLE>>>\e[00m"	
-			# TODO: increment failure counter here??
-		fi
+		output="\e[00;31m<<<IDLE>>>\e[00m"	
+		# TODO: increment failure counter here??
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++
-
 		fi
 	fi
 
@@ -99,10 +94,15 @@ Monitor_poclbm()
 
 	output=$(FormatOutput $hashes $accepted $rejected $percentRejected)
 
-	if [[ "$hashes" == "0" ]]; then
-		# Is it safe to say the profile is down?
-		output="\e[00;31m<<<DOWN>>>\e[00m"
-		let profileFailed++
+	if [[ -z "$cmd" ]]; then
+		output="\e[00;31m<<<IDLE>>>\e[00m"	
+		# TODO: increment failure counter here??
+	else
+		if [[ "$hashes" == "0" ]]; then
+			# Is it safe to say the profile is down?
+			output="\e[00;31m<<<DOWN>>>\e[00m"
+			let profileFailed++
+		fi
 	fi
 }
 
@@ -145,9 +145,14 @@ Monitor_cgminer()
 
 	output=$(FormatOutput $hashes $accepted $rejected $percentRejected)
 
-	if [[ "$hashes" == "0" ]]; then
-		# Is it safe to say the profile is down?
-		output="\e[00;31m<<<DOWN>>>\e[00m"
-		let profileFailed++
+		if [[ -z "$cmd" ]]; then
+		output="\e[00;31m<<<IDLE>>>\e[00m"	
+		# TODO: increment failure counter here??
+	else
+		if [[ "$hashes" == "0" ]]; then
+			# Is it safe to say the profile is down?
+			output="\e[00;31m<<<DOWN>>>\e[00m"
+			let profileFailed++
+		fi
 	fi
 }

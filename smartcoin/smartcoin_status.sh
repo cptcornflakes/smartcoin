@@ -296,7 +296,7 @@ ShowStatus() {
 		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 
   
-		if [[ "$down" == "0" ]]; then 
+		if [[ "$hashes" != "0" ]]; then 
 			if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
 				# Increment counter
 				local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
