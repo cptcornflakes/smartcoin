@@ -283,7 +283,7 @@ GenAutoProfile()
 
 	
 	for thisWorker in $R; do
-		Q="SELECT pk_device, name from device WHERE fk_machine=$thisMachine AND disabled=0 AND type='gpu' ORDER BY device ASC;"
+		Q="SELECT pk_device, name from device WHERE fk_machine=$thisMachine AND disabled=0 AND auto_allow=1 AND type='gpu' ORDER BY device ASC;"
 		R2=$(RunSQL "$Q")
 		for thisDeviceRow in $R2; do
 			thisDevice=$(Field 1 "$thisDeviceRow")
