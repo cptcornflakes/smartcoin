@@ -327,7 +327,7 @@ GenFailoverProfile()
 			local thisWorker=$(Field 3 "$row2")
 			local thisDeviceName=$(Field 4 "$row2")
 			local thisDown=$(Field 5 "$row2")
-			local thisMiner=$(Field 6 "$row2")
+			local thisLaunch=$(Field 6 "$row2")
 
 			FA=$FA$(FieldArrayAdd "$thisProfile	Miner.$i	$thisDevice	$thisMiner	$thisWorker	$thisDeviceName	$thisLaunch	$thisDown")
 		done
