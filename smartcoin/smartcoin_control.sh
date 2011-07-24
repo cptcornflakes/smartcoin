@@ -14,6 +14,13 @@ fi
 . $CUR_LOCATION/smartcoin_ops.sh
 
 
+# Reload the miners after changing options
+Reload()
+{
+	local msg="$1"
+
+	 echo "$msg" > /tmp/smartcoin.reload
+}
 
 # Update system
 Do_Update()
@@ -131,6 +138,8 @@ Do_SetFailoverOrder()
 		echo "done."
 		sleep 1
 	fi
+
+	Reload "The failover order has been changed, reloading the miners."
 		
 	
 }
@@ -191,19 +200,12 @@ Do_Settings() {
 	sleep 1
 	echo "done."
 
+	Reload "Settings have been changed. Reloading miners."
+
 	
 }
-Do_AutoProfile() {
-	clear
-	ShowHeader
 
-	# Display menu
-	Q="SELECT pk_machine,name from machine"
-	E="Select the machine from the list above that you wish to run the automatic profile on"
-	GetPrimaryKeySelection thisMachine "$Q" "$E"
 
-	SetProfile "$thisMachine" "-1"
-}
 
 # Configure Miners Menu
 Do_Miners() {
@@ -224,15 +226,16 @@ Do_Miners() {
 	EDIT)
 		Edit_Miners
 		;;
-  EXIT)
-    return
-    ;;
+  	EXIT)
+    		return
+    		;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;	
 
 	esac
 
+	Reload "Miners have been changed. Reloading miners."
 
 	
 }
@@ -347,6 +350,7 @@ Edit_Miners()
 	
 	echo "done."
 	sleep 1
+
 }
 Delete_Miners()
 {
@@ -410,7 +414,9 @@ clear
                 DisplayError "Invalid selection!" "5"                           
                 ;;                                                              
                                                                                 
-        esac      
+        esac     
+
+	Reload "Pool information has been changed. Reloading miners." 
 }
 Add_Pool() 
 {
@@ -547,6 +553,7 @@ Delete_Pool()
 	RunSQL "$Q"
 	echo "done."
 	sleep 1
+
 }
 
 
@@ -579,7 +586,7 @@ Do_Workers() {
 
         esac
 
-
+	Reload "Worker information has been changed. Reloading miners."
         
 }
 
@@ -616,7 +623,6 @@ Add_Workers()
         R=$(RunSQL "$Q")
 	echo "done."
 	sleep 1
-
 
 }
 
@@ -679,6 +685,7 @@ Edit_Workers()
 	RunSQL "$Q"
 	echo "done"
 	sleep 1
+
 }
 
 
@@ -727,9 +734,11 @@ Do_Profile() {
 		;;
 	DELETE)
 		Delete_Profile
+		Reload "Profile information has been changed. Reloading miners."
 		;;
 	EDIT)
 		Edit_Profile
+		Reload "Profile information has been changed. Reloading miners."
 		;;
   EXIT)
     return
@@ -970,6 +979,8 @@ Edit_Profile()
 		esac 
 		
 	done
+
+
 	
 }
 
@@ -1003,6 +1014,7 @@ Delete_Profile()
 	RunSQL "$Q"
 	echo "done."
 	sleep 1
+
 }
 
 
@@ -1023,13 +1035,15 @@ Do_Devices() {
 	EDIT)
 		Edit_Device
 		;;
-  EXIT)
-    return
-    ;;
+  	XIT)
+    		return
+    		;;
 	*)
 		DisplayError "Invalid selection!" "5"
 		;;      
 	esac     
+
+	Reload "Device information has been changed. Reloading miners."
 }
 Add_Device() 
 {
@@ -1070,6 +1084,7 @@ Add_Device()
 	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
 	sleep 1
+
 }
 Edit_Device() 
 {
@@ -1136,7 +1151,6 @@ Edit_Device()
         RunSQL "$Q"
 	echo done
 	sleep 1
-
 }
 Delete_Device()
 {
