@@ -227,7 +227,7 @@ GetCurrentProfile()
 }
 GenCurrentProfile()
 {
-	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker, device.name, miner.launch,profile.down fields
 
 	local thisMachine=$1
 	local thisProfile=$(GetCurrentProfile "$thisMachine")
@@ -241,9 +241,9 @@ GenCurrentProfile()
 		# Generate the FieldArray via DonateProfile
 		Log "Generating Donation Profile"
 		FieldArray=$(GenDonationProfile "$thisMachine")
-  elif [[ "$thisProfile" == "-4" ]]; then
-    # Generate a blank Field array for the "idle" profile
-    FieldArray=""
+  	elif [[ "$thisProfile" == "-4" ]]; then
+    		# Generate a blank Field array for the "idle" profile
+    		FieldArray=""
 	elif [[ "$thisProfile" == "-3" ]]; then
 		# Generate the FieldArray via Failover
 		FieldArray=$(GenFailoverProfile "$thisMachine")
@@ -257,7 +257,7 @@ GenCurrentProfile()
 		FieldArray=$(GenAutoProfile "$thisMachine")
 	else
 		# Generate the FieldArray via the database
-		Q="SELECT fk_profile, 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
+		Q="SELECT fk_profile, 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker, device.name, miner.launch, profile.down from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
         	FieldArray=$(RunSQL "$Q")
 	fi
 	
@@ -267,27 +267,31 @@ GenCurrentProfile()
 
 GenAutoProfile()
 {
-	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker, device.name, miner.launch,profile.down fields
 	local thisMachine=$1
 
 	local FA
 	local i=0
 
-	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	Q="SELECT pk_miner, launch FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
 	R=$(RunSQL "$Q")
 	thisMiner=$(Field 1 "$R")
+	thisLaunch=$(Field 2 "$R")
 
 	Q="SELECT pk_worker FROM worker WHERE auto_allow=1 ORDER BY fk_pool ASC;"
 	R=$(RunSQL "$Q")
 
 	
 	for thisWorker in $R; do
-		Q="SELECT pk_device from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
+		Q="SELECT pk_device, name from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
 		R2=$(RunSQL "$Q")
-		for thisDevice in $R2; do
+		for thisDeviceRow in $R2; do
+			thisDevice=$(Field 1 "$thisDeviceRow")
+			thisDeviceName=$(Field 2 "$thisDeviceRow")
+
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "-1	Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+			FA=$FA$(FieldArrayAdd "-1	Miner.$i	$thisDevice	$thisMiner	$thisWorker	$thisDeviceName	$thisLaunch	0") #force profile.down to 0, as the automatic profile is never "down"
 		done
 	done
 
@@ -297,7 +301,7 @@ GenAutoProfile()
 
 GenFailoverProfile()
 {
-	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker, device.name, miner.launch fields
 	local thisMachine=$1
 	local FA
 	local i=0
@@ -305,9 +309,10 @@ GenFailoverProfile()
 	# Return, in order, all failover profiles to the point that one not marked as "down" is found, and return them all.
 	local firstActive=""
 	
-	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	Q="SELECT pk_miner,launch FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
 	R=$(RunSQL "$Q")
 	thisMiner=$(Field 1 "$R")
+	thisLaunch=$(Field 2 "$R")
 
 	Q="SELECT pk_profile, name, down FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
 	R=$(RunSQL "$Q")
@@ -316,15 +321,17 @@ GenFailoverProfile()
 		local thisProfile=$(Field 1 "$row")
 		local isDown=$(Field 3 "$row")
 		# Build the FieldArray until we get a profile that isn't down
-		Q2="SELECT fk_device, fk_miner, fk_worker from profile_map WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
+		Q2="SELECT fk_device, fk_miner, fk_worker, device.name, profile.down from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
 		R2=$(RunSQL "$Q2")
 		for row2  in $R2; do
 			let i++
 			local thisDevice=$(Field 1 "$row2")
 			local thisMiner=$(Field 2 "$row2")
 			local thisWorker=$(Field 3 "$row2")
+			local thisDeviceName=$(Field 4 "$row2")
+			local thisDown=$(Field 5 "$row2")
 
-			FA=$FA$(FieldArrayAdd "$thisProfile	Miner.$i	$thisDevice	$thisMiner	$thisWorker")
+			FA=$FA$(FieldArrayAdd "$thisProfile	Miner.$i	$thisDevice	$thisMiner	$thisWorker	$thisDeviceName	$thisLaunch	$thisDown")
 		done
 		if [[ "$isDown" == "0" ]]; then
 			# We found the first failover profile that isn't down, lets get out of here
@@ -337,28 +344,30 @@ GenFailoverProfile()
 }
 GenDonationProfile()
 {
-	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker fields
+	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker, device.name, miner.launch fields
 	local thisMachine=$1
 	local FA
 	local i=0
 	local donationWorkers="-3 -2 -1"
 
 	
-	Q="SELECT pk_miner FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
+	Q="SELECT pk_miner,launch FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
 	R=$(RunSQL "$Q")
 	thisMiner=$(Field 1 "$R")
-
+	$thisLaunch=$(Field 2 "$R")
 
 	
 
 	for thisDonationWorker in $donationWorkers; do
-		Q="SELECT pk_device from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
+		Q="SELECT pk_device,name from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
 		R=$(RunSQL "$Q")
-		for thisDevice in $R; do
-		
+		for thisDeviceRow in $R; do
+			thisDevice=$(Field 1 "$thisDeviceRow")
+			thisDeviceName=$(Field 2 "$thisDeviceRow")
+
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "-2	Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker")
+			FA=$FA$(FieldArrayAdd "-2	Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker	$thisDeviceName	$thisLaunch	0") # Force profile_down to 0, as the donation profile is never really "down"
 		done
 	done
 
