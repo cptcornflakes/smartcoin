@@ -383,9 +383,16 @@ Q="INSERT INTO settings (data,value,description) VALUES ('failover_threshold','1
 RunSQL "$Q"
 
 Q="INSERT INTO settings (data,value,description) VALUES ('failover_rejection','10','Failover on rejection % higher than');"                                     RunSQL "$Q"      
+RunSQL "$Q"
 
 Q="INSERT INTO settings (data,value,description) VALUES ('lockup_threshold','50','Lockup Threshold');"                                                      
 RunSQL "$Q"      
+
+
+# Set up loop delay for statu screens
+Q="INSERT INTO settings (data,value,description) VALUES ('loop_delay','0','Status screen loop delay (higher value runs slower)');"                                                      
+RunSQL "$Q" 
+
 
 # ---------
 # Finished!
