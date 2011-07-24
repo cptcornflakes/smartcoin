@@ -309,19 +309,16 @@ GenFailoverProfile()
 	# Return, in order, all failover profiles to the point that one not marked as "down" is found, and return them all.
 	local firstActive=""
 	
-	Q="SELECT pk_miner,launch FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
-	R=$(RunSQL "$Q")
-	thisMiner=$(Field 1 "$R")
-	thisLaunch=$(Field 2 "$R")
-
+	# Get a list of all the profiles
 	Q="SELECT pk_profile, name, down FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
 	R=$(RunSQL "$Q")
 
+	# Generate the FieldArray until we get the first profile that isn't down!
 	for row in $R; do
 		local thisProfile=$(Field 1 "$row")
 		local isDown=$(Field 3 "$row")
 		# Build the FieldArray until we get a profile that isn't down
-		Q2="SELECT fk_device, fk_miner, fk_worker, device.name, profile.down from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
+		Q2="SELECT fk_device, fk_miner, fk_worker, device.name, profile.down, miner.launch from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
 		R2=$(RunSQL "$Q2")
 		for row2  in $R2; do
 			let i++
@@ -330,6 +327,7 @@ GenFailoverProfile()
 			local thisWorker=$(Field 3 "$row2")
 			local thisDeviceName=$(Field 4 "$row2")
 			local thisDown=$(Field 5 "$row2")
+			local thisMiner=$(Field 6 "$row2")
 
 			FA=$FA$(FieldArrayAdd "$thisProfile	Miner.$i	$thisDevice	$thisMiner	$thisWorker	$thisDeviceName	$thisLaunch	$thisDown")
 		done
