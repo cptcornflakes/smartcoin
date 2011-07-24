@@ -55,25 +55,8 @@ ExternalReloadCheck()
 	fi
 }
 
-oldWorkers=""
-Q="SELECT COUNT(*) FROM worker;"
-R=$(RunSQL "$Q")
-oldWorkers=$(Field 1 "$R")
 
 
-WorkersChanged() {
-	Q="SELECT COUNT(*) FROM worker;"
-	R=$(RunSQL "$Q")
-	newWorkers=$(Field 1 "$R")
-
-	if [[ "$oldWorkers" != "$newWorkers" ]]; then
-		
-		echo "true"
-	else
-		echo ""
-	fi
-
-}
 
 # Automaticall load a profile whenever it changes
 lastProfile=""
@@ -85,27 +68,8 @@ LoadProfileOnChange()
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
 	newFA=$(GenCurrentProfile "$MACHINE")
-	changed=$(WorkersChanged)
 
 
-	if [[ "$newProfile" == "-1" ]]; then
-
-		if [[  "$changed" ]]; then
-			Q="SELECT COUNT(*) FROM worker;"
-			R=$(RunSQL "$Q")
-			newWorkers=$(Field 1 "$R")
-			oldWorkers=$newWorkers
-			Log "WORKER CHANGE DETECTED!"
-			DeleteTemporaryFiles
-			killMiners
-			clear
-			ShowHeader
-			echo "The number of workers has changed.  Regenerating the automatic profile...."
-			startMiners $MACHINE	
-			return
-		fi
-		
-	fi
 	if [[ "$newProfile" != "$lastProfile" ]]; then
 		Log "NEW PROFILE DETECTED!"
 		Log "	Switching from profile: $lastProfile to profile: $newProfile"
