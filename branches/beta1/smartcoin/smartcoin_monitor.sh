@@ -17,7 +17,11 @@ fi
 # PHOENIX monitoring
 Monitor_phoenix()
 {
+
+	oldCmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+
 	starting=`grep "starting" "/tmp/smartcoin-$key" | tail -n 1`
 
 
@@ -62,12 +66,13 @@ Monitor_phoenix()
 
 	if [[ -z "$cmd" ]]; then
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
-		# TODO: increment failure counter here??
+		skipLockupCheck="1"
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++
+			skipLockupCheck="1"
 		fi
 	fi
 
@@ -76,6 +81,9 @@ Monitor_phoenix()
 Monitor_poclbm()
 {
 	# For now, get hash counting working! Look into accepted/rejected later!
+
+	oldCmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 	
 	if [ "$cmd" ]; then
@@ -96,18 +104,22 @@ Monitor_poclbm()
 
 	if [[ -z "$cmd" ]]; then
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
-		# TODO: increment failure counter here??
+		skipLockupCheck="1"
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++
+			skipLockupCheck="1"
 		fi
 	fi
 }
 
 Monitor_cgminer()
 {
+
+	oldCmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 
 	if [[ "$cmd" == *Gh/s* ]]; then
@@ -147,12 +159,13 @@ Monitor_cgminer()
 
 		if [[ -z "$cmd" ]]; then
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
-		# TODO: increment failure counter here??
+		skipLockupCheck="1"
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++
+			skipLockupCheck="1"
 		fi
 	fi
 }
