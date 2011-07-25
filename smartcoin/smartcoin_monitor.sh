@@ -70,7 +70,6 @@ Monitor_phoenix()
 	
 	elif [[ -z "$cmd" ]]; then
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
-		skipLockupCheck="1"
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
@@ -115,7 +114,6 @@ Monitor_poclbm()
 	
 	elif [[ -z "$cmd" ]]; then
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
-		skipLockupCheck="1"
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
@@ -177,7 +175,6 @@ Monitor_cgminer()
 	
 	elif [[ -z "$cmd" ]]; then
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
-		skipLockupCheck="1"
 	else
 		if [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
