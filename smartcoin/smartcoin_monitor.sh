@@ -22,7 +22,7 @@ Monitor_phoenix()
 	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 
-	failure=$(grep "Command terminated normally" "/tmp/smartcoin-$key" | tail -n 1)
+	failure=$(grep "=== Command" "/tmp/smartcoin-$key" | tail -n 1)
 	
 	if [[ "$cmd" == *Ghash* ]]; then
 		hashUnits="Ghash"
@@ -90,7 +90,7 @@ Monitor_poclbm()
 	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 
-	failure=$(grep "Command terminated normally" "/tmp/smartcoin-$key" | tail -n 1)
+	failure=$(grep "=== Command" "/tmp/smartcoin-$key" | tail -n 1)
 	
 	if [ "$cmd" ]; then
 		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
@@ -133,7 +133,7 @@ Monitor_cgminer()
 	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 
-	failure=$(grep "Command terminated normally" "/tmp/smartcoin-$key" | tail -n 1)
+	failure=$(grep "=== Command" "/tmp/smartcoin-$key" | tail -n 1)
 
 	if [[ "$cmd" == *Gh/s* ]]; then
 		hashUnits="Ghash"
