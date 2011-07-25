@@ -193,8 +193,8 @@ ShowStatus() {
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
-	cpu=`iostat | awk '{if(NR==4) {print "CPU Load : " $1 "%"}}'`
-	status=$status"$cpu\n\n"
+	cpu=$(cat /proc/loadavg | cut -d" " -f1)
+	status=$status"CPU Load: $cpu\n\n"
 
 	compositeAccepted="0"
 	compositeRejected="0"
@@ -291,54 +291,16 @@ ShowStatus() {
 		# TODO: Look for hardlock conditions!
     
     		  
-		oldMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
 		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-		newMinerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
-
-  
-		if [[ "$hashes" != "0" ]]; then 
-			if [[ "$oldMinerOutput" == "$newMinerOutput" ]]; then
-				# Increment counter
-				local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
-				if [[ -z "$cnt" ]]; then
-					cnt="0"
-				fi
 		
-				if [[ "$cnt" -lt "$G_LOCKUP_THRESHOLD" ]]; then
-					let cnt++
-					echo "$cnt" > /tmp/smartcoin-$key.lockup
-				fi
-
-				if [[ "$cnt" -eq "$G_LOCKUP_THRESHOLD" ]]; then
-					let cnt++
-					echo "$cnt" > /tmp/smartcoin-$key.lockup
-					Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
-					Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
-       					Log "       Below is a capture of the miner output which caused the error:"
-					Log "$newMinerOutput"
-
-				       	# Let the user have their own custom lockup script if they want
-					if [[ -f "$CUR_LOCATION/lockup.sh" ]]; then
-          					Log "User lockup script found. Running lockup script." 1
-          					$CUR_LOCATION/lockup.sh
-        				fi
-
-					# Kill the miners
-					killMiners
-					# Start Them again
-					startMiners $MACHINE
-
-				fi
-			else
-				# Reset counter
-				rm /tmp/smartcoin-$key.lockup 2> /dev/null
-			fi
-   		fi
+		
 
 		hashes="0"
 		accepted="0"
 		rejected="0"
 		output=""
+		skipLockupCheck="0"
+		
 
 		case "$minerLaunch" in
 		*phoenix.py*)
@@ -363,6 +325,46 @@ ShowStatus() {
 		if [ -z "$rejected" ]; then
 			rejected="0"
 		fi
+
+		if [[ "$skipLockupCheck" == "0" ]]; then 
+			if [[ "$newCmd" == "$cmd" ]]; then
+				# Increment counter
+				local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
+				if [[ -z "$cnt" ]]; then
+					cnt="0"
+				fi
+		
+				if [[ "$cnt" -lt "$G_LOCKUP_THRESHOLD" ]]; then
+					let cnt++
+					echo "$cnt" > /tmp/smartcoin-$key.lockup
+				fi
+
+				if [[ "$cnt" -eq "$G_LOCKUP_THRESHOLD" ]]; then
+					let cnt++
+					echo "$cnt" > /tmp/smartcoin-$key.lockup
+					Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
+					Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
+       					Log "       Below is a capture of the miner output which caused the error:"
+					minerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
+					Log "$minerOutput"
+
+				       	# Let the user have their own custom lockup script if they want
+					if [[ -f "$CUR_LOCATION/lockup.sh" ]]; then
+          					Log "User lockup script found. Running lockup script." 1
+          					$CUR_LOCATION/lockup.sh
+        				fi
+
+					# Kill the miners
+					killMiners
+					# Start Them again
+					startMiners $MACHINE
+
+				fi
+			else
+				# Reset counter
+				rm /tmp/smartcoin-$key.lockup 2> /dev/null
+			fi
+   		fi
 
 		totalHashes=$(echo "scale=2; $totalHashes+$hashes" | bc -l)
 		totalAccepted=`expr $totalAccepted + $accepted`
