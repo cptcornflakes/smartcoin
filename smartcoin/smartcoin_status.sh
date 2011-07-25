@@ -321,7 +321,7 @@ ShowStatus() {
 		fi
 
 		if [[ "$skipLockupCheck" == "0" ]]; then 
-			if [[ "$newCmd" == "$cmd" ]]; then
+			if [[ "$oldCmd" == "$cmd" ]]; then
 				# Increment counter
 				local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
 				if [[ -z "$cnt" ]]; then
