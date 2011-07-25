@@ -22,9 +22,8 @@ Monitor_phoenix()
 	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 
-	starting=`grep "starting" "/tmp/smartcoin-$key" | tail -n 1`
-
-
+	failure=$(grep "Command terminated normally" "/tmp/smartcoin-$key" | tail -n 1)
+	
 	if [[ "$cmd" == *Ghash* ]]; then
 		hashUnits="Ghash"
 	elif [[ "$cmd" == *Mhash* ]]; then
@@ -68,7 +67,11 @@ Monitor_phoenix()
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
 		skipLockupCheck="1"
 	else
-		if [[ "$hashes" == "0" ]]; then
+		if [[ -n "$failure" ]]; then
+			output="\e[00;31m<<<FAIL>>\e[00m"
+			let profileFailed++
+			skipLockupCheck="1"
+		elif [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++
@@ -85,6 +88,8 @@ Monitor_poclbm()
 	oldCmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+
+	failure=$(grep "Command terminated normally" "/tmp/smartcoin-$key" | tail -n 1)
 	
 	if [ "$cmd" ]; then
 		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
@@ -106,7 +111,11 @@ Monitor_poclbm()
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
 		skipLockupCheck="1"
 	else
-		if [[ "$hashes" == "0" ]]; then
+		if [[ -n "$failure" ]]; then
+			output="\e[00;31m<<<FAIL>>\e[00m"
+			let profileFailed++
+			skipLockupCheck="1"
+		elif [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++
@@ -121,6 +130,8 @@ Monitor_cgminer()
 	oldCmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
 	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
 	cmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+
+	failure=$(grep "Command terminated normally" "/tmp/smartcoin-$key" | tail -n 1)
 
 	if [[ "$cmd" == *Gh/s* ]]; then
 		hashUnits="Ghash"
@@ -161,7 +172,11 @@ Monitor_cgminer()
 		output="\e[00;31m<<<IDLE>>>\e[00m"	
 		skipLockupCheck="1"
 	else
-		if [[ "$hashes" == "0" ]]; then
+		if [[ -n "$failure" ]]; then
+			output="\e[00;31m<<<FAIL>>\e[00m"
+			let profileFailed++
+			skipLockupCheck="1"
+		elif [[ "$hashes" == "0" ]]; then
 			# Is it safe to say the profile is down?
 			output="\e[00;31m<<<DOWN>>>\e[00m"
 			let profileFailed++

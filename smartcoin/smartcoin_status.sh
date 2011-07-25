@@ -288,12 +288,6 @@ ShowStatus() {
 			status=$status"\e[01;32m--------$pool--------\e[00m\n"
 		fi
 
-		# TODO: Look for hardlock conditions!
-    
-    		  
-		screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-		
-		
 
 		hashes="0"
 		accepted="0"
