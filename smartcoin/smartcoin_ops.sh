@@ -139,6 +139,8 @@ startMiners() {
 
 	local machine
 	for machine in $thisMachine; do
+		Log "Starting miners for machine $machine..."
+
 		DeleteTemporaryFiles $machine
 		local FA=$(GenCurrentProfile "$machine")
 
