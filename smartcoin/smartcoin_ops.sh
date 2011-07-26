@@ -126,6 +126,10 @@ tableIsEmpty() {
 
 startMiners() {
 	local thisMachine=$1
+	if [[ -z "$thisMachine" ]]; then
+		thisMachine=1
+	fi
+
 	DeleteTemporaryFiles
 	local FA=$(GenCurrentProfile "$thisMachine")
 
@@ -156,9 +160,16 @@ startMiners() {
 
 
 killMiners() {
-	Log "Killing Miners...."
-	screen -d -r $minerSession -X quit 
-	sleep 2
+	thisMachine=$1
+
+	if [[ -z "$thisMachine" ]]; then
+		thisMachine=1
+	fi
+
+
+	Log "Killing Miners for machine $thisMachine...."
+	Launch $thisMachine "screen -d -r $minerSession -X quit" 
+	#sleep 2
 }
 
 GotoStatus() {
@@ -191,7 +202,13 @@ RotateLogs() {
 
 
 DeleteTemporaryFiles() {
-	rm -rf /tmp/smartcoin* 2>/dev/null
+
+	thisMachine=$1
+	if [[ -z "$thisMachine" ]]; then
+		thisMachine=1
+	fi
+
+	Launch $thisMachine "rm -rf /tmp/smartcoin* 2>/dev/null"
 }
 
 
@@ -793,7 +810,33 @@ GetAEDSelection()
 
 # ### END UI HELPER FUNCTIONS ###
 
+# Multi-Machine functions
 
+# Launch a remote command over SSH on remote machines, or locally on localhost
+Launch()
+{
+	local machine="$1"
+	local cmd="$2"
+	local res
+
+	if [[ "$machine" == "1" ]]; then
+		# This is the localhost, runn command normally!
+		res=$($cmd)
+	else
+		# This is a remote machine!
+
+		# TODO: Make a global field array at global define time so we don't have to query so often!
+		Q="SELECT name,server,user,port FROM machine WHERE pk_machine=$machine;"
+		R=$(RunSQL "$Q")
+		local user=$(Field 3 "$R")
+		local server=$(Field 2 "$R")
+		local port=$(Field 4 "$R")
+
+		res=$(ssh $user@$server -p $port $cmd)
+
+	fi
+	echo "$res"
+}
 
 
 
