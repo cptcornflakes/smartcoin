@@ -352,7 +352,7 @@ GenDonationProfile()
 	Q="SELECT pk_miner,launch FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
 	R=$(RunSQL "$Q")
 	thisMiner=$(Field 1 "$R")
-	$thisLaunch=$(Field 2 "$R")
+	thisLaunch=$(Field 2 "$R")
 
 	
 
