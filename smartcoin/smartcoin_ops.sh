@@ -846,8 +846,8 @@ GetAEDSelection()
 # Launch a remote command over SSH on remote machines, or locally on localhost
 Launch()
 {
-	local machine="$1"
-	local cmd="$2"
+	local machine=$1
+	local cmd=$2
 	local res
 
 	if [[ "$machine" == "1" ]]; then
