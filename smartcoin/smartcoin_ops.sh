@@ -146,7 +146,7 @@ startMiners() {
 
 		# Lets start up the miner session with a dummy window, so that we can set options,
 		# such as zombie mode	
-		Launch $machine "screen -dmS $minerSession -t \"miner-dummy\""
+		Launch $machine "screen -dmS $minerSession -t 'miner-dummy'"
 		sleep 2
 		Launch $machine "screen -r $minerSession -X zombie ko"
 		Launch $machine "screen -r $minerSession -X chdir"
@@ -162,11 +162,11 @@ startMiners() {
 			local pk_worker=$(Field 5 "$row")
 			Log "Starting miner $key!" 1
 			local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
-			Launch $machine "screen  -d -r $minerSession -X screen -t \"$key\" $cmd"
+			Launch $machine "screen  -d -r $minerSession -X screen -t '$key' $cmd"
 		done
 
 		# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
-		Launch $machine "screen -r $minerSession -p \"miner-dummy\" -X kill"
+		Launch $machine "screen -r $minerSession -p 'miner-dummy' -X kill"
 	done
 }
 
