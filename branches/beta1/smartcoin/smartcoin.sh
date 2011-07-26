@@ -94,8 +94,7 @@ screen -r $sessionName -X zombie ko
 screen -r $sessionName -X chdir
 screen -r $sessionName -X hardstatus on
 screen -r $sessionName -X hardstatus alwayslastline
-screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u
-)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
+screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
 
 Log "Creating tab for each machine..." 1
 # Create a new window for each machine
