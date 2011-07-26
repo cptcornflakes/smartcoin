@@ -146,13 +146,13 @@ startMiners() {
 
 		# Lets start up the miner session with a dummy window, so that we can set options,
 		# such as zombie mode	
-		Launch "screen -dmS $minerSession -t \"miner-dummy\""
+		Launch $machine "screen -dmS $minerSession -t \"miner-dummy\""
 		sleep 2
-		Launch "screen -r $minerSession -X zombie ko"
-		Launch "screen -r $minerSession -X chdir"
-		Launch "screen -r $minerSession -X hardstatus on"
-		Launch "screen -r $minerSession -X hardstatus alwayslastline"
-		Launch "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
+		Launch $machine "screen -r $minerSession -X zombie ko"
+		Launch $machine "screen -r $minerSession -X chdir"
+		Launch $machine "screen -r $minerSession -X hardstatus on"
+		Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
+		Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 
 		# Start all of the miner windows
 		for row in $FA; do
@@ -162,11 +162,11 @@ startMiners() {
 			local pk_worker=$(Field 5 "$row")
 			Log "Starting miner $key!" 1
 			local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
-			Launch "screen  -d -r $minerSession -X screen -t \"$key\" $cmd"
+			Launch $machine "screen  -d -r $minerSession -X screen -t \"$key\" $cmd"
 		done
 
 		# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
-		Launch "screen -r $minerSession -p \"miner-dummy\" -X kill"
+		Launch $machine "screen -r $minerSession -p \"miner-dummy\" -X kill"
 	done
 }
 
