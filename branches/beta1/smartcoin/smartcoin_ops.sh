@@ -153,7 +153,9 @@ startMiners() {
 		Launch $machine "screen -r $minerSession -X hardstatus on"
 		Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
 		local hard_status="%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]"
-		Launch $machine "screen -r $minerSession -X hardstatus string '%{-b ..}%-w%{+b ..}[[%n%f*%t]]%{-}%+w'"
+		# TODO: fix hardstatus line!!!
+		
+		Launch $machine "screen -r $minerSession -X hardstatus string %w"
 
 		# Start all of the miner windows
 		for row in $FA; do
