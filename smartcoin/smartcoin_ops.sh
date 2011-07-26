@@ -127,35 +127,45 @@ tableIsEmpty() {
 startMiners() {
 	local thisMachine=$1
 	if [[ -z "$thisMachine" ]]; then
-		thisMachine=1
+		# No machine selected, kill miners on all machines!
+		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
+		R=$(RunSQL "$Q")
+
+		for row in $R; do
+			thisMachine=$(Field 1 "$row")
+			thisMachine=$thisMachine" "
+		done
 	fi
 
-	DeleteTemporaryFiles
-	local FA=$(GenCurrentProfile "$thisMachine")
+	local machine
+	for machine in $thisMachine; do
+		DeleteTemporaryFiles $machine
+		local FA=$(GenCurrentProfile "$machine")
 
-	# Lets start up the miner session with a dummy window, so that we can set options,
-	# such as zombie mode	
-	screen -dmS $minerSession -t "miner-dummy"
-	sleep 2
-	screen -r $minerSession -X zombie ko
-	screen -r $minerSession -X chdir
-	screen -r $minerSession -X hardstatus on
-	screen -r $minerSession -X hardstatus alwayslastline
-	screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
+		# Lets start up the miner session with a dummy window, so that we can set options,
+		# such as zombie mode	
+		Launch "screen -dmS $minerSession -t \"miner-dummy\""
+		sleep 2
+		Launch "screen -r $minerSession -X zombie ko"
+		Launch "screen -r $minerSession -X chdir"
+		Launch "screen -r $minerSession -X hardstatus on"
+		Launch "screen -r $minerSession -X hardstatus alwayslastline"
+		Launch "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 
-	# Start all of the miner windows
-	for row in $FA; do
-		local key=$(Field 2 "$row")
-		local pk_device=$(Field 3 "$row")
-		local pk_miner=$(Field 4 "$row")
-		local pk_worker=$(Field 5 "$row")
-		Log "Starting miner $key!" 1
-		local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
-		screen  -d -r $minerSession -X screen -t "$key" $cmd
+		# Start all of the miner windows
+		for row in $FA; do
+			local key=$(Field 2 "$row")
+			local pk_device=$(Field 3 "$row")
+			local pk_miner=$(Field 4 "$row")
+			local pk_worker=$(Field 5 "$row")
+			Log "Starting miner $key!" 1
+			local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+			Launch "screen  -d -r $minerSession -X screen -t \"$key\" $cmd"
+		done
+
+		# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
+		Launch "screen -r $minerSession -p \"miner-dummy\" -X kill"
 	done
-
-	# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
-	screen -r $minerSession -p "miner-dummy" -X kill
 }
 
 
@@ -163,12 +173,21 @@ killMiners() {
 	thisMachine=$1
 
 	if [[ -z "$thisMachine" ]]; then
-		thisMachine=1
+		# No machine selected, kill miners on all machines!
+		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
+		R=$(RunSQL "$Q")
+
+		for row in $R; do
+			thisMachine=$(Field 1 "$row")
+			thisMachine=$thisMachine" "
+		done
 	fi
 
-
-	Log "Killing Miners for machine $thisMachine...."
-	Launch $thisMachine "screen -d -r $minerSession -X quit" 
+	local machine
+	for machine in $thisMachine; do
+		Log "Killing Miners for machine $machine...."
+		Launch $machine "screen -d -r $minerSession -X quit" 
+	done
 	#sleep 2
 }
 
@@ -203,12 +222,21 @@ RotateLogs() {
 
 DeleteTemporaryFiles() {
 
-	thisMachine=$1
 	if [[ -z "$thisMachine" ]]; then
-		thisMachine=1
+		# No machine selected, kill miners on all machines!
+		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
+		R=$(RunSQL "$Q")
+
+		for row in $R; do
+			thisMachine=$(Field 1 "$row")
+			thisMachine=$thisMachine" "
+		done
 	fi
 
-	Launch $thisMachine "rm -rf /tmp/smartcoin* 2>/dev/null"
+	local machine
+	for machine in $thisMachine; do
+		Launch $thisMachine "rm -rf /tmp/smartcoin* 2>/dev/null"
+	done
 }
 
 

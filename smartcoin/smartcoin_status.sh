@@ -64,7 +64,7 @@ ExternalReloadCheck()
 		
 		LoadGlobals
 		# Reload the miner screen session
-		killMiners
+		killMiners $MACHINE
 		clear
 		ShowHeader
 		echo "$msg"
@@ -94,7 +94,7 @@ LoadProfileOnChange()
 		lastProfile=$newProfile
 		oldFA=$newFA
 		# Reload the miner screen session
-		killMiners
+		killMiners $MACHINE
 		clear
 		ShowHeader
 		echo "A configuration change has been detected.  Loading the new profile...."
@@ -105,7 +105,7 @@ LoadProfileOnChange()
 	if [[ "$newFA" != "$oldFA"  ]]; then
 		Log "A change was detected in the failover system"
 		oldFA=$newFA
-		killMiners
+		killMiners $MACHINE
 		clear
 		ShowHeader
 		echo "A configuration change has been detected. Reconfiguring Failover..."
@@ -349,7 +349,7 @@ ShowStatus() {
         				fi
 
 					# Kill the miners
-					killMiners
+					killMiners $MACHINE
 					# Start Them again
 					startMiners $MACHINE
 
