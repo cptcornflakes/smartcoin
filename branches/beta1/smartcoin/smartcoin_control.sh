@@ -34,8 +34,8 @@ Do_Update()
   local svn_exp=$(GetHead "$svn_repo")
   local svn_stb=$(GetStableHead "$svn_repo")
   E="Your current version is r$svn_rev$G_BRANCH_ABBV.\n"
-  E=$E"The current experimental version is r$svn_exp\n"
-  E=$E"The current stable version is r$svn_stb\n"
+  E=$E"The current experimental version is r$svn_exp""e\n"
+  E=$E"The current stable version is r$svn_stb""s\n"
   E=$E"Are you sure that you wish to perform an update?"
 	GetYesNoSelection doInstall "$E"
 
