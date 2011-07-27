@@ -371,9 +371,9 @@ ShowStatus() {
 		# Fail profile on unusually high rejection percentage
 		# TODO: Get rid of hard-coded limit, and make as a new setting
 		percentRejectedInt=`printf %0.f $percentRejected`
-		if [[ "$percentRejectedInt" -gt "$G_FAILOVER_REJECTION" ]]; then
+		#if [[ "$percentRejectedInt" -gt "$G_FAILOVER_REJECTION" ]]; then
 			# let profileFailed++
-		fi
+		#fi
 	done
 
 	MarkFailedProfiles $oldProfile $profileFailed
