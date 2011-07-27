@@ -155,7 +155,7 @@ startMiners() {
 		local hard_status='%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
 		# TODO: fix hardstatus line!!!
 		
-		Launch $machine "screen -r $minerSession -X hardstatus string '$hard_status'"
+		Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 
 		# Start all of the miner windows
 		for row in $FA; do
@@ -854,7 +854,7 @@ Launch()
 
 	if [[ "$machine" == "1" ]]; then
 		# This is the localhost, runn command normally!
-		res=$($cmd)
+		res=$(eval "$cmd")
 	else
 		# This is a remote machine!
 
