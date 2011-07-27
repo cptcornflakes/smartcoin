@@ -204,8 +204,50 @@ Do_Settings() {
 
 	
 }
+# Configure Machines Menu
+Do_Machines() {
+	clear                                                                   
+        ShowHeader                                                              
+        #Add/Edit/Delete?                                                       
+        AddEditDelete "machines"                                                  
+        action=$(GetAEDSelection)                                               
+                                                                                
+        case "$action" in                                                       
+        ADD)                                                                    
+                Add_Machines                                                      
+                ;;                                                              
+        DELETE)                                                                 
+                Delete_Machines                                                   
+                ;;                                                              
+                                                                                
+        EDIT)                                                                   
+                Edit_Machines                                                     
+                ;;                                                              
+        EXIT)                                                                   
+                return                                                          
+                ;;                                                              
+        *)                                                                      
+                DisplayError "Invalid selection!" "5"                           
+                ;;               
+	esac
 
+	Reload "Machines have changed. Reloading miners."
+}
 
+Add_Machines() {
+
+	return
+}
+
+Edit_Machines() {
+
+	return
+}
+
+Delete_Machines() {
+
+	return
+}
 
 # Configure Miners Menu
 Do_Miners() {

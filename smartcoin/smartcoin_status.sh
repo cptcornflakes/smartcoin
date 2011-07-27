@@ -372,7 +372,7 @@ ShowStatus() {
 		# TODO: Get rid of hard-coded limit, and make as a new setting
 		percentRejectedInt=`printf %0.f $percentRejected`
 		if [[ "$percentRejectedInt" -gt "$G_FAILOVER_REJECTION" ]]; then
-			let profileFailed++
+			# let profileFailed++
 		fi
 	done
 
