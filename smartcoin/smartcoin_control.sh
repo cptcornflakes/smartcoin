@@ -252,9 +252,27 @@ Add_Machines() {
 	echo "Enter the username to use with this machine"
 	read machineUser
 	echo ""
-	echo "Would you like to disable this machine? (y)es or (n)o?"
-	read -e -i "n" machineServer
-	echo ""
+
+	# Now its time to determine whether or not the remote machine is online.
+	# We can only add it, if it is online - as we have to generate some RSA keys!
+	echo "In order to continue, we need to attempt to connect to this remote machine."
+	echo "If we can successfully connect, we will generate RSA keys for secure communication."
+	echo "Press any key to attempt to connect to the remote machine. You will need to enter the password for the remote machine when prompted!"
+
+	ssh $machineUser@$machineServer -p $machinePort uname -r
+
+	if [[ $? -ne 0 ]]; then
+		echo "COULD NOT CONNECT TO SERVER!"
+		echo "ABORTING!"
+		sleep 5
+	else
+
+
+		echo "Would you like to disable this machine? (y)es or (n)o?"
+		read -e -i "n" machineServer
+		echo ""
+
+	fi
 
 
 	return
