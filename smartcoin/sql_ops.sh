@@ -15,12 +15,12 @@ RunSQL()
 
         Q="$*"
         if [[ -n "$Q" ]]; then
-		res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" 2> /dev/null)
+		res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;")
 
 		while [[ $? -ne 0 ]]; do
 			let i++
 			sleep 0.01
-			res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" 2> /dev/null)
+			res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;")
 			if [[ "$i" -gt 1000 ]]; then
 				Log "ERROR: SQL Query failed!"
 				Log "	error code: $?"
