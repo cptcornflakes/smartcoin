@@ -261,6 +261,10 @@ Add_Machines() {
 	read
 	echo
 
+	# Step 1: Generate the keys!
+	rm /tmp/id.rsa* 2> /dev/null
+	ssh-keygen -q -N "" -f /tmp/id.rsa
+
 	# The universal 'uname -r' command is a good way to test for ssh access success!
 	ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
 
