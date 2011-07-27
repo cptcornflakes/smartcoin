@@ -304,7 +304,7 @@ GenCurrentProfile()
 		FieldArray=$(GenAutoProfile "$thisMachine")
 	else
 		# Generate the FieldArray via the database
-		Q="SELECT fk_profile, 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker, device.name, miner.launch, profile.down from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile WHERE fk_profile=$thisProfile ORDER BY fk_worker ASC, fk_device ASC"
+		Q="SELECT fk_profile, 'Miner.' || pk_profile_map, fk_device, fk_miner, fk_worker, device.name, miner.launch, profile.down from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile WHERE fk_profile='$thisProfile' AND device.disabled='0' ORDER BY fk_worker ASC, fk_device ASC"
         	FieldArray=$(RunSQL "$Q")
 	fi
 	
@@ -330,7 +330,7 @@ GenAutoProfile()
 
 	
 	for thisWorker in $R; do
-		Q="SELECT pk_device, name from device WHERE fk_machine=$thisMachine AND disabled=0 AND auto_allow=1 AND type='gpu' ORDER BY device ASC;"
+		Q="SELECT pk_device, name from device WHERE fk_machine='$thisMachine' AND disabled='0' AND auto_allow='1' AND type='gpu' ORDER BY device ASC;"
 		R2=$(RunSQL "$Q")
 		for thisDeviceRow in $R2; do
 			thisDevice=$(Field 1 "$thisDeviceRow")
@@ -365,7 +365,7 @@ GenFailoverProfile()
 		local thisProfile=$(Field 1 "$row")
 		local isDown=$(Field 3 "$row")
 		# Build the FieldArray until we get a profile that isn't down
-		Q2="SELECT fk_device, fk_miner, fk_worker, device.name, profile.down, miner.launch from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner WHERE fk_profile='$thisProfile' ORDER BY fk_worker ASC, fk_device ASC"
+		Q2="SELECT fk_device, fk_miner, fk_worker, device.name, profile.down, miner.launch from profile_map LEFT JOIN device ON profile_map.fk_device=device.pk_device LEFT JOIN profile ON profile_map.fk_profile=profile.pk_profile LEFT JOIN miner ON profile_map.fk_miner=miner.pk_miner WHERE fk_profile='$thisProfile' AND device.disabled='0' ORDER BY fk_worker ASC, fk_device ASC"
 		R2=$(RunSQL "$Q2")
 		for row2  in $R2; do
 			let i++
@@ -404,7 +404,7 @@ GenDonationProfile()
 	
 
 	for thisDonationWorker in $donationWorkers; do
-		Q="SELECT pk_device,name from device WHERE fk_machine=$thisMachine AND disabled=0 ORDER BY device ASC;"
+		Q="SELECT pk_device,name from device WHERE fk_machine='$thisMachine' AND disabled='0' ORDER BY device ASC;"
 		R=$(RunSQL "$Q")
 		for thisDeviceRow in $R; do
 			thisDevice=$(Field 1 "$thisDeviceRow")
