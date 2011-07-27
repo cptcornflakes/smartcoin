@@ -262,7 +262,7 @@ Add_Machines() {
 	echo
 
 	# The universal 'uname -r' command is a good way to test for ssh access success!
-	$(ssh $machineUser@$machineServer -p $machinePort "uname -r")
+	ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
 
 	if [[ $? -ne 0 ]]; then
 		echo "Aborting!"
