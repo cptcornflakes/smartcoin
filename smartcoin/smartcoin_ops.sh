@@ -152,9 +152,6 @@ startMiners() {
 		Launch $machine "screen -r $minerSession -X chdir"
 		Launch $machine "screen -r $minerSession -X hardstatus on"
 		Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
-		local hard_status='%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'
-		# TODO: fix hardstatus line!!!
-		
 		Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 
 		# Start all of the miner windows
@@ -865,7 +862,8 @@ Launch()
 		local server=$(Field 2 "$R")
 		local port=$(Field 4 "$R")
 
-		res=$(ssh $user@$server -p $port $cmd)
+		# TODO: see if eval works well this way
+		res=$(eval "ssh $user@$server -p $port $cmd")
 
 	fi
 	echo "$res"
