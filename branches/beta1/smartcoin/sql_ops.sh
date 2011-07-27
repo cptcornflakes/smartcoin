@@ -31,6 +31,10 @@ RunSQL()
 			fi
 		done
 	
+		if [[ "$i" -gt "0" ]]; then
+			Log "DEBUG: Query took $i retries."
+		fi
+
 		res=$(echo "$res" | Field_Translate)
 		echo "$res"
 
