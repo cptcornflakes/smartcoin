@@ -31,7 +31,7 @@ RunSQL()
 			fi
 		done
 	
-		res=$(Field_Translate "$res")
+		res=$(FieldArrayAdd $res)
 		echo "$res"
 
         fi
@@ -70,7 +70,7 @@ Field_Prepare(){
 }
 FieldArrayAdd()
 {
-	menuItem=$(Field_Prepare "$1")
+	local menuItem=$(Field_Prepare "$1")
 	echo "$menuItem "
 }
 
