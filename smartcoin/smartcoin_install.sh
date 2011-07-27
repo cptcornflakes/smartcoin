@@ -382,7 +382,7 @@ RunSQL "$Q"
 Q="INSERT INTO settings (data,value,description) VALUES ('failover_threshold','10','Failover Threshold');"
 RunSQL "$Q"
 
-Q="INSERT INTO settings (data,value,description) VALUES ('failover_rejection','10','Failover on rejection % higher than');"                                     RunSQL "$Q"      
+Q="INSERT INTO settings (data,value,description) VALUES ('failover_rejection','10','Failover on rejection % higher than');"        
 RunSQL "$Q"
 
 Q="INSERT INTO settings (data,value,description) VALUES ('lockup_threshold','50','Lockup Threshold');"                                                      
