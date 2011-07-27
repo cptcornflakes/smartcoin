@@ -247,7 +247,7 @@ Add_Machines() {
 	read machineServer
 	echo ""
 	echo "Enter this machines server port"
-	read -e -i "22" machineServer
+	read -e -i "22" machinePort
 	echo ""
 	echo "Enter the username to use with this machine"
 	read machineUser
