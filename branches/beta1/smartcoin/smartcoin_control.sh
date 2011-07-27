@@ -850,7 +850,7 @@ Add_Profile()
 		echo ""
 	
 	
-		Q="SELECT pk_device, name FROM device WHERE disabled=0;"
+		Q="SELECT pk_device, name FROM device;"
 		E="Please select the device from the list above to use with this instance"
 		GetPrimaryKeySelection thisDevice "$Q" "$E"
 
@@ -950,7 +950,7 @@ Edit_Profile()
 			echo ""
 	
 	
-			Q="SELECT pk_device, name FROM device WHERE disabled=0;"
+			Q="SELECT pk_device, name FROM device;"
 			E="Please select the device from the list above to use with this instance"
 			GetPrimaryKeySelection thisDevice "$Q" "$E"
 
@@ -1000,7 +1000,7 @@ Edit_Profile()
 			echo ""
 	
 	
-			Q="SELECT pk_device, name FROM device WHERE disabled=0;"
+			Q="SELECT pk_device, name FROM device;"
 			E="Please select the device from the list above to use with this instance"
 			GetPrimaryKeySelection thisDevice "$Q" "$E" "$cdevice"
 
