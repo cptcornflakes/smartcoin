@@ -235,17 +235,46 @@ Do_Machines() {
 }
 
 Add_Machines() {
+	clear
+	ShowHeader
+	echo "ADDING MACHINE"
+	echo "--------------"
+	echo ""
+	echo "Give this machine a nickname"
+	read machineName
+	echo ""
+	echo "Enter this machines server address"
+	read machineServer
+	echo ""
+	echo "Enter this machines server port"
+	read -e -i "22" machineServer
+	echo ""
+	echo "Enter the username to use with this machine"
+	read machineUser
+	echo ""
+	echo "Would you like to disable this machine? (y)es or (n)o?"
+	read -e -i "n" machineServer
+	echo ""
+
 
 	return
 }
 
 Edit_Machines() {
-
+	clear
+	ShowHeader
+	echo "EDITING MACHINE"
+	echo "---------------"
+	echo ""
 	return
 }
 
 Delete_Machines() {
-
+	clear
+	ShowHeader
+	echo "DELETING MACHINE"
+	echo "----------------"
+	echo ""
 	return
 }
 
@@ -1246,6 +1275,7 @@ do
 	echo "10) Configure Pools"
 	echo "11) Update Smartcoin"
 	echo "12) Set Failover Order"
+	#echo "13) Configure Machines"
 
 	read selection
 
@@ -1324,6 +1354,10 @@ do
 		12)
 			Log "Set Failover Order option selected"
 			Do_SetFailoverOrder
+			;;
+		13)
+			Log "Configure Machines option selected"
+			Do_Machines
 			;;
 		*)
 
