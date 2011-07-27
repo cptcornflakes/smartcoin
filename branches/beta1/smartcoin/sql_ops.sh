@@ -31,7 +31,7 @@ RunSQL()
 			fi
 		done
 	
-		res=$(FieldArrayAdd $res)
+		res=$(FieldArrayAdd "$res")
 		echo "$res"
 
         fi
