@@ -258,16 +258,21 @@ Add_Machines() {
 	echo "In order to continue, we need to attempt to connect to this remote machine."
 	echo "If we can successfully connect, we will generate RSA keys for secure communication."
 	echo "Press any key to attempt to connect to the remote machine. You will need to enter the password for the remote machine when prompted!"
+	read
+	echo
 
-	ssh $machineUser@$machineServer -p $machinePort uname -r
+	# The universal 'uname -r' command is a good way to test for ssh access success!
+	$(ssh $machineUser@$machineServer -p $machinePort uname -r)
 
 	if [[ $? -ne 0 ]]; then
-		echo "COULD NOT CONNECT TO SERVER!"
-		echo "ABORTING!"
-		sleep 5
+		echo "Aborting!"
+		echo "We were unable to connect to the remote server. This most likely means that the server is either offline, or information was entered incorrectly."
+		echo "Please try again, and make sure that the server is online, and that informatin entered is correct."
+		echo "(Any key to continue)"
+		read
 	else
-
-
+		
+		ssh $machineUser@$machineServer -p $machinePort ls
 		echo "Would you like to disable this machine? (y)es or (n)o?"
 		read -e -i "n" machineServer
 		echo ""
