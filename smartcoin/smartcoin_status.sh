@@ -193,8 +193,8 @@ ShowStatus() {
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
-	cpu=$(cat /proc/loadavg | cut -d" " -f1)
-	status=$status"CPU Load: $cpu\n\n"
+	cpu=$(cat /proc/loadavg | cut -d" " -f1,2,3)
+	status=$status"CPU Load Avgs: $cpu\n\n"
 
 	compositeAccepted="0"
 	compositeRejected="0"
