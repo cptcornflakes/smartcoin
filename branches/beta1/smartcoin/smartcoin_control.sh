@@ -290,11 +290,11 @@ Add_Machines() {
     # Add the machine to the database!
     echo "Updating Machines..."
     Q="INSERT INTO machine (name,server,ssh_port,username,disabled) VALUES ('$machineName','$machineServer','$machinePort','$machineUser','$machineDisabled');"
-    #RunSQL "$Q"
-    echo "$Q"
-    sleep 10
+    RunSQL "$Q"
+    sleep 1
     echo "done."
 
+    # TODO: Auto-detection on remote machine!
 	fi
 
 
