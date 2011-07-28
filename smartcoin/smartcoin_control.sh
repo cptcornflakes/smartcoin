@@ -265,7 +265,7 @@ Add_Machines() {
 	if [[ ! -f ~/.ssh/id_rsa.smartcoin ]]; then
      Log "SSH keys have not been generated yet" 1
      echo "Generating..."
-     ssh-keygen -q -N "" -f ~/.ssh/id.rsa.smartcoin -C "Smartcoin RSA key"
+     ssh-keygen -q -N "" -f ~/.ssh/id_rsa.smartcoin -C "Smartcoin RSA key"
      echo "Done."
   fi
 
