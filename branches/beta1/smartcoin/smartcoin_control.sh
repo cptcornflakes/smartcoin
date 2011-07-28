@@ -110,7 +110,7 @@ Do_SetFailoverOrder()
 
 		echo "$thisProfile) $thisProfileName"
 	done
-	if [[ -n "$R" ]]; then
+	if [[ -z "$R" ]]; then
 		echo "<<<Failover order not yet set!>>>"
 	fi
 	echo "-----------------------"
