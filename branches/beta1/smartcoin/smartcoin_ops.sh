@@ -352,6 +352,7 @@ GenFailoverProfile()
 	local thisMachine=$1
 	local FA
 	local i=0
+	local foundUpProfile=0
 
 	# Return, in order, all failover profiles to the point that one not marked as "down" is found, and return them all.
 	local firstActive=""
@@ -380,9 +381,17 @@ GenFailoverProfile()
 		done
 		if [[ "$isDown" == "0" ]]; then
 			# We found the first failover profile that isn't down, lets get out of here
+			foundUpProfile=1
 			break
 		fi
 	done
+
+	if [[ "$foundUpProfile" == "0" ]]; then
+		# None of the profiles in the failover order were up!
+		# Send hashes to the donation profile until one of them comes back up!
+		# Its better to have the hashes going somewhere, rather than nowhere!
+		FA=$FA$(FieldArrayAdd $(GenDonationProfile $thisMachine "-5"))
+	fi
 
 	echo "$FA"
 
@@ -391,6 +400,12 @@ GenDonationProfile()
 {
 	# Return FieldArray containing pk_profile, windowKey, pk_device, pk_miner, pk_worker, device.name, miner.launch fields
 	local thisMachine=$1
+	local profileNumber=$2
+
+	if [[ -z "$profileNumber" ]]; then
+		profileNumver="-2"
+	fi
+
 	local FA
 	local i=0
 	local donationWorkers="-3 -2 -1"
@@ -412,7 +427,7 @@ GenDonationProfile()
 
 			let i++
 		
-			FA=$FA$(FieldArrayAdd "-2	Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker	$thisDeviceName	$thisLaunch	0") # Force profile_down to 0, as the donation profile is never really "down"
+			FA=$FA$(FieldArrayAdd "$profileNumber	Miner.$i	$thisDevice	$thisMiner	$thisDonationWorker	$thisDeviceName	$thisLaunch	0") # Force profile_down to 0, as the donation profile is never really "down"
 		done
 	done
 
@@ -640,6 +655,8 @@ GetProfileName() {
 
 	if [[ "$Donate" ]]; then
 		echo "Donation (via AutoDonate)  - $Donate minutes remaining."
+	elif [[ "$thisProfile" == "-5" ]]; then
+		echo "Donation (Last resort failover)"
 	elif [[ "$thisProfile" == "-4" ]]; then
 		echo "Idle"
 	elif [[ "$thisProfile" == "-3" ]]; then
