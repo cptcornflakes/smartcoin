@@ -357,7 +357,7 @@ GenFailoverProfile()
 	local firstActive=""
 	
 	# Get a list of all the profiles
-	Q="SELECT pk_profile, name, down FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
+	Q="SELECT pk_profile, name, down FROM profile WHERE fk_machine='$thisMachine' AND failover_order>'0' ORDER BY failover_order, pk_profile;"
 	R=$(RunSQL "$Q")
 
 	# Generate the FieldArray until we get the first profile that isn't down!
@@ -891,199 +891,198 @@ findAMDSDK2()
 
 AutoDetect()
 {
-  local thisMachine=$1
-  Q="SELECT name,server,ssh_port,username FROM machine WHERE pk_machine='$thisMachine';"
-  R=$(RunSQL "$Q")
-  local machineName=$(Field 1 "$R")
-  local machineServer=$(Field 2 "$R")
-  local machinePort=$(Field 3 "$R")
-  local machineUser=$(Field 4 "$R")
-  
-  
-  
-  echo "Smartcoin can attempt to auto detect installed software on this remote machine."
-  echo "You will be prompted for the root password of this machine when needed."
-  E="Do you wish to continue? (y/n)"
-  GetYesNoSelection getPermission "$E"
-  echo ""
-  
-  Log "Running AutoDetection on machine $thisMachine..."
-  
-  # Run updatedb
-  echo ""
-  Log "Asking user if they wish to run ubdatedb."
-  E="In order for smartcoin to try to reliably determine the location of installed miners and the AMD/ATI SDK for you, "
-  E=$E"the linux command 'updatedb' should be run.  This can take quite a long time on machines with large filesystems."
-  echo "$E"
-  E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
-  GetYesNoSelection runupdatedb "$E" "y"
-
-  if [[ "$runupdatedb" == "1" ]]; then
-    Log "Running 'updatedb'... Please be patient" 1
-    Launch $thisMachine "sudo updatedb"
-  fi
-  
-  
-  # Autodetect cards
-  E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?"
-  GetYesNoSelection detectCards "$E" "y"
-
-  if [[ "$detectCards" == "1" ]]; then
-  echo "Adding available local devices. Please be patient..."
-  
-  if [[ "$thisMachine" == "1" ]]; then
-  D=`$CUR_LOCATION/smartcoin_devices.py`
-  else
-    # Copy the detection script over to the remote /tmp directory, then run it!
-    scp -i ~/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
-   D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
-  fi
-  
-  D=$(Field_Prepare "$D")
-  for device in $D; do
-     id=$(Field 1 "$device")
-     devName=$(Field 2 "$device")
-     devDisable=$(Field 3 "$device")
-     devType=$(Field 4 "$device")
-
-     # TODO: deal with hard coded auto_allow?
-     Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName',$id,1,'$devType',$devDisable);"
-     RunSQL "$Q"
-  done
-  echo "done."
-  echo ""
-  echo "These are the locally installed devices that I have found: "
-  echo "Name	Device #"
-  echo "----	--------"
- 
-  for device in $D; do
-     devID=$(Field 1 "$device")
-     devName=$(Field 2 "$device")
-     echo "$devName	$devID"	
-  done
-  echo ""
-  echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
-  echo ""
-  fi
+	local thisMachine=$1
+	Q="SELECT name,server,ssh_port,username FROM machine WHERE pk_machine='$thisMachine';"
+	R=$(RunSQL "$Q")
+	local machineName=$(Field 1 "$R")
+	local machineServer=$(Field 2 "$R")
+	local machinePort=$(Field 3 "$R")
+	local machineUser=$(Field 4 "$R")
 
 
 
-  # Autodetect miners
-  echo "Auto detecting local installed miners..."
-  E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or (n)o?"
-  GetYesNoSelection detectMiners "$E" "y"
-
-  if [[ "$detectMiners" == "1" ]]; then
-     #detect phoenix install location
-     phoenixMiner=$(Launch $thisMachine "locate phoenix.py | grep -vi svn")
-
-     if [[ "$phoenixMiner" != "" ]]; then
-         Log "Found phoenix miner installed on local system" 1
-         M=""
-         i=0
-
-
-         for thisLocation in $phoenixMiner; do
-           let i++
-
-           M=$M$(FieldArrayAdd "$i	$i	$thisLocation")
-         done
-      DisplayMenu "$M"
-
-      echo "Select the phoenix installation from the list above"
-		  selected="ERROR"
-		  until [[ "$selected" != "ERROR" ]]; do
-			  selected=$(GetMenuSelection "$M")
-			  if [[ "$selected" == "ERROR" ]]; then
-				  echo "Invalid selection. Please try again."
-			  fi
-		  done
-	
-		  i=0
-		  ret=""
-		  for thisLocation in $phoenixMiner; do
-			  let i++
-			  ret=$thisLocation
-			  if [[ "$selected" == "$i" ]]; then
-				  break
-			  fi
-		  done
-
-		  thisLocation=$thisLocation
-		  thisLocation=${thisLocation%"phoenix.py"}
-      # TODO: Get rid of this setting! It can be determined from the launch string if we are attempting to launch phoenix, then we can add the path if we need to!
-		  #Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
-		  #RunSQL "$Q"
-
-
-		  if [[ -d $thisLocation/kernels/phatk ]]; then
-			  knl="phatk"
-		  else
-			  knl="poclbm"
-		  fi
-		  Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES ('$thisMachine','phoenix','python <#path#>phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
-		  RunSQL "$Q"
-	  fi
-
-	# Detect poclbm install location
-	poclbmMiner=$(Launch $thisMachine "locate poclbm.py | grep -vi svn")
-	poclbmMiner=${poclbmMiner%"poclbm.py"}
-	if [[ "$poclbmMiner" != "" ]]; then
-		Log "Found poclbm miner installed on local system" 1
-		Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','poclbm','python poclbm.py -d <#device#> --host http://<#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
-		RunSQL "$Q"
-	fi
-
-
-	# Detect cgminer install location
-	# TODO: Needs fixed, its a bit of an ugly hack for now
-	cgminer=$(Launch $thisMachine "locate cgminer -n1")
-	cgminer=${cgminer%"cgminer"}
-	if [[ "$cgminer" != "" ]]; then
-		Log "Found cgminer miner installed on local system" 1
-		Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','cgminer','<#path#>cgminer -a 4way -g 2 -d <#device#> -o http://<#server#>:<#port#> -u <#user#> -p <#pass#> -I 14','$cgminer/',0,0);"
-		RunSQL "$Q"
-	fi
-
-	# Set the default miner
+	echo "Smartcoin can attempt to auto detect installed software on this remote machine."
+	echo "You will be prompted for the root password of this machine when needed."
+	E="Do you wish to continue? (y/n)"
+	GetYesNoSelection getPermission "$E"
 	echo ""
-	Q="SELECT pk_miner,name FROM miner WHERE fk_machine='$thisMachine' ORDER BY pk_miner ASC;"
-	E="Which miner listed above do you want to be the default miner?"
-	GetPrimaryKeySelection thisMiner "$Q" "$E"
-	Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
+
+	Log "Running AutoDetection on machine $thisMachine..."
+
+	# Run updatedb
+	echo ""
+	Log "Asking user if they wish to run ubdatedb."
+	E="In order for smartcoin to try to reliably determine the location of installed miners and the AMD/ATI SDK for you, "
+	E=$E"the linux command 'updatedb' should be run.  This can take quite a long time on machines with large filesystems."
+	echo "$E"
+	E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
+	GetYesNoSelection runupdatedb "$E" "y"
+
+	if [[ "$runupdatedb" == "1" ]]; then
+		Log "Running 'updatedb'... Please be patient" 1
+		Launch $thisMachine "sudo updatedb"
+	fi
+
+
+	# Autodetect cards
+	E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?"
+	GetYesNoSelection detectCards "$E" "y"
+
+	if [[ "$detectCards" == "1" ]]; then
+		echo "Adding available local devices. Please be patient..."
+
+		if [[ "$thisMachine" == "1" ]]; then
+			D=`$CUR_LOCATION/smartcoin_devices.py`
+		else
+			# Copy the detection script over to the remote /tmp directory, then run it!
+			scp -i ~/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
+			D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
+		fi
+
+		D=$(Field_Prepare "$D")
+		for device in $D; do
+		id=$(Field 1 "$device")
+		devName=$(Field 2 "$device")
+		devDisable=$(Field 3 "$device")
+		devType=$(Field 4 "$device")
+
+		# TODO: deal with hard coded auto_allow?
+		Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName',$id,1,'$devType',$devDisable);"
+		RunSQL "$Q"
+		done
+		echo "done."
+		echo ""
+		echo "These are the locally installed devices that I have found: "
+		echo "Name	Device #"
+		echo "----	--------"
+
+		for device in $D; do
+		devID=$(Field 1 "$device")
+		devName=$(Field 2 "$device")
+		echo "$devName	$devID"	
+		done
+		echo ""
+		echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
+		echo ""
+	fi
+
+
+
+	# Autodetect miners
+	echo "Auto detecting local installed miners..."
+	E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or (n)o?"
+	GetYesNoSelection detectMiners "$E" "y"
+
+	if [[ "$detectMiners" == "1" ]]; then
+		#detect phoenix install location
+		phoenixMiner=$(Launch $thisMachine "locate phoenix.py | grep -vi svn")
+
+		if [[ "$phoenixMiner" != "" ]]; then
+			Log "Found phoenix miner installed on local system" 1
+			M=""
+			i=0
+
+
+			for thisLocation in $phoenixMiner; do
+				let i++
+				M=$M$(FieldArrayAdd "$i	$i	$thisLocation")
+			done
+			DisplayMenu "$M"
+
+			echo "Select the phoenix installation from the list above"
+			selected="ERROR"
+			until [[ "$selected" != "ERROR" ]]; do
+				selected=$(GetMenuSelection "$M")
+				if [[ "$selected" == "ERROR" ]]; then
+					echo "Invalid selection. Please try again."
+				fi
+			done
+
+			i=0
+			ret=""
+			for thisLocation in $phoenixMiner; do
+				let i++
+				ret=$thisLocation
+				if [[ "$selected" == "$i" ]]; then
+			  		break
+				fi
+			done
+
+			thisLocation=$thisLocation
+			thisLocation=${thisLocation%"phoenix.py"}
+			# TODO: Get rid of this setting! It can be determined from the launch string if we are attempting to launch phoenix, then we can add the path if we need to!
+			#Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
+			#RunSQL "$Q"
+
+
+			if [[ -d $thisLocation/kernels/phatk ]]; then
+				knl="phatk"
+			else
+				knl="poclbm"
+			fi
+			Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES ('$thisMachine','phoenix','python <#path#>phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
+			RunSQL "$Q"
+		fi
+
+		# Detect poclbm install location
+		poclbmMiner=$(Launch $thisMachine "locate poclbm.py | grep -vi svn")
+		poclbmMiner=${poclbmMiner%"poclbm.py"}
+		if [[ "$poclbmMiner" != "" ]]; then
+			Log "Found poclbm miner installed on local system" 1
+			Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','poclbm','python poclbm.py -d <#device#> --host http://<#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
+			RunSQL "$Q"
+		fi
+
+
+		# Detect cgminer install location
+		# TODO: Needs fixed, its a bit of an ugly hack for now
+		cgminer=$(Launch $thisMachine "locate cgminer -n1")
+		cgminer=${cgminer%"cgminer"}
+		if [[ "$cgminer" != "" ]]; then
+			Log "Found cgminer miner installed on local system" 1
+			Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','cgminer','<#path#>cgminer -a 4way -g 2 -d <#device#> -o http://<#server#>:<#port#> -u <#user#> -p <#pass#> -I 14','$cgminer/',0,0);"
+			RunSQL "$Q"
+		fi
+
+		# Set the default miner
+		echo ""
+		Q="SELECT pk_miner,name FROM miner WHERE fk_machine='$thisMachine' ORDER BY pk_miner ASC;"
+		E="Which miner listed above do you want to be the default miner?"
+		GetPrimaryKeySelection thisMiner "$Q" "$E"
+		Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
+		RunSQL "$Q"
+		Log "Default miner set to $thisMiner"
+	fi
+
+	# Set the current profile!
+	# Defaults to Automatic profile until the user gets one set up
+	Q="DELETE from current_profile WHERE fk_machine='$thisMachine';"	#A little paranoid, but why not...
 	RunSQL "$Q"
-	Log "Default miner set to $thisMiner"
-fi
+	Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES ('$thisMachine','-1');"
+	RunSQL "$Q"
+	Log "Current profile set to Automatic for this machine"
 
-# Set the current profile!
-# Defaults to Automatic profile until the user gets one set up
-Q="DELETE from current_profile WHERE fk_machine='$thisMachine';"	#A little paranoid, but why not...
-RunSQL "$Q"
-Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES ('$thisMachine','-1');"
-RunSQL "$Q"
-Log "Current profile set to Automatic for this machine"
+	E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
+	GetYesNoSelection autoDetectSDKLocation "$E" "y"
 
-E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
-GetYesNoSelection autoDetectSDKLocation "$E" "y"
+	if [[ "$autoDetectSDKLocation" == "1" ]]; then
+		Log "	User chose to autodetect"
+		echo "Please be patient, this may take a few minutes..."
+		#TODO fix findAMDSDK2 to use the $thisMachine parameter, and use the Launch command.
+		amd_sdk_location=$(findAMDSDK2 $thisMachine)
+		echo "Please make sure the path below is correct, and change if necessary:"
+	else
+		Log "User chose NOT to autodetect"
+		echo "Enter the AMD/ATI SDK path below:"
+	fi
+	read -e -i "$amd_sdk_location" location
 
-if [[ "$autoDetectSDKLocation" == "1" ]]; then
-	Log "	User chose to autodetect"
-	echo "Please be patient, this may take a few minutes..."
-   #TODO fix findAMDSDK2 to use the $thisMachine parameter, and use the Launch command.
-	amd_sdk_location=$(findAMDSDK2 $thisMachine)
-	echo "Please make sure the path below is correct, and change if necessary:"
-else
-	Log "User chose NOT to autodetect"
-	echo "Enter the AMD/ATI SDK path below:"
-fi
-read -e -i "$amd_sdk_location" location
+	# TODO: settings table needs an fk_machine field!  Then add that field information into the query
+	Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
+	RunSQL "$Q"
+	Log "AMD/ATI SDK location set to $location"
 
-# TODO: settings table needs an fk_machine field!  Then add that field information into the query
-Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
-RunSQL "$Q"
-Log "AMD/ATI SDK location set to $location"
-
-Log "Autodetect routine finished."
+	Log "Autodetect routine finished."
 }
 
 

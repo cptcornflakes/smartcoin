@@ -76,6 +76,8 @@ Do_SetFailoverOrder()
 	clear
 	ShowHeader
 
+	echo "CHANGE FAILOVER ORDER"
+	echo "---------------------"
 	Q="SELECT COUNT(*) FROM profile;"
 	R=$(RunSQL "$Q")
 	local count=$(Field 1 "$R")
@@ -96,8 +98,11 @@ Do_SetFailoverOrder()
 	Q="SELECT pk_machine, name from machine;"
 	E="Please select the machine from the list above that you wish to edit Failover order on"
 	GetPrimaryKeySelection thisMachine "$Q" "$E"
+	echo ""
 
-	Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' ORDER BY failover_order, pk_profile;"
+	echo "Current failover order:"
+	echo "-----------------------"
+	Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' AND failover_order>'0' ORDER BY failover_order;"
 	R=$(RunSQL "$Q")
 	for row in $R; do
 		local thisProfile=$(Field 1 "$row")
@@ -105,8 +110,13 @@ Do_SetFailoverOrder()
 
 		echo "$thisProfile) $thisProfileName"
 	done
+	if [[ -n "$R" ]]; then
+		echo "<<<Failover order not yet set!>>>"
+	fi
+	echo "-----------------------"
 	echo ""
 	echo "The current profile failover order is listed above."
+	echo ""
 
 	E="Do you want to change the failover order, (y)es or (n)o?"
 	GetYesNoSelection changeOrder "$E"
@@ -114,12 +124,21 @@ Do_SetFailoverOrder()
 
 	if [[ "$changeOrder" == "1"  ]]; then
 		
-		# Ouch, this is one ugly, ugly hack for now! But it will do the job...
-		Q="UPDATE profile SET failover_order='1000';"
+		# Mark all profiles to not be included into the failover system
+		Q="UPDATE profile SET failover_order='-1';"
 		RunSQL "$Q"
 
+		Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' ORDER BY pk_profile;"
+		R=$(RunSQL "$Q")
+		for row in $R; do
+			local thisProfile=$(Field 1 "$row")
+			local thisProfileName=$(Field 2 "$row")
 
+			echo "$thisProfile) $thisProfileName"
+		done
+		echo ""
 		echo "Enter a comma-separated list of the ID numbers above to define the failover order. I.e. 1,5,2,3"
+		echo "Note: leave out ID numbers to exclude them from the failover system"
 		read profileOrder
 		
 		echo "Updating the Failover order..."
@@ -139,7 +158,8 @@ Do_SetFailoverOrder()
 		sleep 1
 	fi
 
-	Reload "The failover order has been changed, reloading the miners."
+	# TODO: Remove once I can verify that the smartcoin_status.ReloadProfileOnChange takes care of this!
+	# Reload "The failover order has been changed, reloading the miners."
 		
 	
 }
@@ -872,7 +892,9 @@ Add_Profile()
 	echo "Enter a name for this profile"
 	read profileName
 	echo ""
-	Q="INSERT INTO profile (name,fk_machine,failover_order) VALUES ('$profileName','$thisMachine','1000');"
+
+	# Make sure we set the failover order to -1 so that new profiles aren't automatically included into the failover order!
+	Q="INSERT INTO profile (name,fk_machine,failover_order) VALUES ('$profileName','$thisMachine','-1');"
 	R=$(RunSQL "$Q")
 		
 	Q="SELECT pk_profile FROM profile ORDER BY pk_profile DESC LIMIT 1;"
