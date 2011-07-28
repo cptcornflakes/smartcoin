@@ -386,13 +386,14 @@ GenFailoverProfile()
 		fi
 	done
 
-	if [[ "$foundUpProfile" == "0" ]]; then
+	#if [[ "$foundUpProfile" == "0" ]]; then
+
 		# None of the profiles in the failover order were up!
 		# Send hashes to the donation profile until one of them comes back up!
 		# Its better to have the hashes going somewhere, rather than nowhere!
 		# TODO: Fully test this when I get time. DISABLE FOR NOW!
 		#FA=$FA$(FieldArrayAdd $(GenDonationProfile $thisMachine "-5"))
-	fi
+	#fi
 
 	echo "$FA"
 
