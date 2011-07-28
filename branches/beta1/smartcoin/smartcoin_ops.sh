@@ -869,8 +869,101 @@ Launch()
 	echo "$res"
 }
 
+findAMDSDK2()
+{
+	# local location=`sudo find / -type d -regextype posix-extended -iregex '.*/(AMD|ATI)-(APP|STREAM)-SDK-v[[:digit:].]+-lnx(32|64)/lib/x86(_64)?$'`
+	# Look for 64 bit version first
+	local location64=`sudo find / -type d -regextype posix-extended -iregex '.*/(AMD|ATI)-(APP|STREAM)-SDK-v[[:digit:].]+-lnx64/lib/x86_64?$'`
+	if [[ "$location64" != "" ]]; then
+		echo "$location64"
+		return
+	fi
 
+	# Look for 32 bit version
+	local location32=`sudo find / -type d -regextype posix-extended -iregex '.*/(AMD|ATI)-(APP|STREAM)-SDK-v[[:digit:].]+-lnx32/lib/x86?$'`
+	echo "$location32"
 
+}
+
+AutoDetect()
+{
+  local thisMachine=$1
+  Q="SELECT name,server,ssh_port,username FROM machine WHERE pk_machine='$thisMachine';"
+  R=$(RunSQL "$Q")
+  local machineName=$(Field 1 "$R")
+  local machineServer=$(Field 2 "$R")
+  local machinePort=$(Field 3 "$R")
+  local machineUser=$(Field 4 "$R")
+  
+  
+  
+  echo "Smartcoin can attempt to auto detect installed software on this remote machine."
+  echo "You will be prompted for the root password of this machine when needed."
+  E="Do you wish to continue? (y/n)"
+  GetYesNoSelection getPermission "$E"
+  echo ""
+  
+  Log "Running AutoDetection on machine $thisMachine..."
+  
+  # Run updatedb
+  echo ""
+  Log "Asking user if they wish to run ubdatedb."
+  E="In order for smartcoin to try to reliably determine the location of installed miners and the AMD/ATI SDK for you, "
+  E=$E"the linux command 'updatedb' should be run.  This can take quite a long time on machines with large filesystems."
+  echo "$E"
+  E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
+  GetYesNoSelection runupdatedb "$E" "y"
+
+  if [[ "$runupdatedb" == "1" ]]; then
+    Log "Running 'updatedb'... Please be patient" 1
+    Launch $thisMachine "sudo updatedb"
+  fi
+  
+  
+  # Autodetect cards
+  E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?"
+  GetYesNoSelection detectCards "$E" "y"
+
+  if [[ "$detectCards" == "1" ]]; then
+  echo "Adding available local devices. Please be patient..."
+  
+  if [[ "$thisMachine" == "1" ]]; then
+  D=`$CUR_LOCATION/smartcoin_devices.py`
+  else
+    # Copy the detection script over to the remote /tmp directory, then run it!
+    scp -i ~/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
+   D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
+  fi
+  
+  D=$(Field_Prepare "$D")
+  for device in $D; do
+     id=$(Field 1 "$device")
+     devName=$(Field 2 "$device")
+     devDisable=$(Field 3 "$device")
+     devType=$(Field 4 "$device")
+
+     # TODO: deal with hard coded auto_allow?
+     Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName',$id,1,'$devType',$devDisable);"
+     RunSQL "$Q"
+  done
+  echo "done."
+  echo ""
+  echo "These are the locally installed devices that I have found: "
+  echo "Name	Device #"
+  echo "----	--------"
+ 
+  for device in $D; do
+     devID=$(Field 1 "$device")
+     devName=$(Field 2 "$device")
+     echo "$devName	$devID"	
+  done
+  echo ""
+  echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
+  echo ""
+  fi
+
+  
+}
 
 
 # Lets fix up our $LD_LIBRARY_PATH
