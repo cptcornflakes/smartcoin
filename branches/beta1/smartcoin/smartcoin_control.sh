@@ -254,32 +254,46 @@ Add_Machines() {
 	echo ""
 
 	# Now its time to determine whether or not the remote machine is online.
-	# We can only add it, if it is online - as we have to generate some RSA keys!
+	# We can only add it to teh database if it is online - as we have to generate some RSA keys!
 	echo "In order to continue, we need to attempt to connect to this remote machine."
 	echo "If we can successfully connect, we will generate RSA keys for secure communication."
 	echo "Press any key to attempt to connect to the remote machine. You will need to enter the password for the remote machine when prompted!"
 	read
 	echo
 
-	# Step 1: Generate the keys!
-	rm /tmp/id.rsa* 2> /dev/null
-	ssh-keygen -q -N "" -f /tmp/id.rsa
+	# Step 1: Generate the keys if needed!
+	if [[ ! -f ~/.ssh/id_rsa.smartcoin ]]; then
+     Log "SSH keys have not been generated yet" 1
+     echo "Generating..."
+     ssh-keygen -q -N "" -f ~/.ssh/id.rsa.smartcoin -C "Smartcoin RSA key"
+     echo "Done."
+  fi
 
-	# The universal 'uname -r' command is a good way to test for ssh access success!
-	ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
-
+	# If we can copy the key over to the remote machine, then success!
+	#ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
+  ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub '-p $machinePort $machineUser@$machineServer'
+  
 	if [[ $? -ne 0 ]]; then
 		echo "Aborting!"
 		echo "We were unable to connect to the remote server. This most likely means that the server is either offline, or information was entered incorrectly."
-		echo "Please try again, and make sure that the server is online, and that informatin entered is correct."
+		echo "Please try again, and make sure that the server is online, and that information entered is correct."
 		echo "(Any key to continue)"
 		read
 	else
 		
-		ssh $machineUser@$machineServer -p $machinePort ls
-		echo "Would you like to disable this machine? (y)es or (n)o?"
-		read -e -i "n" machineServer
+		echo "Connection successful!"
+    echo ""
+		E="Would you like to disable this machine? (y)es or (n)o?"
+    GetYesNoSelection machineDisabled "$E" "n"
 		echo ""
+      
+    # Add the machine to the database!
+    echo "Updating Machines..."
+    Q="INSERT INTO machine (name,server,ssh_port,username,disabled) VALUES ('$machineName','$machineServer','$machinePort','$machineUser','$machineDisabled');"
+    #RunSQL "$Q"
+    echo "$Q"
+    sleep 10
+    echo "done."
 
 	fi
 
