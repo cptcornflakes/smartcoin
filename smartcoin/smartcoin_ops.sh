@@ -920,13 +920,17 @@ AutoDetect()
 
 
 
-	echo "Smartcoin can attempt to auto detect installed software on this remote machine."
+	echo "Smartcoin can attempt to auto detect installed software on this machine."
 	echo "You will be prompted for the root password of this machine when needed."
 	E="Do you wish to continue? (y/n)"
 	GetYesNoSelection getPermission "$E"
 	echo ""
 
-	Log "Running AutoDetection on machine $thisMachine..."
+	if [[ "$getPermission" == "0" ]]; then
+		return
+	fi
+	
+	Log "Running AutoDetection on machine $machineName..." 1
 
 	# Run updatedb
 	echo ""
@@ -935,7 +939,7 @@ AutoDetect()
 	E=$E"the linux command 'updatedb' should be run.  This can take quite a long time on machines with large filesystems."
 	echo "$E"
 	E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
-	GetYesNoSelection runupdatedb "$E" "y"
+	GetYesNoSelection runupdatedb "$E" "1"
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
@@ -944,30 +948,31 @@ AutoDetect()
 
 
 	# Autodetect cards
-	E="Would you like smartcoin to attempt to auto-detect installed GPUs? (y)es or (n)o?"
+	E="Would you like smartcoin to attempt to auto-detect installed GPUs on this machine? (y)es or (n)o?"
 	GetYesNoSelection detectCards "$E" "y"
 
 	if [[ "$detectCards" == "1" ]]; then
-		echo "Adding available local devices. Please be patient..."
+		echo "Detecting available local devices. Please be patient..."
 
 		if [[ "$thisMachine" == "1" ]]; then
-			D=`$CUR_LOCATION/smartcoin_devices.py`
+			D=$($CUR_LOCATION/smartcoin_devices.py)
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
 			scp -i ~/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
 			D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
 		fi
 
+		E=""
 		D=$(Field_Prepare "$D")
 		for device in $D; do
-		id=$(Field 1 "$device")
-		devName=$(Field 2 "$device")
-		devDisable=$(Field 3 "$device")
-		devType=$(Field 4 "$device")
+			id=$(Field 1 "$device")
+			devName=$(Field 2 "$device")
+			devDisable=$(Field 3 "$device")
+			devType=$(Field 4 "$device")
 
-		# TODO: deal with hard coded auto_allow?
-		Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName',$id,1,'$devType',$devDisable);"
-		RunSQL "$Q"
+			# TODO: deal with hard coded auto_allow?
+			Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName','$id','1','$devType','$devDisable');"
+			RunSQL "$Q"
 		done
 		echo "done."
 		echo ""
@@ -976,9 +981,9 @@ AutoDetect()
 		echo "----	--------"
 
 		for device in $D; do
-		devID=$(Field 1 "$device")
-		devName=$(Field 2 "$device")
-		echo "$devName	$devID"	
+			devID=$(Field 1 "$device")
+			devName=$(Field 2 "$device")
+			echo "$devName	$devID"	
 		done
 		echo ""
 		echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
@@ -1110,15 +1115,15 @@ Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
 R=$(RunSQL "$Q")
 amd_sdk_location=$(Field 1 "$R")
 
-Q="SELECT value FROM settings WHERE data='phoenix_location';"
-R=$(RunSQL "$Q")
-phoenix_location=$(Field 1 "$R")
+#Q="SELECT value FROM settings WHERE data='phoenix_location';"
+#R=$(RunSQL "$Q")
+#phoenix_location=$(Field 1 "$R")
 
 if [[ "$amd_sdk_location" ]]; then
 	export LD_LIBRARY_PATH=$amd_sdk_location:$LD_LIBRARY_PATH
 fi
-if [[ "$phoenix_location" ]]; then
-	export LD_LIBRARY_PATH=$phoenix_location:$LD_LIBRARY_PATH
-fi	
+#if [[ "$phoenix_location" ]]; then
+#	export LD_LIBRARY_PATH=$phoenix_location:$LD_LIBRARY_PATH
+#fi	
 
 
