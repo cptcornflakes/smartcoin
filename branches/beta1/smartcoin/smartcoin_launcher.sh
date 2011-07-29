@@ -47,7 +47,7 @@ minerLaunch=${minerLaunch//<#pass#>/$workerPass}
 minerLaunch=${minerLaunch//<#server#>/$workerServer}
 minerLaunch=${minerLaunch//<#port#>/$workerPort}
 minerLaunch=${minerLaunch//<#device#>/$thisDevice}
-#minerLaunch=${minerLaunch//<#path#>/$minerPath}
+minerLaunch=${minerLaunch//<#path#>/$minerPath}
 
 echo "LAUNCH: $minerLaunch"
 Log "Launching miner with launch string: $minerLaunch" 1
@@ -63,5 +63,5 @@ case "$minerLaunch" in
 esac
 
 
-$minerPath/$minerLaunch 2>/dev/null
+cd $minerPath && $minerLaunch 2>/dev/null
 
