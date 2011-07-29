@@ -342,7 +342,7 @@ ShowStatus() {
 					Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
 					Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
        					Log "       Below is a capture of the miner output which caused the error:"
-					minerOutput=$(Launch $MACHINE "cat /tmp/smartcoin-$key 2> /dev/null"
+					minerOutput=$(Launch $MACHINE "cat /tmp/smartcoin-$key 2> /dev/null")
 					Log "$minerOutput"
 
 				       	# Let the user have their own custom lockup script if they want
