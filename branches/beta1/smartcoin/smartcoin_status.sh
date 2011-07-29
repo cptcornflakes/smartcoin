@@ -190,7 +190,7 @@ ShowStatus() {
 		deviceType=$(Field 3 "$device")
 		if [[ "$deviceType" == "gpu" ]]; then
 			Launch $MACHINE "sleep 0.2" # aticonfig seems to get upset sometimes if it is called very quickly in succession
-		        temperature=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';")
+		        temperature=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print \$5 }';")
 			Launch $MACHINE "sleep 0.2" # aticonfig seems to get upset sometimes if it is called very quickly in succession
       			usage=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';")
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
