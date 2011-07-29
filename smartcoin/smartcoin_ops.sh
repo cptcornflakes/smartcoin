@@ -919,7 +919,9 @@ AutoDetect()
 	local machineUser=$(Field 4 "$R")
 
 
-
+	clear
+	ShowHeader
+	echo ""
 	echo "Smartcoin can attempt to auto detect installed software on this machine."
 	echo "You will be prompted for the root password of this machine when needed."
 	E="Do you wish to continue? (y/n)"
@@ -937,6 +939,7 @@ AutoDetect()
 	Log "Asking user if they wish to run ubdatedb."
 	E="In order for smartcoin to try to reliably determine the location of installed miners and the AMD/ATI SDK for you, "
 	E=$E"the linux command 'updatedb' should be run.  This can take quite a long time on machines with large filesystems."
+	E=$E"Note: root password is required and you will be prompted for it."
 	echo "$E"
 	E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
 	GetYesNoSelection runupdatedb "$E" "1"
@@ -972,7 +975,8 @@ AutoDetect()
 
 			# TODO: deal with hard coded auto_allow?
 			Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName','$id','1','$devType','$devDisable');"
-			RunSQL "$Q"
+			###RunSQL "$Q"
+			echo "$Q"
 		done
 		echo "done."
 		echo ""
@@ -1034,18 +1038,15 @@ AutoDetect()
 
 			thisLocation=$thisLocation
 			thisLocation=${thisLocation%"phoenix.py"}
-			# TODO: Get rid of this setting! It can be determined from the launch string if we are attempting to launch phoenix, then we can add the path if we need to!
-			#Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
-			#RunSQL "$Q"
-
-
+			
 			if [[ -d $thisLocation/kernels/phatk ]]; then
 				knl="phatk"
 			else
 				knl="poclbm"
 			fi
 			Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES ('$thisMachine','phoenix','python <#path#>phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
-			RunSQL "$Q"
+			###RunSQL "$Q"
+			echo "$Q"
 		fi
 
 		# Detect poclbm install location
@@ -1054,7 +1055,8 @@ AutoDetect()
 		if [[ "$poclbmMiner" != "" ]]; then
 			Log "Found poclbm miner installed on local system" 1
 			Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','poclbm','python poclbm.py -d <#device#> --host http://<#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
-			RunSQL "$Q"
+			###RunSQL "$Q"
+			echo "$Q"
 		fi
 
 
@@ -1065,25 +1067,28 @@ AutoDetect()
 		if [[ "$cgminer" != "" ]]; then
 			Log "Found cgminer miner installed on local system" 1
 			Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','cgminer','<#path#>cgminer -a 4way -g 2 -d <#device#> -o http://<#server#>:<#port#> -u <#user#> -p <#pass#> -I 14','$cgminer/',0,0);"
-			RunSQL "$Q"
+			###RunSQL "$Q"
+			echo "$Q"
 		fi
 
 		# Set the default miner
 		echo ""
-		Q="SELECT pk_miner,name FROM miner WHERE fk_machine='$thisMachine' ORDER BY pk_miner ASC;"
-		E="Which miner listed above do you want to be the default miner?"
-		GetPrimaryKeySelection thisMiner "$Q" "$E"
-		Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
-		RunSQL "$Q"
-		Log "Default miner set to $thisMiner"
+		###Q="SELECT pk_miner,name FROM miner WHERE fk_machine='$thisMachine' ORDER BY pk_miner ASC;"
+		###E="Which miner listed above do you want to be the default miner?"
+		###GetPrimaryKeySelection thisMiner "$Q" "$E"
+		###Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
+		###RunSQL "$Q"
+		###Log "Default miner set to $thisMiner"
 	fi
 
 	# Set the current profile!
 	# Defaults to Automatic profile until the user gets one set up
 	Q="DELETE from current_profile WHERE fk_machine='$thisMachine';"	#A little paranoid, but why not...
-	RunSQL "$Q"
+	###RunSQL "$Q"
+	echo "$Q"
 	Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES ('$thisMachine','-1');"
-	RunSQL "$Q"
+	###RunSQL "$Q"
+	echo "$Q"
 	Log "Current profile set to Automatic for this machine"
 
 	E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
@@ -1102,8 +1107,8 @@ AutoDetect()
 	read -e -i "$amd_sdk_location" location
 
 	# TODO: settings table needs an fk_machine field!  Then add that field information into the query
-	Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
-	RunSQL "$Q"
+	#Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
+	#RunSQL "$Q"
 	Log "AMD/ATI SDK location set to $location"
 
 	Log "Autodetect routine finished."

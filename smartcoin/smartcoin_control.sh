@@ -283,15 +283,15 @@ Add_Machines() {
 
 	# Step 1: Generate the keys if needed!
 	if [[ ! -f ~/.ssh/id_rsa.smartcoin ]]; then
-     Log "SSH keys have not been generated yet" 1
-     echo "Generating..."
-     ssh-keygen -q -N "" -f ~/.ssh/id_rsa.smartcoin -C "Smartcoin RSA key"
-     echo "Done."
-  fi
+		Log "SSH keys have not been generated yet" 1
+		echo "Generating..."
+		ssh-keygen -q -N "" -f ~/.ssh/id_rsa.smartcoin -C "Smartcoin RSA key"
+		echo "Done."
+	fi
 
 	# If we can copy the key over to the remote machine, then success!
 	#ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
-  ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub "-p $machinePort $machineUser@$machineServer"
+	ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub "-p $machinePort $machineUser@$machineServer"
   
 	if [[ $? -ne 0 ]]; then
 		echo "Aborting!"
@@ -302,19 +302,23 @@ Add_Machines() {
 	else
 		
 		echo "Connection successful!"
-    echo ""
+		echo ""
 		E="Would you like to disable this machine? (y)es or (n)o?"
-    GetYesNoSelection machineDisabled "$E" "n"
+		GetYesNoSelection machineDisabled "$E" "n"
 		echo ""
       
-    # Add the machine to the database!
-    echo "Updating Machines..."
-    Q="INSERT INTO machine (name,server,ssh_port,username,disabled) VALUES ('$machineName','$machineServer','$machinePort','$machineUser','$machineDisabled');"
-    RunSQL "$Q"
-    sleep 1
-    echo "done."
+		# Add the machine to the database!
+		echo "Updating Machines..."
+		Q="INSERT INTO machine (name,server,ssh_port,username,disabled) VALUES ('$machineName','$machineServer','$machinePort','$machineUser','$machineDisabled');"
+		RunSQL "$Q"
+		sleep 1
+		echo "done."
 
-    # TODO: Auto-detection on remote machine!
+		# TODO: Auto-detection on remote machine!
+		Q="SELECT pk_machine FROM machine ORDER BY pk_machine DESC LIMIT 1;"
+		R=$(RunSQL "$Q")
+		local insertedMachine=$(Field 1 "$R")
+		AutoDetect $insertedMachine
 	fi
 
 
