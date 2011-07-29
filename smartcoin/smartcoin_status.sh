@@ -169,7 +169,7 @@ ShowStatus() {
 	xml_out="<?xml version=\"1.0\"?>\n"
 	xml_out=$xml_out"<smartcoin>\n"
 
-	export DISPLAY=:0
+	Launch $MACHINE "export DISPLAY=:0"
 	status=""
 
 	Q="SELECT name FROM machine WHERE pk_machine=$MACHINE"
@@ -189,14 +189,14 @@ ShowStatus() {
 		deviceID=$(Field 2 "$device")
 		deviceType=$(Field 3 "$device")
 		if [[ "$deviceType" == "gpu" ]]; then
-			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
-		        temperature=$(aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';)
-			sleep 0.2 # aticonfig seems to get upset sometimes if it is called very quickly in succession
-      			usage=$(aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';)
+			Launch $MACHINE "sleep 0.2" # aticonfig seems to get upset sometimes if it is called very quickly in succession
+		        temperature=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print $5 }';")
+			Launch $MACHINE "sleep 0.2" # aticonfig seems to get upset sometimes if it is called very quickly in succession
+      			usage=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print $4 }';")
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
-	cpu=$(cat /proc/loadavg | cut -d" " -f1,2,3)
+	cpu=$(Launch $MACHINE "cat /proc/loadavg | cut -d' ' -f1,2,3")
 	status=$status"CPU Load Avgs: $cpu\n\n"
 
 	compositeAccepted="0"
@@ -326,29 +326,29 @@ ShowStatus() {
 		if [[ "$skipLockupCheck" == "0" ]]; then 
 			if [[ "$oldCmd" == "$cmd" ]]; then
 				# Increment counter
-				local cnt=$(cat /tmp/smartcoin-$key.lockup 2> /dev/null)
+				local cnt=$(Launch $MACHINE "cat /tmp/smartcoin-$key.lockup 2> /dev/null")
 				if [[ -z "$cnt" ]]; then
 					cnt="0"
 				fi
 		
 				if [[ "$cnt" -lt "$G_LOCKUP_THRESHOLD" ]]; then
 					let cnt++
-					echo "$cnt" > /tmp/smartcoin-$key.lockup
+					Launch $MACHINE "echo $cnt > /tmp/smartcoin-$key.lockup"
 				fi
 
 				if [[ "$cnt" -eq "$G_LOCKUP_THRESHOLD" ]]; then
 					let cnt++
-					echo "$cnt" > /tmp/smartcoin-$key.lockup
+					Launch $MACHINE "echo $cnt > /tmp/smartcoin-$key.lockup"
 					Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
 					Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
        					Log "       Below is a capture of the miner output which caused the error:"
-					minerOutput=`cat "/tmp/smartcoin-$key" 2> /dev/null`
+					minerOutput=$(Launch $MACHINE "cat /tmp/smartcoin-$key 2> /dev/null"
 					Log "$minerOutput"
 
 				       	# Let the user have their own custom lockup script if they want
 					if [[ -f "$CUR_LOCATION/lockup.sh" ]]; then
           					Log "User lockup script found. Running lockup script." 1
-          					$CUR_LOCATION/lockup.sh
+          					$CUR_LOCATION/lockup.sh $MACHINE
         				fi
 
 					# Kill the miners
@@ -359,7 +359,7 @@ ShowStatus() {
 				fi
 			else
 				# Reset counter
-				rm /tmp/smartcoin-$key.lockup 2> /dev/null
+				Launch $MACHINE "rm /tmp/smartcoin-$key.lockup 2> /dev/null"
 			fi
    		fi
 
