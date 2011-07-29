@@ -971,7 +971,7 @@ AutoDetect()
 			D=$($CUR_LOCATION/smartcoin_devices.py)
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
-			scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py 2>&1 /dev/null
+			$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py)
 			D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
 		fi
 
