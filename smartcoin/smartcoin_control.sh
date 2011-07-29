@@ -291,7 +291,7 @@ Add_Machines() {
 
 	# If we can copy the key over to the remote machine, then success!
 	#ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
-	ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub "-p $machinePort $machineUser@$machineServer"
+	ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub "-q -p $machinePort $machineUser@$machineServer"
   
 	if [[ $? -ne 0 ]]; then
 		echo "Aborting!"
