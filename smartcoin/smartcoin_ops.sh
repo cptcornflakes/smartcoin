@@ -870,7 +870,7 @@ Launch()
 
 	if [[ "$machine" == "1" ]]; then
 		# This is the localhost, runn command normally!
-		res=$(eval "$cmd")
+		res=$(eval $cmd)
 	else
 		# This is a remote machine!
 
