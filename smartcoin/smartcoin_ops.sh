@@ -873,9 +873,9 @@ Launch()
 	if [[ "$machine" == "1" ]]; then
 		# This is the localhost, runn command normally!
 		if [[ -z "$no_block" ]]; then
-			res=$(eval $cmd)
+			res=$(eval "$cmd")
 		else
-			eval $cmd
+			eval "$cmd"
 		fi
 	else
 		# This is a remote machine!
