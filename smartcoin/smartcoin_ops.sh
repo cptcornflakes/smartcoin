@@ -1101,15 +1101,23 @@ AutoDetect()
 	echo "$Q"
 	Log "Current profile set to Automatic for this machine"
 
+	echo ""
 	E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
 	GetYesNoSelection autoDetectSDKLocation "$E" "y"
 
 	if [[ "$autoDetectSDKLocation" == "1" ]]; then
+
 		Log "	User chose to autodetect"
 		echo "Please be patient, this may take a few minutes..."
-		#TODO fix findAMDSDK2 to use the $thisMachine parameter, and use the Launch command.
-		amd_sdk_location=$(findAMDSDK2 $thisMachine)
+		if [[ "$thisMachine" == "1" ]]; then
+			amd_sdk_location=$($CUR_LOCATION/smartcoin_sdk_location.sh)
+		else
+			# Copy the detection script over to the remote /tmp directory, then run it!
+			scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_sdk_location.sh $machineUser@$machineServer:/tmp/smartcoin_sdk_location.sh
+			amd_sdk_location=$(Launch $thisMachine "/tmp/smartcoin_sdk_location.sh")
+		fi
 		echo "Please make sure the path below is correct, and change if necessary:"
+
 	else
 		Log "User chose NOT to autodetect"
 		echo "Enter the AMD/ATI SDK path below:"
