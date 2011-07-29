@@ -63,5 +63,5 @@ case "$minerLaunch" in
 esac
 
 
-cd $minerPath && $minerLaunch 2>/dev/null
+$minerLaunch 2>/dev/null
 
