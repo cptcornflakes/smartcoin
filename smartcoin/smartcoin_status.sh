@@ -301,13 +301,13 @@ ShowStatus() {
 
 		case "$minerLaunch" in
 		*phoenix.py*)
-			Monitor_phoenix
+			Monitor_phoenix $MACHINE
 			;;
 		*poclbm.py*)
-			Monitor_poclbm
+			Monitor_poclbm $MACHINE
 			;;
 		*cgminer*)
-			Monitor_cgminer
+			Monitor_cgminer $MACHINE
 			;;
 		esac
 
