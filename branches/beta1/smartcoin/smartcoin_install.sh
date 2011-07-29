@@ -247,9 +247,7 @@ if [[ "$detectMiners" == "1" ]]; then
 
 		thisLocation=$thisLocation
 		thisLocation=${thisLocation%"phoenix.py"}
-		Q="INSERT INTO settings (data,value,description) VALUES ('phoenix_location','$thisLocation','Phoenix installation location');"
-		RunSQL "$Q"
-
+		
 
 		if [[ -d $thisLocation/kernels/phatk ]]; then
 			knl="phatk"
