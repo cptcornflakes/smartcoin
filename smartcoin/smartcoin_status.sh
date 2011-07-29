@@ -125,10 +125,12 @@ MarkFailedProfiles()
 	if [[ "$profileName" == "Failover" ]]; then
 		# We're in Failover mode.
 
+		# TODO: Do this all in one query call and do the math inside the query?
 		Q="SELECT down,failover_count FROM profile WHERE pk_profile='$theProfile';"
 		R=$(RunSQL "$Q")
 		local db_failed=$(Field 1 "$R")
-		local db_count=$(Field 2 "$R")
+		local failover_count=$(Field 2 "$R")
+		local db_count=$failover_count		
 
 		if [[ "$failure" -gt "0" ]]; then
 			failure=1
@@ -142,9 +144,10 @@ MarkFailedProfiles()
 		#Log "DEBUG: failure=$failure"
 		#Log "DEBUG: db_count=$db_count"
 		#Log "DEBUG: db_failed=$db_failed"
-
-		Q="UPDATE profile SET failover_count='$db_count' WHERE pk_profile='$theProfile';"
-		RunSQL "$Q"
+		if [[ "$db_count" != "$failover_count" ]]; then
+			Q="UPDATE profile SET failover_count='$db_count' WHERE pk_profile='$theProfile';"
+			RunSQL "$Q"
+		fi
 		#Log "DEBUG: $Q"
 
 		# TODO: replace hard-coded max count with a setting?
