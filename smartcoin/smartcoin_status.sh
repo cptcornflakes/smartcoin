@@ -84,7 +84,7 @@ LoadProfileOnChange()
 	
 	# Watch for a change in the profile
 	newProfile=$(GetCurrentProfile $MACHINE)
-	newFA=$(GenCurrentProfile "$MACHINE")
+
 
 
 	if [[ "$newProfile" != "$lastProfile" ]]; then
@@ -92,7 +92,7 @@ LoadProfileOnChange()
 		Log "	Switching from profile: $lastProfile to profile: $newProfile"
 		DeleteTemporaryFiles
 		lastProfile=$newProfile
-		oldFA=$newFA
+		oldFA=$G_FA_Profile
 		# Reload the miner screen session
 		killMiners $MACHINE
 		clear
@@ -102,9 +102,9 @@ LoadProfileOnChange()
 		return
 	fi
 	# This should only happen if a failover event takes place	
-	if [[ "$newFA" != "$oldFA"  ]]; then
+	if [[ "$G_FA_Profile" != "$oldFA"  ]]; then
 		Log "A change was detected in the failover system"
-		oldFA=$newFA
+		oldFA=$G_FA_Profile
 		killMiners $MACHINE
 		clear
 		ShowHeader
@@ -204,7 +204,7 @@ ShowStatus() {
 
 
 	status=$status"\e[01;33mProfile: $profileName\e[00m\n"
-	FA=$newFA # This was already called from the LoadProfileOnChange command... Why call it again? $(GenCurrentProfile "$MACHINE")
+
 	profileFailed=0
 	hardlocked=0
 
@@ -223,7 +223,7 @@ ShowStatus() {
 	
 	
 
-	for Row in $FA; do
+	for Row in $G_FA_Profile; do
 		thisProfile=$(Field 1 "$Row")
 		key=$(Field 2 "$Row")
 		device=$(Field 3 "$Row")
@@ -428,6 +428,7 @@ LoadGlobals
 clear
 while true; do
 	DonationActive #set the G_DONATION_ACTIVE variable for upcoming calls
+	G_FA_Profile=$(GenCurrentProfile "$MACHINE")
 	ExternalReloadCheck
 	LoadProfileOnChange
 	UI=$(ShowStatus)
