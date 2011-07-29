@@ -882,7 +882,7 @@ Launch()
 		local port=$(Field 4 "$R")
 
 		# TODO: see if eval works well this way
-		res=$(eval "ssh -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  $cmd")
+		res=$(eval "ssh -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  '$cmd'")
 
 	fi
 	echo "$res"
