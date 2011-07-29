@@ -875,7 +875,7 @@ Launch()
 		# This is a remote machine!
 
 		# TODO: Make a global field array at global define time so we don't have to query so often!
-		Q="SELECT name,server,user,port FROM machine WHERE pk_machine=$machine;"
+		Q="SELECT name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
 		R=$(RunSQL "$Q")
 		local user=$(Field 3 "$R")
 		local server=$(Field 2 "$R")
@@ -961,7 +961,7 @@ AutoDetect()
 			D=$($CUR_LOCATION/smartcoin_devices.py)
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
-			scp -i ~/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
+			scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
 			D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
 		fi
 
