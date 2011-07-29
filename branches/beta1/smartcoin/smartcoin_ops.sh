@@ -225,7 +225,7 @@ RotateLogs() {
 DeleteTemporaryFiles() {
 
 	if [[ -z "$thisMachine" ]]; then
-		# No machine selected, kill miners on all machines!
+		# No machine selected, delete temporary files on all machines!
 		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
 		R=$(RunSQL "$Q")
 
