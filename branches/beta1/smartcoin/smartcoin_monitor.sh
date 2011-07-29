@@ -17,12 +17,13 @@ fi
 # PHOENIX monitoring
 Monitor_phoenix()
 {
+	local thisMachine=$1
 
-	oldCmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
-	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-	cmd=`grep "hash" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+	oldCmd=$(Launch $thisMachine "grep 'hash' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
+	Launch $thisMachine "screen -d -r $minerSession -p $key -X hardcopy '/tmp/smartcoin-$key'"
+	cmd=$(Launch $thisMachine "grep 'hash' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
 
-	failure=$(grep "=== Command" "/tmp/smartcoin-$key" | tail -n 1)
+	failure=$(Launch $thisMachine "grep '=== Command' '/tmp/smartcoin-$key' | tail -n 1")
 	
 	if [[ "$cmd" == *Ghash* ]]; then
 		hashUnits="Ghash"
