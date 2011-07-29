@@ -866,11 +866,17 @@ Launch()
 {
 	local machine=$1
 	local cmd=$2
+	local no_block=$3
+
 	local res
 
 	if [[ "$machine" == "1" ]]; then
 		# This is the localhost, runn command normally!
-		res=$(eval $cmd)
+		if [[ -z "$no_block" ]]; then
+			res=$(eval $cmd)
+		else
+			eval $cmd
+		fi
 	else
 		# This is a remote machine!
 
@@ -881,11 +887,15 @@ Launch()
 		local server=$(Field 2 "$R")
 		local port=$(Field 4 "$R")
 
-		# TODO: see if eval works well this way
-		res=$(eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  '$cmd'")
-
+		if [[ -z "$no_block" ]]; then
+			res=$(eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  '$cmd'")
+		else
+			eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  '$cmd'"
+		fi
 	fi
-	echo "$res"
+	if [[ -z "$no_block" ]]; then
+		echo "$res"
+	fi
 }
 
 findAMDSDK2()
@@ -946,7 +956,7 @@ AutoDetect()
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
-		Launch $thisMachine "sudo updatedb"
+		Launch $thisMachine "sudo updatedb" 1
 	fi
 
 
@@ -961,7 +971,7 @@ AutoDetect()
 			D=$($CUR_LOCATION/smartcoin_devices.py)
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
-			scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py
+			scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py 2>&1 /dev/null
 			D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
 		fi
 
@@ -1114,6 +1124,150 @@ AutoDetect()
 	Log "Autodetect routine finished."
 }
 
+
+#------------------------
+#SETTINGS TABLE FUNCTIONS
+#------------------------
+# These functions will make sure that:
+# A) The required settings exist in the database
+# B) That there are no duplicate settings
+# C) The description,information and order fields stay up to date
+#
+# The GeneralSettings and MachineSettings for each machine should be called each time smartcoin is started.
+# Additionally, the GeneralSettings and MachineSettings for localhost should be used in the installer, and values "UPDATED" from the install script.
+# Likewise, the MachineSettings should be used when a new machine is added to add their settings to the database.
+EnsureSettings() {
+	# TODO: Update to correct description and information fields if they differ!
+	local machine=$1
+	local order=$2
+	local data=$3
+	local description=$4
+	local information=$5
+
+	Q="SELECT COUNT(*) FROM settings WHERE data='$data' AND fk_machine='$machine';"
+	R=$(RunSQL "$Q")
+	entry=$(Field 1 "$R")
+	if [[ "$entry" -gt "1" ]]; then
+		Q="DELETE FROM settings WHERE data='$data' AND fk_machine='$machine';"
+		RunSQL "$Q"
+	fi
+	if [[ "$entry" -ne "1" ]]; then
+		Q="INSERT INTO settings (fk_machine,data,value,description,information) VALUES ('$machine','$data','','$description','$information');"
+		RunSQL "$Q"
+	else
+		# Make sure that the descrition, information and order fields are up to date
+		Q="SELECT pk_settings,description,information,order FROM settings WHERE data='$data' AND fk_machine='$machine';"
+		R=$(RunSQL "$Q")
+		local pk=$(Field 1 "$R")
+		local thisDescription=$(Field 2 "$R")
+		local thisInformation=$(Field 3 "$R")
+		local thisOrder=$(Field 4 "$R")
+
+		if [[ "$description" != "$thisDescription" ]]; then
+			Q="UPDATE SETTINGS SET description='$description' WHERE pk_settings='$pk';"
+			RunSQL "$Q"
+		fi
+		if [[ "$information" != "$thisInformation" ]]; then
+			Q="UPDATE SETTINGS SET information='$information' WHERE pk_settings='$pk';"
+			RunSQL "$Q"
+		fi
+		if [[ "$order" != "$thisOrder" ]]; then
+			Q="UPDATE SETTINGS SET order='$thisOrder' WHERE pk_settings='$pk';"
+			RunSQL "$Q"
+		fi
+	fi
+
+}
+
+
+GeneralSettings() {
+	local data
+	local description
+	local information
+	
+	# Development Branch
+	data="dev_branch"
+	description="Development branch to follow (stable/experimental)"
+	information="The experimental branch gets updated more frequently, but increases your risk of running into bugs in newer features. The stable branch is updated less often, but with features that have already been tested by users in the experimental branch."
+	EnsureSettings 0 1 $data $description $information
+
+	# Email Address
+	data="email"
+	description="Administrator email address"
+	information="Though currently not used, eventually smartcoin will email you when events such as lockups, failovers, etc occur."
+	EnsureSettings 0 2 $data $description $information
+
+	# Format String
+	data="format"
+	description="Miner output format string"
+	information="Formats the output on the status screen. The special tags <#hashrate#>, <#accepted#>, <#rejected#> and <#rejected_percent#> can be used to build your own output format.\n The default format string is:\n[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]"
+	EnsureSettings 0 3 $data $description $information
+
+	# Donation Minutes
+	data="donation_time"
+	description="Hashpower donation minutes per day"
+	information="Please consider donating your hashes to the author of smartcoin for at least 30 minutes per day.  I have literally hundreds of hours of my time into making this a useful and stable platform to make running a mining operation easier, and with as little downtime as possible. A value of 0 will disable auto-donation."
+	EnsureSettings 0 4 $data $description $information
+
+	# Donation start time
+	# Email Address
+	data="donation_start"
+	description="Time to start hashpower donation each day"
+	information="Please enter the time to start your auto-donations each day. The time is in 24-hour format, without a colon. For example, enter 100 for 1:00 AM, 1200 for noon, 1835 for 6:35 PM, etc."
+	EnsureSettings 0 5 $data $description $information
+	return
+}
+
+MachineSettings() {
+	local thisMachine=$1
+	local data
+	local description
+	local information
+
+	if [[ -z "$thisMachine" ]]; then
+		# No machine selected, kill miners on all machines!
+		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
+		R=$(RunSQL "$Q")
+
+		for row in $R; do
+			thisMachine=$(Field 1 "$row")
+			thisMachine=$thisMachine" "
+		done
+	fi
+
+	local machine
+	for machine in $thisMachine; do
+		# AMD/ATI SDK location
+		data="AMD_SDK_location"
+		description="AMD/ATI SDK installation location"
+		information="The AMD/ATI SDK is required by ATI GPUs to mine for bitcoins. It may be installed in many places, but it can commonly be found in ~/ and /opt."
+		EnsureSettings $machine 1 $data $description $information
+
+		# Failover Threshold
+		data="failover_threshold"
+		description="Failover Threshold"
+		information="Measured in iterations of the status screen logic loop"
+		EnsureSettings $machine 2 $data $description $information
+
+		# Failover Rejection
+		data="failover_rejection"
+		description="Failover on rejection % higher than"
+		information="Measured in iterations of the status screen logic loop"
+		EnsureSettings $machine 3 $data $description $information	
+	
+		# Lockup Threshold
+		data="lockup_threshold"
+		description="Lockup Threshold"
+		information="Measured in iterations of the status screen logic loop"
+		EnsureSettings $machine 4 $data $description $information
+
+		# Loop Delay
+		data="loop_delay"
+		description="Status screen loop delay"
+		information="Higher values, measured in seconds, make the status screen loop run slower."
+		EnsureSettings $machine 5 $data $description $information
+	done
+}
 
 # Lets fix up our $LD_LIBRARY_PATH
 Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
