@@ -85,12 +85,13 @@ Monitor_phoenix()
 Monitor_poclbm()
 {
 	# For now, get hash counting working! Look into accepted/rejected later!
+	local thisMachine=$1
 
-	oldCmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
-	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-	cmd=`grep "khash/s" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+	oldCmd=$(Launch $thisMachine "grep 'khash/s' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
+	Launch $thisMachine "screen -d -r $minerSession -p $key -X hardcopy '/tmp/smartcoin-$key'"
+	cmd=$(Launch $thisMachine "grep 'khash/s' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
 
-	failure=$(grep "=== Command" "/tmp/smartcoin-$key" | tail -n 1)
+	failure=$(Launch $thisMachine "grep '=== Command' '/tmp/smartcoin-$key' | tail -n 1")
 	
 	if [ "$cmd" ]; then
 		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
@@ -127,12 +128,13 @@ Monitor_poclbm()
 
 Monitor_cgminer()
 {
+	local thisMachine=$1
 
-	oldCmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
-	screen -d -r $minerSession -p $key -X hardcopy "/tmp/smartcoin-$key"
-	cmd=`grep "(5s)" "/tmp/smartcoin-$key" 2> /dev/null | tail -n 1`
+	oldCmd=$(Launch $thisMachine "grep '(5s)' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
+	Launch $thisMachine "screen -d -r $minerSession -p $key -X hardcopy '/tmp/smartcoin-$key'"
+	cmd=$(Launch $thisMachine "grep '(5s)' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
 
-	failure=$(grep "=== Command" "/tmp/smartcoin-$key" | tail -n 1)
+	failure=$(Launch $thisMachine "grep '=== Command' '/tmp/smartcoin-$key' | tail -n 1")
 
 	if [[ "$cmd" == *Gh/s* ]]; then
 		hashUnits="Ghash"
