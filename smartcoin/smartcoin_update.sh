@@ -227,6 +227,7 @@ else
 			Q="DELETE FROM settings WHERE data='phoenix_location';"
 			RunSQL "$Q"
 			echo "done."
+			export RESTART_REQ="1"
 			;;
     		*)	
 
