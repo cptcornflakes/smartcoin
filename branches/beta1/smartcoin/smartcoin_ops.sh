@@ -892,12 +892,13 @@ Launch()
 		local port=$(Field 4 "$R")
 
 		# See if the persistent connection is available
-		res=$(ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -O check -S /tmp/smartcoin.ssh_connection.$machine $user@$server)
+		res=$(ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -O check -S /tmp/smartcoin.ssh_connection.$machine $user@$server 2>&1 /dev/null)
 
-		if [[ "$?" -ne 0 ]]; then
+		if [[ $? -ne 0 ]]; then
 			# The connection does not exist!  Lets create it!
-			Log "Creating persistent ssh connection to machine $machine"
+			Log "Creating persistent ssh connection to machine $machine" 1
 			ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -NfM -S /tmp/smartcoin.ssh_connection.$machine $user@$server
+		
 		fi
  
 		if [[ -z "$no_block" ]]; then
