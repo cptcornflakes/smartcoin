@@ -862,6 +862,8 @@ GetAEDSelection()
 # Multi-Machine functions
 
 # Launch a remote command over SSH on remote machines, or locally on localhost
+# NOTE: To exit a persistent connection:
+# ssh -i ~/.ssh/id_rsa.smartcoin -O exit -S /tmp/ssh.control user@host
 Launch()
 {
 	local machine=$1
@@ -879,6 +881,8 @@ Launch()
 		fi
 	else
 		# This is a remote machine!
+	
+		
 
 		# TODO: Make a global field array at global define time so we don't have to query so often!
 		Q="SELECT name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
@@ -887,10 +891,19 @@ Launch()
 		local server=$(Field 2 "$R")
 		local port=$(Field 4 "$R")
 
+		# See if the persistent connection is available
+		res=$(ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -O check -S /tmp/smartcoin.ssh_connection.$machine $user@$server)
+
+		if [[ "$?" -ne 0 ]]; then
+			# The connection does not exist!  Lets create it!
+			Log "Creating persistent ssh connection to machine $machine"
+			ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -NfM -S /tmp/smartcoin.ssh_connection.$machine $user@$server
+		fi
+ 
 		if [[ -z "$no_block" ]]; then
-			res=$(eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  '$cmd'")
+			res=$(eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'")
 		else
-			eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin $user@$server  '$cmd'"
+			eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'"
 		fi
 	fi
 	if [[ -z "$no_block" ]]; then
@@ -944,6 +957,8 @@ AutoDetect()
 	
 	Log "Running AutoDetection on machine $machineName..." 1
 
+	Launch $thisMachine "sudo su" 1
+
 	# Run updatedb
 	echo ""
 	Log "Asking user if they wish to run ubdatedb."
@@ -956,7 +971,7 @@ AutoDetect()
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
-		Launch $thisMachine "sudo updatedb" 1
+		Launch $thisMachine "updatedb"
 	fi
 
 
