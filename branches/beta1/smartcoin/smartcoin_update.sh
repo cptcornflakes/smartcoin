@@ -8,10 +8,10 @@ else
 fi
 
 # Make sure that any new functions are available too!
-echo "Bring helper functions up to current..."
-svn update $CUR_LOCATION/smartcoin_ops.sh >/dev/null 2>&1
+#echo "Bring helper functions up to current..."
+#svn update $CUR_LOCATION/smartcoin_ops.sh >/dev/null 2>&1
 
-echo ""
+#echo ""
 
 . $CUR_LOCATION/smartcoin_ops.sh
 experimental_update=$1
@@ -48,7 +48,7 @@ fi
 # will be sure to be in the correct state to accept further updates and patches.
 BP="300 "	# The database moves in this update
 BP=$BP"365 "	# Stable/experimental branch stuff goes live
-
+BP=$BP"607 "	# Settings table schema update
 
 
 bp_message=""
@@ -197,6 +197,36 @@ else
 			# Set up loop delay for statu screens
 			Q="INSERT INTO settings (data,value,description) VALUES ('loop_delay','0','Status screen loop delay (higher value runs slower)');"                                                      
 			RunSQL "$Q" 
+			;;
+		607)
+			Log "Applying r$i patch..." 1                           
+                        echo "" 
+
+			echo "Updating settings table schema..."
+			# Update the schema
+			Q="ALTER TABLE settings ADD COLUMN information varchar(255);"
+			RunSQL "$Q"
+
+			Q="ALTER TABLE settings ADD COLUMN fk_machine integer"
+			RunSQL "$Q"
+
+			Q="ALTER TABLE settings ADD COLUMN display_order integer;"
+			RunSQL "$Q"
+			echo ""
+
+
+			# Patch the existing entries
+			echo "Patching existing entries..."
+			# General Entries
+			Q="UPDATE settings SET fk_machine='0' WHERE data='dev_branch' OR data='email' OR data='format' OR data='donation_time' OR data='donation_start';"
+			RunSQL "$Q"
+			# Machine Entries
+			Q="UPDATE settings SET fk_machine='1' WHERE data='AMD_SDK_location' OR data='failover_threshold' OR data='failover_rejection' OR data='lockup_threshold' OR data='loop_delay';"
+			RunSQL "$Q"
+			# Remove defunct phoenix_location settings
+			Q="DELETE FROM settings WHERE data='phoenix_location';"
+			RunSQL "$Q"
+			echo "done."
 			;;
     		*)	
 
