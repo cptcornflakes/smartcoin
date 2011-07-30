@@ -98,7 +98,7 @@ screen -r $sessionName -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%
 
 Log "Creating tab for each machine..." 1
 # Create a new window for each machine
-Q="SELECT pk_machine, name FROM machine;"
+Q="SELECT pk_machine, name FROM machine WHERE disabled=0;"
 R=$(RunSQL "$Q")
 for row in $R; do
 	pk_machine=$(Field 1 "$row")
