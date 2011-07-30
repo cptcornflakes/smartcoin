@@ -1193,6 +1193,8 @@ GeneralSettings() {
 	local description
 	local information
 	
+	Log "Verifying integrity of general settings..." 1
+
 	# Development Branch
 	data="dev_branch"
 	description="Development branch to follow (stable/experimental)"
@@ -1245,6 +1247,7 @@ MachineSettings() {
 
 	local machine
 	for machine in $thisMachine; do
+		Log "Verifying integrity of settings for machine $machine..." 1
 		# AMD/ATI SDK location
 		data="AMD_SDK_location"
 		description="AMD/ATI SDK installation location"

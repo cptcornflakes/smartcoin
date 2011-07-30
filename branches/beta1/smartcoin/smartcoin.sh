@@ -88,6 +88,9 @@ fi
 
 DeleteTemporaryFiles
 
+# Do settings integrity check!
+GeneralSettings
+MachineSettings
 
 screen -d -m -S $sessionName -t control "$CUR_LOCATION/smartcoin_control.sh"
 screen -r $sessionName -X zombie ko
