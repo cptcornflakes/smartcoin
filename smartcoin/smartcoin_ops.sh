@@ -1160,11 +1160,11 @@ EnsureSettings() {
 		RunSQL "$Q"
 	fi
 	if [[ "$entry" -ne "1" ]]; then
-		Q="INSERT INTO settings (fk_machine,data,value,description,information) VALUES ('$machine','$data','','$description','$information');"
+		Q="INSERT INTO settings (fk_machine,data,value,description,information,display_order) VALUES ('$machine','$data','','$description','$information','$order');"
 		RunSQL "$Q"
 	else
 		# Make sure that the descrition, information and order fields are up to date
-		Q="SELECT pk_settings,description,information,order FROM settings WHERE data='$data' AND fk_machine='$machine';"
+		Q="SELECT pk_settings,description,information,display_order FROM settings WHERE data='$data' AND fk_machine='$machine';"
 		R=$(RunSQL "$Q")
 		local pk=$(Field 1 "$R")
 		local thisDescription=$(Field 2 "$R")
@@ -1180,7 +1180,7 @@ EnsureSettings() {
 			RunSQL "$Q"
 		fi
 		if [[ "$order" != "$thisOrder" ]]; then
-			Q="UPDATE SETTINGS SET order='$thisOrder' WHERE pk_settings='$pk';"
+			Q="UPDATE SETTINGS SET display_order='$thisOrder' WHERE pk_settings='$pk';"
 			RunSQL "$Q"
 		fi
 	fi
@@ -1233,7 +1233,7 @@ MachineSettings() {
 	local information
 
 	if [[ -z "$thisMachine" ]]; then
-		# No machine selected, kill miners on all machines!
+		# No machine selected, update settings on all machines!
 		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
 		R=$(RunSQL "$Q")
 
