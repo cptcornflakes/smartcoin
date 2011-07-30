@@ -1234,6 +1234,7 @@ MachineSettings() {
 	local description
 	local information
 
+	# TODO:  REMOVE the where disabled=0 clause!
 	if [[ -z "$thisMachine" ]]; then
 		# No machine selected, update settings on all machines!
 		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
