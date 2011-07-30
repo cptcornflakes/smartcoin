@@ -898,13 +898,12 @@ Launch()
 			# The connection does not exist!  Lets create it!
 			Log "Creating persistent ssh connection to machine $machine" 1
 			ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -NfM -S /tmp/smartcoin.ssh_connection.$machine $user@$server
-		
 		fi
  
 		if [[ -z "$no_block" ]]; then
-			res=$(eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'")
+			res=$(eval "ssh -N -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'")
 		else
-			eval "ssh -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'"
+			eval "ssh -N -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'"
 		fi
 	fi
 	if [[ -z "$no_block" ]]; then
