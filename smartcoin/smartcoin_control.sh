@@ -202,6 +202,9 @@ Do_Settings() {
 
 	clear
 	ShowHeader
+	echo "EDIT SETTINGS"
+	echo "-------------"
+	echo ""
 	Q=""
 	E="Which settings would you like to edit?"
 	autoEntry=$(FieldArrayAdd "1	1	General Settings")
@@ -243,7 +246,7 @@ Do_Settings() {
 	local information=$(Field 1 "$R")
 	echo "Here is some general information about this setting:"
 	echo "--------------------"
-	echo -ne "$information"
+	echo -ne "$information\n"
 	echo "--------------------"
 	echo ""
 	Q="SELECT value, description FROM settings WHERE pk_settings=$thisSetting;"
