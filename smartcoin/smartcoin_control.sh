@@ -166,6 +166,7 @@ Do_SetFailoverOrder()
 
 # Profile Menu
 Do_ChangeProfile() {
+	local autoEntry
 
 	clear
 	ShowHeader
@@ -196,14 +197,55 @@ Do_ChangeProfile() {
 
 }
 Do_Settings() {
+	local autoEntry
+	local thisMachine
+
 	clear
 	ShowHeader
+	Q=""
+	E="Which settings would you like to edit?"
+	autoEntry=$(FieldArrayAdd "1	1	General Settings")
+	autoEntry=$autoEntry$(FieldArrayAdd "2	2	Machine Settings")
+	GetPrimaryKeySelection settingsType "$Q" "$E" "" "$autoEntry"
+	echo ""
 
-	echo "EDIT SETTINGS"
-	Q="SELECT pk_settings, description FROM settings WHERE description !='';"
+	if [[ "$settingsType" == "2" ]]; then
+		Q="SELECT pk_machine,name from machine"
+		E="Select the machine from the list above that you wish to edit settings on"
+		GetPrimaryKeySelection thisMachine "$Q" "$E"
+	else
+		thisMachine=0
+	fi
+	echo ""
+
+
+	clear
+	ShowHeader
+	if [[ "$thisMachine" == "0" ]]; then
+		echo "EDIT GENERAL SETTINGS"
+		echo "---------------------"
+	else
+		echo "EDIT MACHINE #$thisMachine SETTINGS"
+		echo "----------------------"
+	fi
+	Q="SELECT pk_settings, description FROM settings WHERE fk_machine='$thisMachine' AND description !='' ORDER BY display_order;"
 	E="Select the setting from the list above that you wish to edit"
 	GetPrimaryKeySelection thisSetting "$Q" "$E"
+	echo " "
 
+	clear
+	ShowHeader
+	echo "EDIT SETTING"
+	echo "------------"
+	echo ""
+	Q="SELECT information FROM settings WHERE pk_settings='$thisSetting';"
+	R=$(RunSQL "$Q")
+	local information=$(Field 1 "$R")
+	echo "Here is some general information about this setting:"
+	echo "--------------------"
+	echo -ne "$information"
+	echo "--------------------"
+	echo ""
 	Q="SELECT value, description FROM settings WHERE pk_settings=$thisSetting;"
 	R=$(RunSQL "$Q")
 	settingValue=$(Field 1 "$R")
