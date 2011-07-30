@@ -1114,7 +1114,7 @@ AutoDetect()
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
 			$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_sdk_location.sh $machineUser@$machineServer:/tmp/smartcoin_sdk_location.sh)
-			amd_sdk_location=$(Launch $thisMachine "/tmp/smartcoin_sdk_location.sh" 1)
+			amd_sdk_location=$(Launch $thisMachine "sudo /tmp/smartcoin_sdk_location.sh")
 		fi
 		echo "Please make sure the path below is correct, and change if necessary:"
 
