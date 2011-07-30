@@ -1180,7 +1180,7 @@ EnsureSettings() {
 			RunSQL "$Q"
 		fi
 		if [[ "$order" != "$thisOrder" ]]; then
-			Q="UPDATE settings SET display_order='$thisOrder' WHERE pk_settings='$pk';"
+			Q="UPDATE settings SET display_order='$order' WHERE pk_settings='$pk';"
 			RunSQL "$Q"
 		fi
 	fi
