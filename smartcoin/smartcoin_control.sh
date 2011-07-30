@@ -363,6 +363,7 @@ Add_Machines() {
 		Q="SELECT pk_machine FROM machine ORDER BY pk_machine DESC LIMIT 1;"
 		R=$(RunSQL "$Q")
 		local insertedMachine=$(Field 1 "$R")
+		MachineSettings "$insertedMachine"
 		AutoDetect $insertedMachine
 	fi
 
@@ -382,10 +383,39 @@ Edit_Machines() {
 Delete_Machines() {
 	clear
 	ShowHeader
-	echo "DELETING MACHINE"
-	echo "----------------"
-	echo ""
-	return
+	echo "SELECT MACHINE TO DELETE"
+
+	Q="SELECT COUNT(*) FROM machine;"
+	R=$(RunSQL "$Q")
+	local numMachines=$(Field 1 "$R")
+
+	if [[ "$numMachines" -le "1" ]]; then
+		echo "You have no extra machines to delete, and you cannot delete the localhost machine."
+		echo "Press any key to return to the control screen."
+		read
+		return
+	fi
+	Q="SELECT pk_machine,name FROM machine WHERE pk_machine<>'1';"
+	E="Select the machine from the list above that you wish to delete"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+
+
+	echo "Deleting Machine..."
+	local tables="settings current_profile miner device macro_map profile worker"
+	local thisTable
+
+	for thisTable in $tables; do
+		Q="DELETE FROM $thisTable WHERE fk_machine='$thisMachine';"
+		RunSQL "$Q"
+	done
+	
+
+	# Delete the actual machine entry
+	Q="DELETE FROM machine WHERE pk_machine='$thisMachine';"
+	RunSQL "$Q"	
+
+	echo "done."
+	sleep 1
 }
 
 # Configure Miners Menu
