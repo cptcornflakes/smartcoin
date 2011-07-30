@@ -1373,7 +1373,8 @@ do
 		2)
 			Log "Exit option selected"
 			# Kill the miners
-			killMiners
+			# TODO: Kill ALL miners, not just localhost!
+			killMiners 1
 			# Commit suicide
 			screen -d -r $sessionName -X quit
 			;;
