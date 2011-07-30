@@ -1199,32 +1199,32 @@ GeneralSettings() {
 	data="dev_branch"
 	description="Development branch to follow (stable/experimental)"
 	information="The experimental branch gets updated more frequently, but increases your risk of running into bugs in newer features. The stable branch is updated less often, but with features that have already been tested by users in the experimental branch."
-	EnsureSettings 0 1 $data $description $information
+	EnsureSettings 0 1 "$data" "$description" "$information"
 
 	# Email Address
 	data="email"
 	description="Administrator email address"
 	information="Though currently not used, eventually smartcoin will email you when events such as lockups, failovers, etc occur."
-	EnsureSettings 0 2 $data $description $information
+	EnsureSettings 0 2 "$data" "$description" "$information"
 
 	# Format String
 	data="format"
 	description="Miner output format string"
 	information="Formats the output on the status screen. The special tags <#hashrate#>, <#accepted#>, <#rejected#> and <#rejected_percent#> can be used to build your own output format.\n The default format string is:\n[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]"
-	EnsureSettings 0 3 $data $description $information
+	EnsureSettings 0 3 "$data" "$description" "$information"
 
 	# Donation Minutes
 	data="donation_time"
 	description="Hashpower donation minutes per day"
 	information="Please consider donating your hashes to the author of smartcoin for at least 30 minutes per day.  I have literally hundreds of hours of my time into making this a useful and stable platform to make running a mining operation easier, and with as little downtime as possible. A value of 0 will disable auto-donation."
-	EnsureSettings 0 4 $data $description $information
+	EnsureSettings 0 4 "$data" "$description" "$information"
 
 	# Donation start time
 	# Email Address
 	data="donation_start"
 	description="Time to start hashpower donation each day"
 	information="Please enter the time to start your auto-donations each day. The time is in 24-hour format, without a colon. For example, enter 100 for 1:00 AM, 1200 for noon, 1835 for 6:35 PM, etc."
-	EnsureSettings 0 5 $data $description $information
+	EnsureSettings 0 5 "$data" "$description" "$information"
 	return
 }
 
@@ -1252,31 +1252,31 @@ MachineSettings() {
 		data="AMD_SDK_location"
 		description="AMD/ATI SDK installation location"
 		information="The AMD/ATI SDK is required by ATI GPUs to mine for bitcoins. It may be installed in many places, but it can commonly be found in ~/ and /opt."
-		EnsureSettings $machine 1 $data $description $information
+		EnsureSettings $machine 1 "$data" "$description" "$information"
 
 		# Failover Threshold
 		data="failover_threshold"
 		description="Failover Threshold"
 		information="Measured in iterations of the status screen logic loop"
-		EnsureSettings $machine 2 $data $description $information
+		EnsureSettings $machine 2 "$data" "$description" "$information"
 
 		# Failover Rejection
 		data="failover_rejection"
 		description="Failover on rejection % higher than"
 		information="Measured in iterations of the status screen logic loop"
-		EnsureSettings $machine 3 $data $description $information	
+		EnsureSettings $machine 3 "$data" "$description" "$information"	
 	
 		# Lockup Threshold
 		data="lockup_threshold"
 		description="Lockup Threshold"
 		information="Measured in iterations of the status screen logic loop"
-		EnsureSettings $machine 4 $data $description $information
+		EnsureSettings $machine 4 "$data" "$description" "$information"
 
 		# Loop Delay
 		data="loop_delay"
 		description="Status screen loop delay"
 		information="Higher values, measured in seconds, make the status screen loop run slower."
-		EnsureSettings $machine 5 $data $description $information
+		EnsureSettings $machine 5 "$data" "$description" "$information"
 	done
 }
 
