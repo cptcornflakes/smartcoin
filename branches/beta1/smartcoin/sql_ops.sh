@@ -24,7 +24,7 @@ RunSQL()
 			sleep 0.01
 			res=$(sqlite3 -noheader -separator "	" "$HOME"/.smartcoin/"$SQL_DB" "$Q;" 2> /dev/null)
 			err="$?"
-			if [[ "$i" -gt 25 ]]; then
+			if [[ "$i" -ge 25 ]]; then
 				Log "ERROR: SQL Query failed!"
 				Log "	error code: $err"
 				Log "	query: $Q"
