@@ -1293,19 +1293,10 @@ MachineSettings() {
 }
 
 MachineDefaults() {
-	local thisMachine=$1
+	local thisMachine="$1"
 
-	if [[ -z "$thisMachine" ]]; then
-		# No machine selected, update settings on all machines!
-		Q="SELECT pk_machine FROM machine;"
-		R=$(RunSQL "$Q")
 
-		for row in $R; do
-			thisMachine=$(Field 1 "$row")
-			thisMachine=$thisMachine" "
-		done
-	fi
-
+	Log "Setting default values for machine $thisMachine"
 	# Fill in default values!
 	Log "Populating data base with default values..." 1
 	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine');"

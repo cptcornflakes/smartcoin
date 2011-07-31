@@ -363,6 +363,7 @@ Add_Machines() {
 		Q="SELECT pk_machine FROM machine ORDER BY pk_machine DESC LIMIT 1;"
 		R=$(RunSQL "$Q")
 		local insertedMachine=$(Field 1 "$R")
+
 		MachineSettings "$insertedMachine"
 		MachineDefaults "$insertedMachine"
 		AutoDetect "$insertedMachine"
