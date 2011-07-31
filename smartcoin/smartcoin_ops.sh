@@ -994,7 +994,7 @@ AutoDetect()
 			echo "$devName	$devID"	
 		done
 		echo ""
-		echo "If these don't look correct, please fix them manually via the controll tab under option 9) Configure Devices."
+		echo "If these don't look correct, please fix them manually via the control tab under option 9) Configure Devices."
 		echo ""
 	fi
 
@@ -1117,7 +1117,7 @@ AutoDetect()
 	fi
 	read -e -i "$amd_sdk_location" location
 
-	Q="UPDATE settings SET value='$location' WHERE data='AMD_SDK_location' AND fk_machine='$thisMachine');"
+	Q="UPDATE settings SET value='$location' WHERE data='AMD_SDK_location' AND fk_machine='$thisMachine';"
 	RunSQL "$Q"
 	Log "AMD/ATI SDK location set to $location"
 	echo ""
