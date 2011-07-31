@@ -24,28 +24,28 @@ Log "Starting status monitor for machine $MACHINE"
 LoadGlobals()
 {
 	# Get thethreshold values from the database
-	Q="SELECT value FROM settings WHERE data='failover_threshold';"
+	Q="SELECT value FROM settings WHERE data='failover_threshold' AND fk_machine='$MACHINE';"
 	R=$(RunSQL "$Q")
 	G_FAILOVER_THRESHOLD=$(Field 1 "$R")
 	if [[ -z "$G_FAILOVER_THRESHOLD" ]]; then
 		G_FAILOVER_THRESHOLD="10"
 	fi
 
-	Q="SELECT value FROM settings WHERE data='failover_rejection';"
+	Q="SELECT value FROM settings WHERE data='failover_rejection' AND fk_machine='$MACHINE';"
 	R=$(RunSQL "$Q")                                                                
 	G_FAILOVER_REJECTION=$(Field 1 "$R")
 	if [[ -z "$G_FAILOVER_REJECTION" ]]; then
 		G_FAILOVER_REJECTION="10"
 	fi
 
-	Q="SELECT value FROM settings WHERE data='lockup_threshold';"
+	Q="SELECT value FROM settings WHERE data='lockup_threshold' AND fk_machine='$MACHINE';"
 	R=$(RunSQL "$Q")                                                                
 	G_LOCKUP_THRESHOLD=$(Field 1 "$R")
 	if [[ -z "$G_LOCKUP_THRESHOLD" ]]; then
 		G_LOCKUP_THRESHOLD="50"
 	fi
 
-	Q="SELECT value FROM settings WHERE data='loop_delay';"
+	Q="SELECT value FROM settings WHERE data='loop_delay'; AND fk_machine='$MACHINE'"
 	R=$(RunSQL "$Q")
 	G_LOOP_DELAY=$(Field 1 "$R")
 	if [[ -z "$G_LOOP_DELAY" ]]; then
