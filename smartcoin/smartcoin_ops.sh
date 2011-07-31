@@ -161,7 +161,8 @@ startMiners() {
 			local pk_miner=$(Field 4 "$row")
 			local pk_worker=$(Field 5 "$row")
 			Log "Starting miner $key!" 1
-			local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+			#local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+			local cmd=$(LaunchInstance $thisMachine $pk_device $pk_miner $pk_worker $key)
 			Launch $machine "screen  -d -r $minerSession -X screen -t $key $cmd"
 		done
 
@@ -1322,6 +1323,59 @@ EnsurePools() {
 	return
 }
 
+
+# LaunchInstance
+# Made to replace the smartcoin_launcher.sh script, and be multi-machine aware!
+LaunchInstance() {
+	local thisMachine=$1
+	local thisDevice=$2
+	local thisMiner=$3
+	local thisWorker=$4
+	local thisKey=$5
+
+	UseDB "smartcoin.db"
+
+	# Get additional information on the device
+	Q="SELECT name,device from device WHERE pk_device=$thisDevice;"
+	R2=$(RunSQL "$Q")
+	local deviceID=$(Field 2 "$R2")
+
+	# Get the miner information
+	Q="SELECT name, path,launch FROM miner WHERE pk_miner=$thisMiner;"
+	R2=$(RunSQL "$Q")
+	local minerName=$(Field 1 "$R2")
+	local minerPath=$(Field 2 "$R2")
+	local minerLaunch=$(Field 3 "$R2")
+
+	R2=$(GetWorkerInfo "$thisWorker")
+	workerServer=$(Field 3 "$R2")
+	workerPort=$(Field 4 "$R2")
+	workerUser=$(Field 1 "$R2")
+	workerPass=$(Field 2 "$R2")
+
+	#Make launch string
+	minerLaunch=${minerLaunch//<#user#>/$workerUser}
+	minerLaunch=${minerLaunch//<#pass#>/$workerPass}
+	minerLaunch=${minerLaunch//<#server#>/$workerServer}
+	minerLaunch=${minerLaunch//<#port#>/$workerPort}
+	minerLaunch=${minerLaunch//<#device#>/$thisDevice}
+	minerLaunch=${minerLaunch//<#path#>/$minerPath}
+
+	Log "Launching miner with launch string: $minerLaunch"
+
+	case "$minerLaunch" in
+	*phoenix.py*)
+		# Phoenix requires its path be in $LD_LIBRARY_PATH to launch from script
+		if [[ "$LD_LIBRARY_PATH" == *$minerPath* ]]; then
+			# It has not yet been added. Add the phoenixPath to LD_LIBRARY_PATH
+			Launch $thisMachine "export LD_LIBRARY_PATH=$minerPath:$LD_LIBRARY_PATH"
+		fi
+		;;
+	esac
+
+	Launch $thisMachine "export LD_LIBRARY_PATH=$amd_sdk_location:$LD_LIBRARY_PATH"
+	Launch $thisMachine "cd $minerPath && screen  -d -r $minerSession -X screen -t $thisKey $minerLaunch 2>/dev/null"
+}
 
 # Lets fix up our $LD_LIBRARY_PATH
 Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
