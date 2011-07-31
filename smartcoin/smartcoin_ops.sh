@@ -1122,20 +1122,6 @@ AutoDetect()
 	Log "AMD/ATI SDK location set to $location"
 	echo ""
 
-	if [[ "$thisMachine" == "1" ]]; then
-		# Get hash power donation information
-
-
-		# Fill in defaults for general settings
-		GeneralDefaults
-	fi
-
-
-
-	# Set Up Machine Default Settings
-	MachineDefaults
-
-	Log "Done." 1
 	echo ""
 
 	Log "Autodetect routine finished."
@@ -1260,10 +1246,9 @@ MachineSettings() {
 	local description
 	local information
 
-	# TODO:  REMOVE the where disabled=0 clause!
 	if [[ -z "$thisMachine" ]]; then
 		# No machine selected, update settings on all machines!
-		Q="SELECT pk_machine FROM machine WHERE disabled=0;"
+		Q="SELECT pk_machine FROM machine;"
 		R=$(RunSQL "$Q")
 
 		for row in $R; do
@@ -1310,6 +1295,17 @@ MachineSettings() {
 MachineDefaults() {
 	local thisMachine=$1
 
+	if [[ -z "$thisMachine" ]]; then
+		# No machine selected, update settings on all machines!
+		Q="SELECT pk_machine FROM machine;"
+		R=$(RunSQL "$Q")
+
+		for row in $R; do
+			thisMachine=$(Field 1 "$row")
+			thisMachine=$thisMachine" "
+		done
+	fi
+
 	# Fill in default values!
 	Log "Populating data base with default values..." 1
 	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine');"
@@ -1324,6 +1320,12 @@ MachineDefaults() {
 	RunSQL "$Q"	
 
 
+}
+
+EnsurePools() {
+	# TODO: Write route which syncs pools so that I can add new ones without patching
+
+	return
 }
 
 
