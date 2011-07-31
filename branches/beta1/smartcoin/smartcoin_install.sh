@@ -153,7 +153,7 @@ AutoDetect 1
 echo ""
 echo "Please enter an administration email address where you would like to receive notifications. (You can leave this blank if you do not wish to receive notifications)"
 read emailAddress
-Q="UPDATE settings SET value='$emailAddress' WHERE data='email' AND fk_machine='1';"
+Q="UPDATE settings SET value='$emailAddress' WHERE data='email' AND fk_machine='0';"
 RunSQL "$Q"
 
 # ----------------
@@ -181,12 +181,12 @@ if [[ "$myDonation" == "" ]]; then
 	myDonation=0
 fi
 
-Q="UPDATE settings SET value='$myDonation' WHERE data='donation_time' and fk_machine='1';"
+Q="UPDATE settings SET value='$myDonation' WHERE data='donation_time' and fk_machine='0';"
 RunSQL "$Q"
 let startTime_hours=$RANDOM%23
 let startTime_minutes=$RANDOM%59
 startTime=$startTime_hours$startTime_minutes
-Q="UPDATE settings SET value='$startTime' WHERE data='donation_start' and fk_machine='1';"
+Q="UPDATE settings SET value='$startTime' WHERE data='donation_start' and fk_machine='0';"
 RunSQL "$Q"
 if [[ "$myDonation" -gt "0"  ]]; then
 	echo ""

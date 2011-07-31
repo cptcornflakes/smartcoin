@@ -948,10 +948,12 @@ AutoDetect()
 	echo "$E"
 	E="Do you want to attempt to run 'updatedb' now? (y)es or (n)o?"
 	GetYesNoSelection runupdatedb "$E" "1"
+	echo ""
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
 		Launch $thisMachine "sudo updatedb" 1
+		echo ""
 	fi
 
 
@@ -1004,6 +1006,7 @@ AutoDetect()
 	echo "Auto detecting local installed miners..."
 	E="Would you like smartcoin to attempt to auto-detect installed miners? (y)es or (n)o?"
 	GetYesNoSelection detectMiners "$E" "y"
+	echo ""
 
 	if [[ "$detectMiners" == "1" ]]; then
 		#detect phoenix install location
@@ -1096,7 +1099,7 @@ AutoDetect()
 	local amd_sdk_location
 	E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
 	GetYesNoSelection autoDetectSDKLocation "$E" "y"
-
+	echo ""
 
 	if [[ "$autoDetectSDKLocation" == "1" ]]; then
 
