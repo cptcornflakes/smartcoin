@@ -364,7 +364,8 @@ Add_Machines() {
 		R=$(RunSQL "$Q")
 		local insertedMachine=$(Field 1 "$R")
 		MachineSettings "$insertedMachine"
-		AutoDetect $insertedMachine
+		MachineDefaults "$insertedMachine"
+		AutoDetect "$insertedMachine"
 	fi
 
 
