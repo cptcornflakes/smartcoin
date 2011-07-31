@@ -892,18 +892,18 @@ Launch()
 		local port=$(Field 4 "$R")
 
 		# See if the persistent connection is available
-		res=$(ssh -p $port -i ~/.ssh/id_rsa.smartcoin -O check -S /tmp/smartcoin.ssh_connection.$machine $user@$server 2>&1 /dev/null)
+		res=$(ssh -q -p $port -i ~/.ssh/id_rsa.smartcoin -O check -S /tmp/smartcoin.ssh_connection.$machine $user@$server 2>&1 /dev/null)
 
 		if [[ $? -ne 0 ]]; then
 			# The connection does not exist!  Lets create it!
 			Log "Creating persistent ssh connection to machine $machine" 1
-			ssh -n -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -NfM -S /tmp/smartcoin.ssh_connection.$machine $user@$server
+			ssh -q -n -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -NfM -S /tmp/smartcoin.ssh_connection.$machine $user@$server
 		fi
  
 		if [[ -z "$no_block" ]]; then
-			res=$(eval "ssh -t -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server $cmd")
+			res=$(eval "ssh -q -t -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server $cmd")
 		else
-			eval "ssh -t -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server $cmd"
+			eval "ssh -q -t -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server $cmd"
 		fi
 	fi
 	if [[ -z "$no_block" ]]; then
@@ -1120,6 +1120,23 @@ AutoDetect()
 	Q="UPDATE settings SET value='$location' WHERE data='AMD_SDK_location' AND fk_machine='$thisMachine');"
 	RunSQL "$Q"
 	Log "AMD/ATI SDK location set to $location"
+	echo ""
+
+
+	# Fill in default values!
+	Log "Populating data base with default values..." 1
+	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+
+	Q="UPDATE settings SET value='50' WHERE data='lockup_threshold' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+
+	Q="UPDATE settings SET value='10' WHERE data='failover_threshold' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+	Q="UPDATE settings SET value='15' WHERE data='failover_rejection' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+	Log "Done." 1
+	echo ""
 
 	Log "Autodetect routine finished."
 }
