@@ -911,25 +911,6 @@ Launch()
 	fi
 }
 
-findAMDSDK2()
-{
-
-  local thisMachine=$1
-  
-  
-	# local location=`sudo find / -type d -regextype posix-extended -iregex '.*/(AMD|ATI)-(APP|STREAM)-SDK-v[[:digit:].]+-lnx(32|64)/lib/x86(_64)?$'`
-	# Look for 64 bit version first
-	local location64=$(Launch $thisMachine "sudo find / -type d -regextype posix-extended -iregex '.\*/\(AMD|ATI\)-\(APP|STREAM\)-SDK-v[[:digit:].]+-lnx64/lib/x86_64?$'")
-	if [[ "$location64" != "" ]]; then
-		echo "$location64"
-		return
-	fi
-
-	# Look for 32 bit version
-	local location32=$(Launch $thisMachine "sudo find / -type d -regextype posix-extended -iregex '.\*/\(AMD|ATI\)-\(APP|STREAM\)-SDK-v[[:digit:].]+-lnx32/lib/x86?$'")
-	echo "$location32"
-
-}
 
 AutoDetect()
 {
@@ -999,8 +980,7 @@ AutoDetect()
 
 			# TODO: deal with hard coded auto_allow?
 			Q="INSERT INTO device (fk_machine,name,device,auto_allow,type,disabled) VALUES ('$thisMachine','$devName','$id','1','$devType','$devDisable');"
-			###RunSQL "$Q"
-			echo "$Q"
+			RunSQL "$Q"
 		done
 		echo "done."
 		echo ""
@@ -1069,8 +1049,7 @@ AutoDetect()
 				knl="poclbm"
 			fi
 			Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES ('$thisMachine','phoenix','python <#path#>phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
-			###RunSQL "$Q"
-			echo "$Q"
+			RunSQL "$Q"
 		fi
 
 		# Detect poclbm install location
@@ -1079,8 +1058,7 @@ AutoDetect()
 		if [[ "$poclbmMiner" != "" ]]; then
 			Log "Found poclbm miner installed on local system" 1
 			Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','poclbm','python poclbm.py -d <#device#> --host http://<#server#> --port <#port#> --user <#user#> --pass <#pass#> -v -w 128 -f0','$poclbmMiner',0,0);"
-			###RunSQL "$Q"
-			echo "$Q"
+			RunSQL "$Q"
 		fi
 
 
@@ -1091,33 +1069,34 @@ AutoDetect()
 		if [[ "$cgminer" != "" ]]; then
 			Log "Found cgminer miner installed on local system" 1
 			Q="INSERT INTO miner (fk_machine,name,launch,path,default_miner,disabled) VALUES ('$thisMachine','cgminer','<#path#>cgminer -a 4way -g 2 -d <#device#> -o http://<#server#>:<#port#> -u <#user#> -p <#pass#> -I 14','$cgminer/',0,0);"
-			###RunSQL "$Q"
-			echo "$Q"
+			RunSQL "$Q"
 		fi
 
 		# Set the default miner
 		echo ""
-		###Q="SELECT pk_miner,name FROM miner WHERE fk_machine='$thisMachine' ORDER BY pk_miner ASC;"
-		###E="Which miner listed above do you want to be the default miner?"
-		###GetPrimaryKeySelection thisMiner "$Q" "$E"
-		###Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
-		###RunSQL "$Q"
-		###Log "Default miner set to $thisMiner"
+		Q="SELECT pk_miner,name FROM miner WHERE fk_machine='$thisMachine' ORDER BY pk_miner ASC;"
+		E="Which miner listed above do you want to be the default miner for this machine?"
+		GetPrimaryKeySelection thisMiner "$Q" "$E"
+		Q="UPDATE miner SET default_miner='1' WHERE pk_miner=$thisMiner;"
+		RunSQL "$Q"
+		Log "Default miner set to $thisMiner for this machine."
 	fi
 
 	# Set the current profile!
 	# Defaults to Automatic profile until the user gets one set up
 	Q="DELETE from current_profile WHERE fk_machine='$thisMachine';"	#A little paranoid, but why not...
-	###RunSQL "$Q"
-	echo "$Q"
+	RunSQL "$Q"
 	Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES ('$thisMachine','-1');"
-	###RunSQL "$Q"
-	echo "$Q"
+	RunSQL "$Q"
 	Log "Current profile set to Automatic for this machine"
-
 	echo ""
+
+
+	# AMD/ATI SDK LOCATION
+	local amd_sdk_location
 	E="Do you want to attempt to locate the SDK path automatically? (y)es or (n)o?"
 	GetYesNoSelection autoDetectSDKLocation "$E" "y"
+
 
 	if [[ "$autoDetectSDKLocation" == "1" ]]; then
 
@@ -1128,7 +1107,7 @@ AutoDetect()
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
 			$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_sdk_location.sh $machineUser@$machineServer:/tmp/smartcoin_sdk_location.sh)
-			amd_sdk_location=$(Launch $thisMachine "sudo /tmp/smartcoin_sdk_location.sh")
+			amd_sdk_location=$(Launch $thisMachine "/tmp/smartcoin_sdk_location.sh")
 		fi
 		echo "Please make sure the path below is correct, and change if necessary:"
 
@@ -1138,9 +1117,8 @@ AutoDetect()
 	fi
 	read -e -i "$amd_sdk_location" location
 
-	# TODO: settings table needs an fk_machine field!  Then add that field information into the query
-	#Q="INSERT INTO settings (data,value,description) VALUES ('AMD_SDK_location','$location','AMD/ATI SDK installation location');"
-	#RunSQL "$Q"
+	Q="UPDATE settings SET value='$location' WHERE data='AMD_SDK_location' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
 	Log "AMD/ATI SDK location set to $location"
 
 	Log "Autodetect routine finished."
