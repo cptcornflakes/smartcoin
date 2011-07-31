@@ -1298,16 +1298,16 @@ MachineDefaults() {
 
 	Log "Setting default values for machine $thisMachine"
 	# Fill in default values!
-	Log "Populating data base with default values..." 1
-	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine');"
+	Log "Populating database with default values..." 1
+	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine';"
 	RunSQL "$Q"
 
-	Q="UPDATE settings SET value='50' WHERE data='lockup_threshold' AND fk_machine='$thisMachine');"
+	Q="UPDATE settings SET value='50' WHERE data='lockup_threshold' AND fk_machine='$thisMachine';"
 	RunSQL "$Q"
 
-	Q="UPDATE settings SET value='10' WHERE data='failover_threshold' AND fk_machine='$thisMachine');"
+	Q="UPDATE settings SET value='10' WHERE data='failover_threshold' AND fk_machine='$thisMachine';"
 	RunSQL "$Q"
-	Q="UPDATE settings SET value='15' WHERE data='failover_rejection' AND fk_machine='$thisMachine');"
+	Q="UPDATE settings SET value='15' WHERE data='failover_rejection' AND fk_machine='$thisMachine';"
 	RunSQL "$Q"	
 
 
