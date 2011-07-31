@@ -901,9 +901,9 @@ Launch()
 		fi
  
 		if [[ -z "$no_block" ]]; then
-			res=$(eval "ssh -N -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'")
+			res=$(eval "ssh -N -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'")
 		else
-			eval "ssh -N -t -p $port -i ~/.ssh/id_rsa.smartcoin -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'"
+			eval "ssh -N -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server  '$cmd'"
 		fi
 	fi
 	if [[ -z "$no_block" ]]; then
@@ -957,8 +957,7 @@ AutoDetect()
 	
 	Log "Running AutoDetection on machine $machineName..." 1
 
-	Launch $thisMachine "sudo su" 1
-
+	
 	# Run updatedb
 	echo ""
 	Log "Asking user if they wish to run ubdatedb."
@@ -971,7 +970,7 @@ AutoDetect()
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
-		Launch $thisMachine "updatedb"
+		Launch $thisMachine "sudo updatedb" 1
 	fi
 
 

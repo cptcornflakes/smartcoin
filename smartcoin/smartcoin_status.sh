@@ -169,7 +169,7 @@ ShowStatus() {
 	xml_out="<?xml version=\"1.0\"?>\n"
 	xml_out=$xml_out"<smartcoin>\n"
 
-	Launch $MACHINE "export DISPLAY=:0"
+	#Launch $MACHINE "export DISPLAY=:0"
 	status=""
 
 	Q="SELECT name FROM machine WHERE pk_machine=$MACHINE"
@@ -190,9 +190,9 @@ ShowStatus() {
 		deviceType=$(Field 3 "$device")
 		if [[ "$deviceType" == "gpu" ]]; then
 			Launch $MACHINE "sleep 0.2" # aticonfig seems to get upset sometimes if it is called very quickly in succession
-		        temperature=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print \$5 }';")
+		        temperature=$(Launch $MACHINE "DISPLAY=:0 aticonfig --adapter=$deviceID --odgt | awk '/Temperature/ { print \$5 }';")
 			Launch $MACHINE "sleep 0.2" # aticonfig seems to get upset sometimes if it is called very quickly in succession
-      			usage=$(Launch $MACHINE "aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print \$4 }';")
+      			usage=$(Launch $MACHINE "DISPLAY=:0 aticonfig --adapter=$deviceID --odgc | awk '/GPU\ load/ { print \$4 }';")
 			status=$status"$deviceName: Temp: $temperature load: $usage\n"
 		fi
 	done
