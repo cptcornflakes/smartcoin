@@ -1122,19 +1122,19 @@ AutoDetect()
 	Log "AMD/ATI SDK location set to $location"
 	echo ""
 
+	if [[ "$thisMachine" == "1" ]]; then
+		# Get hash power donation information
 
-	# Fill in default values!
-	Log "Populating data base with default values..." 1
-	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine');"
-	RunSQL "$Q"
 
-	Q="UPDATE settings SET value='50' WHERE data='lockup_threshold' AND fk_machine='$thisMachine');"
-	RunSQL "$Q"
+		# Fill in defaults for general settings
+		GeneralDefaults
+	fi
 
-	Q="UPDATE settings SET value='10' WHERE data='failover_threshold' AND fk_machine='$thisMachine');"
-	RunSQL "$Q"
-	Q="UPDATE settings SET value='15' WHERE data='failover_rejection' AND fk_machine='$thisMachine');"
-	RunSQL "$Q"
+
+
+	# Set Up Machine Default Settings
+	MachineDefaults
+
 	Log "Done." 1
 	echo ""
 
@@ -1236,6 +1236,23 @@ GeneralSettings() {
 	EnsureSettings "0" "5" "$data" "$description" "$information"
 	return
 }
+GeneralDefaults() {
+	# Set up the default general settings
+	Q="UPDATE settings SET value='stable' WHERE data='dev_branch' AND fk_machine='0';"
+	RunSQL "$Q"
+	
+	Q="UPDATE settings SET value='' WHERE data='email' AND fk_machine='0';"
+	RunSQL "$Q"
+
+	Q="UPDATE settings SET value='[<#hashrate#> MHash/sec] [<#accepted#> Accepted] [<#rejected#> Rejected] [<#rejected_percent#>% Rejected]' WHERE data='format' AND fk_machine='0';"
+	RunSQL "$Q"
+	
+	Q="UPDATE settings SET value='0' WHERE data='donation_start' AND fk_machine='0';"
+	RunSQL "$Q"
+
+	Q="UPDATE settings SET value='200' WHERE data='donation_time' AND fk_machine='0';"
+	RunSQL "$Q"
+}
 
 MachineSettings() {
 	local thisMachine=$1
@@ -1289,6 +1306,26 @@ MachineSettings() {
 		EnsureSettings "$machine" "5" "$data" "$description" "$information"
 	done
 }
+
+MachineDefaults() {
+	local thisMachine=$1
+
+	# Fill in default values!
+	Log "Populating data base with default values..." 1
+	Q="UPDATE settings SET value='5' WHERE data='loop_delay' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+
+	Q="UPDATE settings SET value='50' WHERE data='lockup_threshold' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+
+	Q="UPDATE settings SET value='10' WHERE data='failover_threshold' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"
+	Q="UPDATE settings SET value='15' WHERE data='failover_rejection' AND fk_machine='$thisMachine');"
+	RunSQL "$Q"	
+
+
+}
+
 
 # Lets fix up our $LD_LIBRARY_PATH
 Q="SELECT value FROM settings WHERE data='AMD_SDK_location';"
