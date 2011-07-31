@@ -185,6 +185,7 @@ Q="UPDATE settings SET value='$myDonation' WHERE data='donation_time' and fk_mac
 RunSQL "$Q"
 let startTime_hours=$RANDOM%23
 let startTime_minutes=$RANDOM%59
+startTime_minutes=`printf "%02d" $startTime_minutes` # pad with a zero if needed!
 startTime=$startTime_hours$startTime_minutes
 Q="UPDATE settings SET value='$startTime' WHERE data='donation_start' and fk_machine='0';"
 RunSQL "$Q"
