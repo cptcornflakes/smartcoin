@@ -401,7 +401,7 @@ Delete_Machines() {
 
 
 	echo "Deleting Machine..."
-	local tables="settings current_profile miner device macro_map profile worker"
+	local tables="settings current_profile miner device macro_map profile"
 	local thisTable
 
 	for thisTable in $tables; do
