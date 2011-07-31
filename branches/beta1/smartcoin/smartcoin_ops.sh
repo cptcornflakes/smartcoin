@@ -161,8 +161,8 @@ startMiners() {
 			local pk_miner=$(Field 4 "$row")
 			local pk_worker=$(Field 5 "$row")
 			Log "Starting miner $key!" 1
-			#local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
-			local cmd=$(LaunchInstance $thisMachine $pk_device $pk_miner $pk_worker $key)
+			local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
+			#local cmd=$(LaunchInstance $thisMachine $pk_device $pk_miner $pk_worker $key)
 			Launch $machine "screen  -d -r $minerSession -X screen -t $key $cmd"
 		done
 
