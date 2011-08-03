@@ -14,13 +14,7 @@ fi
 . $CUR_LOCATION/smartcoin_ops.sh
 
 
-# Reload the miners after changing options
-Reload()
-{
-	local msg="$1"
 
-	 echo "$msg" > /tmp/smartcoin.reload
-}
 
 # Update system
 Do_Update()
@@ -125,7 +119,7 @@ Do_SetFailoverOrder()
 	if [[ "$changeOrder" == "1"  ]]; then
 		
 		# Mark all profiles to not be included into the failover system
-		Q="UPDATE profile SET failover_order='-1';"
+		Q="UPDATE profile SET failover_order='-1' WHERE fk_machine='$thisMachine';"
 		RunSQL "$Q"
 
 		Q="SELECT pk_profile, name FROM profile WHERE fk_machine='$thisMachine' ORDER BY pk_profile;"
@@ -158,10 +152,6 @@ Do_SetFailoverOrder()
 		sleep 1
 	fi
 
-	# TODO: Remove once I can verify that the smartcoin_status.ReloadProfileOnChange takes care of this!
-	# Reload "The failover order has been changed, reloading the miners."
-		
-	
 }
 
 # Profile Menu
@@ -265,7 +255,10 @@ Do_Settings() {
 	sleep 1
 	echo "done."
 
-	Reload "Settings have been changed. Reloading miners."
+	
+
+	Reload $thisMachine "Settings have been changed. Reloading miners."
+
 
 	
 }
@@ -296,7 +289,25 @@ Do_Machines() {
                 ;;               
 	esac
 
-	Reload "Machines have changed. Reloading miners."
+}
+GenKeysAndCopy() {
+	local machinePort=$1
+	local machineUser=$2
+	local machineServer=$3
+
+
+	# Step 1: Generate the keys if needed!
+	if [[ ! -f ~/.ssh/id_rsa.smartcoin ]]; then
+		Log "SSH keys have not been generated yet" 1
+		echo "Generating..."
+		ssh-keygen -q -N "" -f ~/.ssh/id_rsa.smartcoin -C "Smartcoin RSA key"
+		echo "Done."
+	fi
+
+	# If we can copy the key over to the remote machine, then success!
+	#ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
+	ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub "-q -p $machinePort $machineUser@$machineServer"
+	return $?
 }
 
 Add_Machines() {
@@ -326,18 +337,8 @@ Add_Machines() {
 	read
 	echo
 
-	# Step 1: Generate the keys if needed!
-	if [[ ! -f ~/.ssh/id_rsa.smartcoin ]]; then
-		Log "SSH keys have not been generated yet" 1
-		echo "Generating..."
-		ssh-keygen -q -N "" -f ~/.ssh/id_rsa.smartcoin -C "Smartcoin RSA key"
-		echo "Done."
-	fi
-
-	# If we can copy the key over to the remote machine, then success!
-	#ssh $machineUser@$machineServer -p $machinePort uname -r 2> /dev/null
-	ssh-copy-id -i ~/.ssh/id_rsa.smartcoin.pub "-q -p $machinePort $machineUser@$machineServer"
-  
+	GenKeysAndCopy "$machinePort" "$machineUser" "$machineServer"
+	  
 	if [[ $? -ne 0 ]]; then
 		echo "Aborting!"
 		echo "We were unable to connect to the remote server. This most likely means that the server is either offline, or information was entered incorrectly."
@@ -374,12 +375,86 @@ Add_Machines() {
 }
 
 Edit_Machines() {
+	# TODO: Use this function as a model for local variable scope and return values. Need to someday clean up all other functions to be as tidy.
+	local connectionInformationChanged
+
 	clear
 	ShowHeader
 	echo "EDITING MACHINE"
 	echo "---------------"
 	echo ""
-	return
+
+	local thisMachine
+	Q="SELECT pk_machine,name FROM machine WHERE pk_machine<>'1';"
+	E="Select the machine from the list above that you wish to edit"
+	GetPrimaryKeySelection thisMachine "$Q" "$E"
+	echo ""
+
+	Q="SELECT name,username,server,ssh_port,disabled FROM machine WHERE pk_machine='$thisMachine'";
+	R=$(RunSQL "$Q")
+	local cname=$(Field 1 "$R")
+	local cusername=$(Field 2 "$R")
+	local cserver=$(Field 3 "$R")
+	local cssh_port=$(Field 4 "$R")
+	local cdisabled=$(Field 5 "$R")
+
+	local machineName
+	echo "Enter a nickname for this machine:"
+	read -e -i "$cname" machineName
+	echo ""
+
+	local machineUsername
+	echo "Enter the username for this machine:"
+	read -e -i "$cusername" machineUsername
+	echo ""
+	if [[ "$machineUsername" != "$cusername" ]]; then
+		connectionInformationChanged="1"
+	fi
+
+
+	local machineServer
+	echo "Enter the server host address for this machine:"
+	read -e -i "$cserver" machineServer
+	echo ""
+	if [[ "$machineServer" != "$cserver" ]]; then
+		connectionInformationChanged="1"
+	fi
+
+	local machinePort
+	echo "Enter the ssh port for this machine:"
+	read -e -i "$cssh_port" machinePort
+	echo ""
+
+	local machineDisabled
+	E="Would you like to disable this machine?"
+	GetYesNoSelection machineDisabled "$E" "$cdisabled"
+	echo ""
+
+
+	if [[ "$connectionInformationChanged" == "1" ]]; then
+		Log "Connection information has changed. Trying to establish a new connection." 1
+		GenKeysAndCopy "$machinePort" "$machineUsername" "$machineServer"
+		if [[ $? -ne 0 ]]; then
+			echo ""
+			Log "New connection was not successful." 1
+			echo "Please try again and make sure you have entered the correct connection information."
+			echo "Changes will not be written to the database."
+			echo "(Any key to continue)"
+			read
+			return 1
+		else
+			Log "New connection successful!" 1
+		fi
+	fi
+	echo ""
+
+	echo "Updating machine..."
+	Q="UPDATE machine SET name='$machineName', username='$machineUsername', server='$machineServer', ssh_port='$machinePort', disabled='$machineDisabled' WHERE pk_machine='$thisMachine';"
+	RunSQL "$Q"
+	echo "done."
+	sleep 1
+	Reload $thisMachine "Machines have changed. Reloading miners."
+	return 0
 }
 
 Delete_Machines() {
@@ -448,7 +523,7 @@ Do_Miners() {
 
 	esac
 
-	Reload "Miners have been changed. Reloading miners."
+	
 
 	
 }
@@ -489,6 +564,7 @@ Add_Miners()
 	fi
 
 	echo "done."
+	Reload $thisMachine "Miners have been changed. Reloading miners."
 	sleep 1
 
 }
@@ -563,7 +639,7 @@ Edit_Miners()
 	
 	echo "done."
 	sleep 1
-
+	Reload $thisMachine "Miners have been changed. Reloading miners."
 }
 Delete_Miners()
 {
@@ -598,6 +674,7 @@ Delete_Miners()
 	RunSQL "$Q"
 	echo "done."
 	sleep 1
+	Reload $thisMachine "Miners have been changed. Reloading miners."
 }
 
 
@@ -628,8 +705,8 @@ clear
                 ;;                                                              
                                                                                 
         esac     
-
-	Reload "Pool information has been changed. Reloading miners." 
+	# Reload all miners
+	Reload "0" "Pool information has been changed. Reloading miners." 
 }
 Add_Pool() 
 {
@@ -799,7 +876,8 @@ Do_Workers() {
 
         esac
 
-	Reload "Worker information has been changed. Reloading miners."
+	# Reload all miners
+	Reload 0 "Worker information has been changed. Reloading miners."
         
 }
 
@@ -1023,7 +1101,7 @@ Add_Profile()
 		echo ""
 	
 	
-		Q="SELECT pk_device, name FROM device;"
+		Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine ORDER BY device;"
 		E="Please select the device from the list above to use with this instance"
 		GetPrimaryKeySelection thisDevice "$Q" "$E"
 
@@ -1123,7 +1201,7 @@ Edit_Profile()
 			echo ""
 	
 	
-			Q="SELECT pk_device, name FROM device;"
+			Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine ORDER BY device;"
 			E="Please select the device from the list above to use with this instance"
 			GetPrimaryKeySelection thisDevice "$Q" "$E"
 
@@ -1173,7 +1251,7 @@ Edit_Profile()
 			echo ""
 	
 	
-			Q="SELECT pk_device, name FROM device;"
+			Q="SELECT pk_device, name FROM device WHERE fk_machine=$thisMachine ORDER BY device;"
 			E="Please select the device from the list above to use with this instance"
 			GetPrimaryKeySelection thisDevice "$Q" "$E" "$cdevice"
 
@@ -1258,7 +1336,7 @@ Do_Devices() {
 		;;      
 	esac     
 
-	Reload "Device information has been changed. Reloading miners."
+
 }
 Add_Device() 
 {
@@ -1299,7 +1377,7 @@ Add_Device()
 	#screen -r $sessionName -X wall "Device Added!" #TODO: Get This working!!!
 	echo "done."
 	sleep 1
-
+	Reload $thisMachine "Device information has been changed. Reloading miners."
 }
 Edit_Device() 
 {
@@ -1366,6 +1444,7 @@ Edit_Device()
         RunSQL "$Q"
 	echo done
 	sleep 1
+	Reload "Device information has been changed. Reloading miners."
 }
 Delete_Device()
 {
@@ -1401,6 +1480,7 @@ Delete_Device()
 	RunSQL "$Q"
 	echo "done."
 	sleep 1
+	Reload "Device information has been changed. Reloading miners."
 }
 
 while true
@@ -1419,7 +1499,7 @@ do
 	echo "10) Configure Pools"
 	echo "11) Update Smartcoin"
 	echo "12) Set Failover Order"
-	#echo "13) Configure Machines"
+	echo "13) Configure Machines"
 
 	read selection
 

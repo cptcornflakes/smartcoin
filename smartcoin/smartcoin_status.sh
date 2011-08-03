@@ -45,7 +45,7 @@ LoadGlobals()
 		G_LOCKUP_THRESHOLD="50"
 	fi
 
-	Q="SELECT value FROM settings WHERE data='loop_delay'; AND fk_machine='$MACHINE'"
+	Q="SELECT value FROM settings WHERE data='loop_delay' AND fk_machine='$MACHINE';"
 	R=$(RunSQL "$Q")
 	G_LOOP_DELAY=$(Field 1 "$R")
 	if [[ -z "$G_LOOP_DELAY" ]]; then
@@ -56,12 +56,16 @@ LoadGlobals()
 
 ExternalReloadCheck()
 {
-	local msg=$(cat /tmp/smartcoin.reload 2> /dev/null)
+	local thisMachine
+
+	local msg=$(cat /tmp/smartcoin.reload.$MACHINE 2> /dev/null)
 	
 	if [[ "$msg" ]]; then
 		Log "EXTERNAL RELOAD REQUEST FOUND!"
 		Log "	$msg"
 		
+		rm /tmp/smartcoin.reload.$MACHINE 2> /dev/null
+
 		LoadGlobals
 		# Reload the miner screen session
 		killMiners $MACHINE
@@ -179,7 +183,7 @@ ShowStatus() {
 	status="\e[01;33mHost: $hostName\e[00m\n"
 	UseDB "smartcoin.db"
 	# TODO: Add all of these to the GenCurrentProfile and loop through the entire FA?
-	Q="Select name,device,type from device WHERE fk_machine=$MACHINE AND disabled=0 ORDER BY device ASC";
+	Q="Select name,device,type from device WHERE fk_machine='$MACHINE' AND disabled=0 ORDER BY device ASC";
 	R=$(RunSQL "$Q")
 
 
@@ -342,7 +346,7 @@ ShowStatus() {
 					Log "ERROR: It appears that one or more of your devices have locked up.  This is most likely the result of extreme overclocking!"
 					Log "       It is recommended that you reduce your overclocking until you regain stability of the system"
        					Log "       Below is a capture of the miner output which caused the error:"
-					minerOutput=$(Launch $MACHINE "cat /tmp/smartcoin-$key 2> /dev/null")
+					minerOutput=$(Launch $MACHINE "'cat /tmp/smartcoin-$key 2> /dev/null'")
 					Log "$minerOutput"
 
 				       	# Let the user have their own custom lockup script if they want
@@ -359,7 +363,13 @@ ShowStatus() {
 				fi
 			else
 				# Reset counter
-				Launch $MACHINE "rm /tmp/smartcoin-$key.lockup 2> /dev/null"
+
+				# TODO: Single quotes were needed here...  Perhaps they should be done to all commands in the Launch () function?
+				if [[ "$MACHINE" == "1" ]]; then
+					Launch $MACHINE "rm /tmp/smartcoin-$key.lockup 2> /dev/null"
+				else
+					Launch $MACHINE "'rm /tmp/smartcoin-$key.lockup 2> /dev/null'"
+				fi
 			fi
    		fi
 

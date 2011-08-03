@@ -16,6 +16,9 @@ for arg in $*; do
   --delay=*)  
     ARG_DELAY=`echo $arg | sed 's/[-a-zA-Z0-9]*=//'`
     ;;
+  --machine=*)
+    ARG_MACHINE=`echo $arg | sed 's/[0-9]*=//'`
+    ;;
   --kill)
     ARG_KILL="1"
     ;;
@@ -36,7 +39,10 @@ if [[ "$ARG_DELAY" ]]; then
   sleep "$ARG_DELAY"
 fi
 if [[ "$ARG_RELOAD" ]]; then
-  echo "Smartcoin was told to reload remotely from the commandline." > /tmp/smartcoin.reload
+  if [[ -z "$ARG_MACHINE" ]]; then
+    ARG_MACHINE=0
+  fi
+  Reload $ARG_MACHINE "Smartcoin was told to reload remotely from the commandline."
   exit
 fi
 if [[ "$ARG_RESTART" ]]; then
@@ -111,7 +117,8 @@ for row in $R; do
 	screen -r $sessionName -p $machineName -X wrap off
 done
 
-
+Log "Creating a logtail tab..." 1
+screen -r $sessionName -X screen -t Log tail -f ~/.smartcoin/smartcoin.log
 
 
 if [[ "$ARG_SILENT" ]]; then
