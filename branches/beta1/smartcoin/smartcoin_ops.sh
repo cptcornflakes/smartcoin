@@ -807,6 +807,8 @@ Launch()
 	local machine=$1
 	local cmd=$2
 	local no_block=$3
+	local ssh_flags=$4
+
 
 	local res
 	local retVal
@@ -843,12 +845,11 @@ Launch()
 			ssh -q -n -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -NfM -S /tmp/smartcoin.ssh_connection.$machine $user@$server
 		fi
  
-		# TODO: re-enable the -q flag!
 		if [[ -z "$no_block" ]]; then
-			res=$(eval "ssh -q -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server" "$cmd" | tr -d '\r')
+			res=$(eval "ssh $ssh_flags -q -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server" "$cmd" | tr -d '\r')
 			retVal=$?
 		else
-			eval "ssh -q -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server" "$cmd" | tr -d '\r'
+			eval "ssh $ssh_flags -q -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server" "$cmd" | tr -d '\r'
 			retVal=$?
 		fi
 	fi
@@ -900,7 +901,7 @@ AutoDetect()
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
-		Launch $thisMachine "sudo updatedb" 1
+		Launch $thisMachine "sudo updatedb" "1" "-t -t"
 		echo ""
 	fi
 
@@ -994,13 +995,7 @@ AutoDetect()
 			thisLocation=$thisLocation
 			thisLocation=${thisLocation%"phoenix.py"}
 			
-			# TODO: Fix phatk detection to use ls?
-			if [[ -d $thisLocation/kernels/phatk ]]; then
-				knl="phatk"
-			else
-				knl="poclbm"
-			fi
-			Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES ('$thisMachine','phoenix','python <#path#>/phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k $knl','$thisLocation',0,0);"
+			Q="INSERT INTO miner (fk_machine, name,launch,path,default_miner,disabled) VALUES ('$thisMachine','phoenix','python <#path#>/phoenix.py -v -u http://<#user#>:<#pass#>@<#server#>:<#port#>/ device=<#device#> worksize=128 vectors aggression=11 bfi_int fastloop=false -k phatk','$thisLocation',0,0);"
 			RunSQL "$Q"
 		fi
 
@@ -1058,14 +1053,16 @@ AutoDetect()
 			amd_sdk_location=$($CUR_LOCATION/smartcoin_sdk_location.sh)
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
-			$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_sdk_location.sh $machineUser@$machineServer:/tmp/smartcoin_sdk_location.sh)
+			res=$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_sdk_location.sh $machineUser@$machineServer:/tmp/smartcoin_sdk_location.sh)
 			amd_sdk_location=$(Launch $thisMachine "/tmp/smartcoin_sdk_location.sh")
 		fi
-		echo "Please make sure the path below is correct, and change if necessary:"
+		echo "Please make sure the path below is correct, and change if necessary (NOTE: There may be more than on path pre-filled in for you. Move the cursor and backspace over the path(s) that you don't want).:"
+		echo ""
 
 	else
 		Log "User chose NOT to autodetect"
 		echo "Enter the AMD/ATI SDK path below:"
+		echo ""
 	fi
 	read -e -i "$amd_sdk_location" location
 
@@ -1419,7 +1416,7 @@ startMiners() {
 		Launch $machine "screen -r $minerSession -X zombie ko"
 		Launch $machine "screen -r $minerSession -X chdir"
 		Launch $machine "screen -r $minerSession -X hardstatus on"
-		#Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
+		Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
 		#Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 
 
