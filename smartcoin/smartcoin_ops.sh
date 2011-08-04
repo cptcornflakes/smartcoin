@@ -1417,8 +1417,11 @@ startMiners() {
 		Launch $machine "screen -r $minerSession -X chdir"
 		Launch $machine "screen -r $minerSession -X hardstatus on"
 		Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
-		#Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
-
+		if [[ "$machine" == "1" ]]; then
+			Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
+		else
+			Launch $machine "\"screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'\""
+		fi
 
 		# Start all of the miner windows
 		for row in $FA; do
