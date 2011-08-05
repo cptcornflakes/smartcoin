@@ -100,9 +100,6 @@ Monitor_poclbm()
 		rejected=`echo $rej_acc | cut -d'/' -f1`
 	fi
 
-	# Convert from khash to MHash
-	hashes=`echo "scale=2; $hashes/1000" | bc -l 2> /dev/null`
-
 	local percentRejected=`echo "scale=3;a=($rejected*100) ; b=$accepted; c=a/b; print c" | bc -l 2> /dev/null`
 	if [ -z "$percentRejected" ]; then
 		percentRejected="0.00"
