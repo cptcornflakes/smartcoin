@@ -87,16 +87,17 @@ Monitor_poclbm()
 	# For now, get hash counting working! Look into accepted/rejected later!
 	local thisMachine=$1
 
-	oldCmd=$(Launch $thisMachine "grep 'khash/s' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
+	oldCmd=$(Launch $thisMachine "grep 'MH/s' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
 	Launch $thisMachine "screen -d -r $minerSession -p $key -X hardcopy '/tmp/smartcoin-$key'"
-	cmd=$(Launch $thisMachine "grep 'khash/s' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
+	cmd=$(Launch $thisMachine "grep 'MH/s' '/tmp/smartcoin-$key' 2> /dev/null | tail -n 1")
 
 	#failure=$(Launch $thisMachine "grep '=== Command' '/tmp/smartcoin-$key' | tail -n 1")
 	
 	if [ "$cmd" ]; then
-		hashes=`echo $cmd | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g' | cut -d' ' -f1`
-		accepted="0"
-		rejected="0"
+		hashes=`echo $cmd |cut -d' ' -f2 | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g'`
+		local rej_acc=`echo $cmd | cut -d' ' -f7`
+		accepted=`echo rej_Acc | cut -d'/' -f2`
+		rejected=`echo rej_Acc | cut -d'/' -f2`
 	fi
 
 	# Convert from khash to MHash
