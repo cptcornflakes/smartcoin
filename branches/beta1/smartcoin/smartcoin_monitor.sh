@@ -97,7 +97,7 @@ Monitor_poclbm()
 		hashes=`echo $cmd |cut -d' ' -f2 | sed -e 's/[^0-9. ]*//g' -e  's/ \+/ /g'`
 		local rej_acc=`echo $cmd | cut -d' ' -f7`
 		accepted=`echo $rej_acc | cut -d'/' -f2`
-		rejected=`echo $rej_acc | cut -d'/' -f2`
+		rejected=`echo $rej_acc | cut -d'/' -f1`
 	fi
 
 	# Convert from khash to MHash
