@@ -428,7 +428,7 @@ ShowStatus() {
 	xml_out=$xml_out"\t\t<rejected_percent>$percentRejected</rejected_percent>\n"
 	xml_out=$xml_out"\t</grand_total>\n"
 	xml_out=$xml_out"</smartcoin>"
-	echo -e "$xml_out" > /tmp/smartcoin.xml
+	echo -e "$xml_out" > /tmp/smartcoin.$MACHINE.xml
 	
 
 
