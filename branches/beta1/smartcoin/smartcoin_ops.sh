@@ -175,7 +175,7 @@ DeleteTemporaryFiles() {
 		local user=$(Field 4 "$R")
 		local server=$(Field 3 "$R")
 		local port=$(Field 5 "$R")
-		local machineInfo=$R
+		local machineInfo="$R"
 		if [[ "$machine" == "1" ]]; then
 			Launch $machineInfo "rm -rf /tmp/smartcoin* 2>/dev/null"
 		else
@@ -1388,16 +1388,17 @@ startMiners() {
 		Log "Starting miners for machine $machine..."
 
 		DeleteTemporaryFiles $machine
+
+		Q="SELECT pk_machine,name,server,ssh_port,username FROM machine WHERE pk_machine='$machine';"
+		R=$(RunSQL "$Q")
+		local machineName=$(Field 2 "$R")
+		local machineServer=$(Field 3 "$R")
+		local machinePort=$(Field 4 "$R")
+		local machineUser=$(Field 5 "$R")
+		local machineInfo="$R"
+
 		if [[ "$machine" != "1" ]]; then
 			# Copy the launch script over to the remote machine's /tmp directory!
-			Q="SELECT pk_machine,name,server,ssh_port,username FROM machine WHERE pk_machine='$machine';"
-			R=$(RunSQL "$Q")
-			local machineName=$(Field 2 "$R")
-			local machineServer=$(Field 3 "$R")
-			local machinePort=$(Field 4 "$R")
-			local machineUser=$(Field 5 "$R")
-			local machineInfo=$R
-
 			Log "Copying remote launch script to machine $machine..." 1
 			$(scp -i ~/.ssh/id_rsa.smartcoin -p -P "$machinePort" "$CUR_LOCATION"/smartcoin_launcher.sh "$machineUser"@"$machineServer":/tmp/smartcoin_launcher.sh)
 	
