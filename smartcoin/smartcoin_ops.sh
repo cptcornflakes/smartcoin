@@ -1349,7 +1349,7 @@ LaunchInstance() {
 
 	
 
-l	ocal cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLocation\"/smartcoin_launcher.sh \"$minerPath\" \"$minerLaunch\" \"$amd_sdk_location\""
+	local cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLocation\"/smartcoin_launcher.sh \"$minerPath\" \"$minerLaunch\" \"$amd_sdk_location\""
 	if [[ "$thisMachine" == "1" ]]; then
 		local cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLocation\"/smartcoin_launcher.sh \"$minerPath\" \"$minerLaunch\" \"$amd_sdk_location\""
 		Launch $thisMachineInfo "$cmd"
