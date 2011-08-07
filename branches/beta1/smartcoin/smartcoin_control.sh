@@ -1483,6 +1483,56 @@ Delete_Device()
 	Reload "Device information has been changed. Reloading miners."
 }
 
+Do_Macro() {
+	clear
+	ShowHeader
+	#Add/Edit/Delete?
+	AddEditDelete "macros"
+	action=$(GetAEDSelection)
+                
+	case "$action" in
+	ADD)
+		Add_Macro
+		;;
+	DELETE)
+		Delete_Macro
+		;;
+	EDIT)
+		Edit_Macro
+		;;
+  	EXIT)
+    		return
+    		;;
+	*)
+		DisplayError "Invalid selection!" "5"
+		;;      
+	esac     
+
+
+}
+
+Add_Macro() {
+	clear
+	ShowHeader
+	echo "ADDING MACRO"
+	echo "------------"
+	return 0
+}
+
+
+Edit_Macro() {
+	return 0
+}
+
+Delete_Macro() {
+	return 0
+}
+
+Execute_Macro() {
+
+	return 0
+}
+
 while true
 do
 	clear
@@ -1500,6 +1550,9 @@ do
 	echo "11) Update Smartcoin"
 	echo "12) Set Failover Order"
 	echo "13) Configure Machines"
+	#echo "14) Configure Macros"
+	#echo "15) Execute Macro"
+
 
 	read selection
 
@@ -1583,6 +1636,14 @@ do
 		13)
 			Log "Configure Machines option selected"
 			Do_Machines
+			;;
+		14)
+			Log "Configure Macros option selected"
+			Do_Macros
+			;;
+		15)
+			Log "Execute Macro option selected"
+			Execute_Macro
 			;;
 		*)
 

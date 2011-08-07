@@ -170,10 +170,16 @@ DeleteTemporaryFiles() {
 
 	local machine
 	for machine in $thisMachine; do
+		Q="SELECT pk_machine,name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
+		R=$(RunSQL "$Q")
+		local user=$(Field 4 "$R")
+		local server=$(Field 3 "$R")
+		local port=$(Field 5 "$R")
+		local machineInfo=$R
 		if [[ "$machine" == "1" ]]; then
-			Launch $machine "rm -rf /tmp/smartcoin* 2>/dev/null"
+			Launch $machineInfo "rm -rf /tmp/smartcoin* 2>/dev/null"
 		else
-			Launch $machine "'rm -rf /tmp/smartcoin* 2>/dev/null'"
+			Launch $machineInfo "'rm -rf /tmp/smartcoin* 2>/dev/null'"
 		fi
 	done
 }
@@ -804,11 +810,11 @@ GetAEDSelection()
 # NOTE2:  If a command ends in 2>/dev/null, the command must be wrapped in single quotes or it fails!
 Launch()
 {
-	local machine=$1
+	local machineInfo=$1
 	local cmd=$2
 	local no_block=$3
 	local ssh_flags=$4
-
+	local machine=$(Field 1 "$machineInfo")
 
 	local res
 	local retVal
@@ -824,15 +830,9 @@ Launch()
 		fi
 	else
 		# This is a remote machine!
-	
-		
-
-		# TODO: Make a global field array at global define time so we don't have to query so often!
-		Q="SELECT name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
-		R=$(RunSQL "$Q")
-		local user=$(Field 3 "$R")
-		local server=$(Field 2 "$R")
-		local port=$(Field 4 "$R")
+		local user=$(Field 4 "$machineInfo")
+		local server=$(Field 3 "$machineInfo")
+		local port=$(Field 5 "$machineInfo")
 
 		# See if the persistent connection is available
 		res=$(ssh -q -p $port -i ~/.ssh/id_rsa.smartcoin -O check -S /tmp/smartcoin.ssh_connection.$machine $user@$server  2>&1 /dev/null) 
@@ -864,12 +864,13 @@ Launch()
 AutoDetect()
 {
 	local thisMachine=$1
-	Q="SELECT name,server,ssh_port,username FROM machine WHERE pk_machine='$thisMachine';"
+	Q="SELECT pk_machine,name,server,ssh_port,username FROM machine WHERE pk_machine='$thisMachine';"
 	R=$(RunSQL "$Q")
-	local machineName=$(Field 1 "$R")
-	local machineServer=$(Field 2 "$R")
-	local machinePort=$(Field 3 "$R")
-	local machineUser=$(Field 4 "$R")
+	local machineName=$(Field 2 "$R")
+	local machineServer=$(Field 3 "$R")
+	local machinePort=$(Field 4 "$R")
+	local machineUser=$(Field 5 "$R")
+	local machineInfo=$R
 
 
 	clear
@@ -901,7 +902,7 @@ AutoDetect()
 
 	if [[ "$runupdatedb" == "1" ]]; then
 		Log "Running 'updatedb'... Please be patient" 1
-		Launch $thisMachine "sudo updatedb" "1" "-t -t"
+		Launch $machineInfo "sudo updatedb" "1" "-t -t"
 		echo ""
 	fi
 
@@ -918,7 +919,7 @@ AutoDetect()
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
 			$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_devices.py $machineUser@$machineServer:/tmp/smartcoin_devices.py)
-			D=$(Launch $thisMachine "/tmp/smartcoin_devices.py")
+			D=$(Launch $machineInfo "/tmp/smartcoin_devices.py")
 		fi
 
 		E=""
@@ -959,7 +960,7 @@ AutoDetect()
 
 	if [[ "$detectMiners" == "1" ]]; then
 		#detect phoenix install location
-		phoenixMiner=$(Launch $thisMachine "locate phoenix.py | grep -vi svn")
+		phoenixMiner=$(Launch $machineInfo "locate phoenix.py | grep -vi svn")
 
 		if [[ "$phoenixMiner" != "" ]]; then
 			Log "Found phoenix miner installed on local system" 1
@@ -1000,7 +1001,7 @@ AutoDetect()
 		fi
 
 		# Detect poclbm install location
-		poclbmMiner=$(Launch $thisMachine "locate poclbm.py | grep -vi svn")
+		poclbmMiner=$(Launch $machineInfo "locate poclbm.py | grep -vi svn")
 		poclbmMiner=${poclbmMiner%"poclbm.py"}
 		if [[ "$poclbmMiner" != "" ]]; then
 			Log "Found poclbm miner installed on local system" 1
@@ -1011,7 +1012,7 @@ AutoDetect()
 
 		# Detect cgminer install location
 		# TODO: Needs fixed, its a bit of an ugly hack for now
-		cgminer=$(Launch $thisMachine "locate cgminer -n1")
+		cgminer=$(Launch $machineInfo "locate -r 'cgminer/cgminer$' -n1")
 		cgminer=${cgminer%"cgminer"}
 		if [[ "$cgminer" != "" ]]; then
 			Log "Found cgminer miner installed on local system" 1
@@ -1054,7 +1055,7 @@ AutoDetect()
 		else
 			# Copy the detection script over to the remote /tmp directory, then run it!
 			res=$(scp -i ~/.ssh/id_rsa.smartcoin -P $machinePort $CUR_LOCATION/smartcoin_sdk_location.sh $machineUser@$machineServer:/tmp/smartcoin_sdk_location.sh)
-			amd_sdk_location=$(Launch $thisMachine "/tmp/smartcoin_sdk_location.sh")
+			amd_sdk_location=$(Launch $machineInfo "/tmp/smartcoin_sdk_location.sh")
 		fi
 		echo "Please make sure the path below is correct, and change if necessary (NOTE: There may be more than on path pre-filled in for you. Move the cursor and backspace over the path(s) that you don't want).:"
 		echo ""
@@ -1304,12 +1305,13 @@ Reload()
 # LaunchInstance
 # Made to replace the smartcoin_launcher.sh script, and be multi-machine aware!
 LaunchInstance() {
-	local thisMachine=$1
+	local thisMachineInfo=$1
 	local thisDevice=$2
 	local thisMiner=$3
 	local thisWorker=$4
 	local thisKey=$5
 	local launcherLocation=$6
+	local thisMachine=$(Field 1 "$thisMachineInfo")
 
 	UseDB "smartcoin.db"
 
@@ -1347,10 +1349,10 @@ LaunchInstance() {
 
 	
 
-local cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLocation\"/smartcoin_launcher.sh \"$minerPath\" \"$minerLaunch\" \"$amd_sdk_location\""
+l	ocal cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLocation\"/smartcoin_launcher.sh \"$minerPath\" \"$minerLaunch\" \"$amd_sdk_location\""
 	if [[ "$thisMachine" == "1" ]]; then
 		local cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLocation\"/smartcoin_launcher.sh \"$minerPath\" \"$minerLaunch\" \"$amd_sdk_location\""
-		Launch $thisMachine "$cmd"
+		Launch $thisMachineInfo "$cmd"
 		# The line below works, and was used to build the Launch() version!
 		#screen  -d -r "$minerSession" -X screen -t "$key" "$CUR_LOCATION"/smartcoin_launcher.sh "$minerPath" "$minerLaunch" "$amd_sdk_location"	
 	else
@@ -1361,7 +1363,7 @@ local cmd="screen  -d -r \"$minerSession\" -X screen -t \"$key\" \"$launcherLoca
 		#local server=$(Field 2 "$R")
 		#local port=$(Field 4 "$R")
 		#ssh -q -t -t -p $port -i ~/.ssh/id_rsa.smartcoin -o BatchMode=yes -S /tmp/smartcoin.ssh_connection.$machine $user@$server $cmd
-		Launch $thisMachine "\"screen  -d -r $minerSession -X screen -t $key $launcherLocation/smartcoin_launcher.sh $minerPath '$minerLaunch' $amd_sdk_location\"" 1
+		Launch $thisMachineInfo "\"screen  -d -r $minerSession -X screen -t $key $launcherLocation/smartcoin_launcher.sh $minerPath '$minerLaunch' $amd_sdk_location\"" 1
 	fi
 }
 
@@ -1388,12 +1390,13 @@ startMiners() {
 		DeleteTemporaryFiles $machine
 		if [[ "$machine" != "1" ]]; then
 			# Copy the launch script over to the remote machine's /tmp directory!
-			Q="SELECT name,server,ssh_port,username FROM machine WHERE pk_machine='$machine';"
+			Q="SELECT pk_machine,name,server,ssh_port,username FROM machine WHERE pk_machine='$machine';"
 			R=$(RunSQL "$Q")
-			local machineName=$(Field 1 "$R")
-			local machineServer=$(Field 2 "$R")
-			local machinePort=$(Field 3 "$R")
-			local machineUser=$(Field 4 "$R")
+			local machineName=$(Field 2 "$R")
+			local machineServer=$(Field 3 "$R")
+			local machinePort=$(Field 4 "$R")
+			local machineUser=$(Field 5 "$R")
+			local machineInfo=$R
 
 			Log "Copying remote launch script to machine $machine..." 1
 			$(scp -i ~/.ssh/id_rsa.smartcoin -p -P "$machinePort" "$CUR_LOCATION"/smartcoin_launcher.sh "$machineUser"@"$machineServer":/tmp/smartcoin_launcher.sh)
@@ -1410,17 +1413,17 @@ startMiners() {
 		#if [[ "$machine" != "1" ]]; then
 		#	Launch "$machine" "DISPLAY=:0 xhost +"
 		#fi
-		Launch "$machine" "screen -c /dev/null -dmS '$minerSession' -t miner-dummy"
+		Launch "$machineInfo" "screen -c /dev/null -dmS '$minerSession' -t miner-dummy"
 		
 		sleep 2
-		Launch $machine "screen -r $minerSession -X zombie ko"
-		Launch $machine "screen -r $minerSession -X chdir"
-		Launch $machine "screen -r $minerSession -X hardstatus on"
-		Launch $machine "screen -r $minerSession -X hardstatus alwayslastline"
+		Launch $machineInfo "screen -r $minerSession -X zombie ko"
+		Launch $machineInfo "screen -r $minerSession -X chdir"
+		Launch $machineInfo "screen -r $minerSession -X hardstatus on"
+		Launch $machineInfo "screen -r $minerSession -X hardstatus alwayslastline"
 		if [[ "$machine" == "1" ]]; then
-			Launch $machine "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
+			Launch $machineInfo "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 		else
-			Launch $machine "\"screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'\""
+			Launch $machineInfo "\"screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'\""
 		fi
 
 		# Start all of the miner windows
@@ -1431,12 +1434,12 @@ startMiners() {
 			local pk_worker=$(Field 5 "$row")
 			Log "Starting miner $key!" 1
 			#local cmd="$CUR_LOCATION/smartcoin_launcher.sh $thisMachine $pk_device $pk_miner $pk_worker"
-			LaunchInstance "$machine" "$pk_device" "$pk_miner" "$pk_worker" "$key" "$launcherLocation"
+			LaunchInstance "$machineInfo" "$pk_device" "$pk_miner" "$pk_worker" "$key" "$launcherLocation"
 			#Launch $machine "screen  -d -r $minerSession -X screen -t $key $cmd"
 		done
 
 		# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
-		Launch $machine "screen -r $minerSession -p miner-dummy -X kill"
+		Launch $machineInfo "screen -r $minerSession -p miner-dummy -X kill"
 	done
 }
 
@@ -1458,16 +1461,19 @@ killMiners() {
 
 	local machine
 	for machine in $thisMachine; do
+		Q="SELECT pk_machine,name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
+		R=$(RunSQL "$Q")
+		local user=$(Field 4 "$R")
+		local server=$(Field 3 "$R")
+		local port=$(Field 5 "$R")
+		local machineInfo=$R
+
 		Log "Killing Miners for machine $machine...."
-		Launch $machine "screen -d -r $minerSession -X quit" 
+		Launch $machineInfo "screen -d -r $minerSession -X quit" 
 		if [[ "$machine" != "1" ]]; then
 			# TODO: Work against global/passed-in field array instead of live querying?
 			Log "Closing persistent SSH connection to machine $machine"
-			Q="SELECT name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
-			R=$(RunSQL "$Q")
-			local user=$(Field 3 "$R")
-			local server=$(Field 2 "$R")
-			local port=$(Field 4 "$R")
+			
 			# Kill the persistent connection!
 			ssh -i ~/.ssh/id_rsa.smartcoin -O exit -S /tmp/smartcoin.ssh_connection.$machine $user@$server
 		fi
