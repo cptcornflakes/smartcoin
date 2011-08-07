@@ -820,7 +820,7 @@ Launch()
 	local retVal
 
 	if [[ "$machine" == "1" ]]; then
-		# This is the localhost, runn command normally!
+		# This is the localhost, run command normally!
 		if [[ -z "$no_block" ]]; then
 			res=$(eval "$cmd")
 			retVal=$?
@@ -1416,14 +1416,14 @@ startMiners() {
 		Launch "$machineInfo" "screen -c /dev/null -dmS '$minerSession' -t miner-dummy"
 		
 		sleep 2
-		Launch $machineInfo "screen -r $minerSession -X zombie ko"
-		Launch $machineInfo "screen -r $minerSession -X chdir"
-		Launch $machineInfo "screen -r $minerSession -X hardstatus on"
-		Launch $machineInfo "screen -r $minerSession -X hardstatus alwayslastline"
+		Launch "$machineInfo" "screen -r $minerSession -X zombie ko"
+		Launch "$machineInfo" "screen -r $minerSession -X chdir"
+		Launch "$machineInfo" "screen -r $minerSession -X hardstatus on"
+		Launch "$machineInfo" "screen -r $minerSession -X hardstatus alwayslastline"
 		if [[ "$machine" == "1" ]]; then
-			Launch $machineInfo "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
+			Launch "$machineInfo" "screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'"
 		else
-			Launch $machineInfo "\"screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'\""
+			Launch "$machineInfo" "\"screen -r $minerSession -X hardstatus string '%{= kG}[ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m/%d/%y %{W}%c %{g}]'\""
 		fi
 
 		# Start all of the miner windows
@@ -1439,7 +1439,7 @@ startMiners() {
 		done
 
 		# The dummy window has served its purpose, lets get rid of it so we don't confuse the user with a blank window!
-		Launch $machineInfo "screen -r $minerSession -p miner-dummy -X kill"
+		Launch "$machineInfo" "screen -r $minerSession -p miner-dummy -X kill"
 	done
 }
 
@@ -1466,10 +1466,10 @@ killMiners() {
 		local user=$(Field 4 "$R")
 		local server=$(Field 3 "$R")
 		local port=$(Field 5 "$R")
-		local machineInfo=$R
+		local machineInfo="$R"
 
 		Log "Killing Miners for machine $machine...."
-		Launch $machineInfo "screen -d -r $minerSession -X quit" 
+		Launch "$machineInfo" "screen -d -r $minerSession -X quit" 
 		if [[ "$machine" != "1" ]]; then
 			# TODO: Work against global/passed-in field array instead of live querying?
 			Log "Closing persistent SSH connection to machine $machine"
