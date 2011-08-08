@@ -1527,7 +1527,7 @@ Add_Macro() {
 	Q="INSERT INTO macro (name) VALUES ('$macroName');"
 	RunSQL "$Q"
 	# get the PK of the new record
-	Q="SELECT pk_macro FROM macro ORDER BY pk_macro ASC LIMIT 1;"
+	Q="SELECT pk_macro FROM macro ORDER BY pk_macro DESC LIMIT 1;"
 	R=$(RunSQL "$Q")
 	local insertedId=$(Field 1 "$R")
 
@@ -1539,7 +1539,7 @@ Add_Macro() {
 		echo "ADDING MACRO"
 		echo "------------"
 		echo ""
-		echo "Macro $macroName current progress:"
+		echo "Macro \"$macroName\" current progress:"
 		echo "Machine			Profile"
 		echo "----------------------------------------"
 		Q="SELECT COUNT(*) FROM macro_map WHERE fk_macro='$insertedId';"
@@ -1602,6 +1602,13 @@ Add_Macro() {
 
 
 Edit_Macro() {
+	clear
+	ShowHeader
+	echo "EDIT MACRO"
+	echo "-----------"
+	echo ""
+	echo "Not yet implemented."
+	sleep 3
 	return 0
 }
 
@@ -1697,8 +1704,8 @@ do
 	echo "11) Update Smartcoin"
 	echo "12) Set Failover Order"
 	echo "13) Configure Machines"
-	#echo "14) Configure Macros"
-	#echo "15) Execute Macro"
+	echo "14) Configure Macros"
+	echo "15) Execute Macro"
 
 
 	read selection
