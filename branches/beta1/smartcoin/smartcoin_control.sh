@@ -1777,7 +1777,7 @@ do
 			;;
 		14)
 			Log "Configure Macros option selected"
-			Do_Macros
+			Do_Macro
 			;;
 		15)
 			Log "Execute Macro option selected"
