@@ -1542,19 +1542,27 @@ Add_Macro() {
 		echo "Macro $macroName current progress:"
 		echo "Machine		Profile"
 		echo "----------------------------------------"
-		Q="SELECT machine.name, profile.name from macro_map LEFT JOIN machine ON macro_map.fk_machine = machine.pk_machine LEFT JOIN profile ON macro_map.fk_profile = profile.pk_profile WHERE macro_map.fk_macro='$insertedId';"
+		Q="SELECT COUNT(*) FROM macro_map WHERE fk_macro='$insertedId';"
 		R=$(RunSQL "$Q")
-		for row in $R; do
-			local machineName=$(Field 1 "$row")
-			local profileName=$(Field 2 "$row")
-			echo "$machineName		$profileName"
-		done
+		local numEntries=$(Field 1 "$R")
+	
+		if [[ "$numEntries" -lt "1" ]]; then
+			echo "<<<NO MACRO ENTRIES>>>"
+		else
+			Q="SELECT machine.name, profile.name from macro_map LEFT JOIN machine ON macro_map.fk_machine = machine.pk_machine LEFT JOIN profile ON macro_map.fk_profile = profile.pk_profile WHERE macro_map.fk_macro='$insertedId';"
+			R=$(RunSQL "$Q")
+			for row in $R; do
+				local machineName=$(Field 1 "$row")
+				local profileName=$(Field 2 "$row")
+				echo "$machineName		$profileName"
+			done
+		fi
 			echo ""
 		echo "----------------------------------------"
 		echo ""
 
 		E="Your current progress on this macro is listed above."
-		E="$E Would you like to add to this macro?"
+		E="$E Would you like to add to this macro? (y)es or (n)o?"
 		GetYesNoSelection resp "$E"
 		echo ""
 		if [[ "$resp" == "0" ]]; then
