@@ -1540,7 +1540,7 @@ Add_Macro() {
 		echo "------------"
 		echo ""
 		echo "Macro $macroName current progress:"
-		echo "Machine		Profile"
+		echo "Machine			Profile"
 		echo "----------------------------------------"
 		Q="SELECT COUNT(*) FROM macro_map WHERE fk_macro='$insertedId';"
 		R=$(RunSQL "$Q")
@@ -1549,11 +1549,12 @@ Add_Macro() {
 		if [[ "$numEntries" -lt "1" ]]; then
 			echo "<<<NO MACRO ENTRIES>>>"
 		else
-			Q="SELECT machine.name, profile.name from macro_map LEFT JOIN machine ON macro_map.fk_machine = machine.pk_machine LEFT JOIN profile ON macro_map.fk_profile = profile.pk_profile WHERE macro_map.fk_macro='$insertedId';"
+			Q="SELECT machine.name, fk_profile from macro_map LEFT JOIN machine ON macro_map.fk_machine = machine.pk_machine WHERE macro_map.fk_macro='$insertedId';"
 			R=$(RunSQL "$Q")
 			for row in $R; do
 				local machineName=$(Field 1 "$row")
-				local profileName=$(Field 2 "$row")
+				local profileId=$(Field 2 "$row")
+				local profileName=$(GenProfileName $profileId)
 				echo "$machineName		$profileName"
 			done
 		fi

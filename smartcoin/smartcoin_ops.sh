@@ -592,10 +592,9 @@ DonationActive() {
 
 }
 
-GetProfileName() {
-	local thisMachine=$1
+GenProfileName() {
+	local thisProfile=$1
 
-	local thisProfile=$(GetCurrentProfile $thisMachine)
 	local Donate=$G_DONATION_ACTIVE
 
 	if [[ "$Donate" ]]; then
@@ -615,6 +614,15 @@ GetProfileName() {
 		R=$(RunSQL "$Q")
 		echo $(Field 1 "$R")
 	fi
+
+}
+
+GetProfileName() {
+	local thisMachine=$1
+
+	local thisProfile=$(GetCurrentProfile $thisMachine)
+	echo $(GenProfileName $thisProfile)
+	
 }
 
 NotImplemented()
