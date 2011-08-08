@@ -1516,7 +1516,79 @@ Add_Macro() {
 	ShowHeader
 	echo "ADDING MACRO"
 	echo "------------"
+	echo ""
+
+	local macroName
+	echo "Please enter a name for this macro"
+	read macroName
+	echo ""
+
+	# Insert the new record
+	Q="INSERT INTO macro (name) VALUES ('$macroName');"
+	RunSQL "$Q"
+	# get the PK of the new record
+	Q="SELECT pk_macro FROM macro ORDER BY pk_macro ASC LIMIT 1;"
+	R=$(RunSQL "$Q")
+	local insertedId=$(Field 1 "$R")
+
+
+	local exitLoop=""
+	while [[ "$exitLoop" == "" ]]; do
+		clear
+		ShowHeader
+		echo "ADDING MACRO"
+		echo "------------"
+		echo ""
+		echo "Macro $macroName current progress:"
+		echo "Machine		Profile"
+		echo "----------------------------------------"
+		Q="SELECT machine.name, profile.name from macro_map LEFT JOIN machine ON macro_map.fk_machine = machine.pk_machine LEFT JOIN profile ON macro_map.fk_profile = profile.pk_profile WHERE macro_map.fk_macro='$insertedId';"
+		R=$(RunSQL "$Q")
+		for row in $R; do
+			local machineName=$(Field 1 "$row")
+			local profileName=$(Field 2 "$row")
+			echo "$machineName		$profileName"
+		done
+			echo ""
+		echo "----------------------------------------"
+		echo ""
+
+		E="Your current progress on this macro is listed above."
+		E="$E Would you like to add to this macro?"
+		GetYesNoSelection resp "$E"
+		echo ""
+		if [[ "$resp" == "0" ]]; then
+			break
+		fi
+
+		Q="SELECT pk_machine, name from machine;"                               
+		E="Please select a machine from the list above for this macro to change the profile on"                          
+		GetPrimaryKeySelection thisMachine "$Q" "$E"
+		echo ""
+
+		# TODO: Make an external function for building full profile autoentry list?
+		# Add the flags for the dynamically generated profiles
+		local autoEntry=$(FieldArrayAdd "-2	1	Donation")
+		autoEntry=$autoEntry$(FieldArrayAdd "-1	2	Automatic")
+		autoEntry=$autoEntry$(FieldArrayAdd "-3	3	Failover")
+		autoEntry=$autoEntry$(FieldArrayAdd "-4	4	Idle")
+
+		# Display menu
+		Q="SELECT pk_profile, name FROM profile where fk_machine=$thisMachine AND pk_profile>0 ORDER BY pk_profile ASC;"
+		E="Select the profile from the list above that you wish to switch to"
+		GetPrimaryKeySelection thisProfile "$Q" "$E" "" "$autoEntry"
+		echo ""
+
+		echo "Updating macro..."
+		Q="INSERT INTO macro_map (fk_macro, fk_machine, fk_profile) VALUES ('$insertedId','$thisMachine','$thisProfile');"
+		RunSQL "$Q"
+		echo "done"
+		sleep1
+
+	done
+
 	return 0
+
 }
 
 
@@ -1525,10 +1597,76 @@ Edit_Macro() {
 }
 
 Delete_Macro() {
+	clear
+	ShowHeader
+	echo "DELETE MACRO"
+	echo "------------"
+	echo ""
+
+	Q="SELECT COUNT(*) FROM macro;"
+	R=$(RunSQL "$Q")
+	local numMacros=$(Field 1 "$R")
+	if [[ "$numMacros" -lt "1" ]]; then
+		echo "There are no macros to delete!"
+		echo "(Press any key to continue)"
+		read
+		return 1
+	fi
+
+	local thisMacro
+	Q="SELECT pk_macro,name FROM macro;"
+	E="Select the macro from the list above that you wish to delete:"
+	GetPrimaryKeySelection thisMacro "$Q" "$E"
+	echo ""
+
+	echo "Deleting macro..."
+	# Delete macro_map entries, followed by the macro entry
+	Q="DELETE FROM macro_map WHERE fk_macro='$thisMacro';"
+	RunSQL "$Q"
+	Q="DELETE FROM macro WHERE pk_macro='$thisMacro';"
+	RunSQL "$Q"
+	echo "Done."
+	sleep 1
 	return 0
 }
 
 Execute_Macro() {
+	clear
+	ShowHeader
+	echo "EXECUTE MACRO"
+	echo "-------------"
+	echo ""
+
+	Q="SELECT COUNT(*) FROM macro;"
+	R=$(RunSQL "$Q")
+	local numMacros=$(Field 1 "$R")
+	if [[ "$numMacros" -lt "1" ]]; then
+		echo "There are no macros to execute!"
+		echo "(Press any key to continue)"
+		read
+		return 1
+	fi
+
+	local thisMacro
+	Q="SELECT pk_macro,name FROM macro;"
+	E="Select the macro from the list above that you wish to execute:"
+	GetPrimaryKeySelection thisMacro "$Q" "$E"
+	echo ""
+
+	echo "Executing macro..."
+	# Lets populate the current machine profiles from the macro information!
+	Q="SELECT fk_machine,fk_profile FROM macro_map WHERE fk_macro='$thisMacro';"
+	R=$(RunSQL "$Q")
+	for row in $R; do
+		local thisMachine=$(Field 1 "$row")
+		local thisProfile=$(Field 2 "$row")
+		Q="DELETE from current_profile WHERE fk_machine='$thisMachine';"
+		RunSQL "$Q"
+		Q="INSERT INTO current_profile (fk_machine,fk_profile) VALUES ('$thisMachine','$thisProfile');"
+		RunSQL "$Q"
+	done
+	echo "Done."
+	sleep 1
 
 	return 0
 }
