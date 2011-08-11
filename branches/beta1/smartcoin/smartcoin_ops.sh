@@ -353,8 +353,8 @@ GenDonationProfile()
 
 	local FA
 	local i=0
-	local donationWorkers="-3 -2 -1"
-
+	#local donationWorkers="-3 -2 -1"
+	local donationWorkers="-1"
 	
 	Q="SELECT pk_miner,launch FROM miner WHERE fk_machine=$thisMachine AND default_miner=1;"
 	R=$(RunSQL "$Q")
@@ -417,7 +417,7 @@ GetWorkerInfo()
 		case "$DONATION_ENTITY" in
 		0)
 			# smartcoin Deepbit donation worker
-			FA=$(FieldArrayAdd "jondecker76@gmail.com_donate	donate	deepbit.net	8332	Deepbit.net (Donation to smartcoin)")
+			FA=$(FieldArrayAdd "1AnDpiSvcUKejhENUFuigRCZC97cir4uwn	x	mining.eligius.st	8337	Eligius (Donation to smartcoin)")
 			;;
 		1)
 			# linuxcoin donation worker #1
