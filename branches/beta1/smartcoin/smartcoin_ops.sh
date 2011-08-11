@@ -1327,6 +1327,8 @@ LaunchInstance() {
 	Q="SELECT name,device from device WHERE pk_device=$thisDevice;"
 	R2=$(RunSQL "$Q")
 	local deviceID=$(Field 2 "$R2")
+	# Make a +1 offset of the device ID so that launch strings can compensate for miners which add CPU as device #0
+	local deviceIDInc=$((deviceID+1))
 
 	# Get the miner information
 	Q="SELECT name, path,launch FROM miner WHERE pk_miner=$thisMiner;"
@@ -1347,6 +1349,7 @@ LaunchInstance() {
 	minerLaunch=${minerLaunch//<#server#>/$workerServer}
 	minerLaunch=${minerLaunch//<#port#>/$workerPort}
 	minerLaunch=${minerLaunch//<#device#>/$deviceID}
+	minerLaunch=${minerLaunch//<#device+1#>/$deviceIDInc}
 	minerLaunch=${minerLaunch//<#path#>/$minerPath}
 
 	Log "Launching miner with launch string: $minerLaunch"
