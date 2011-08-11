@@ -872,12 +872,12 @@ Launch()
 AutoDetect()
 {
 	local thisMachine=$1
-	Q="SELECT pk_machine,name,server,ssh_port,username FROM machine WHERE pk_machine='$thisMachine';"
+	Q="SELECT pk_machine,name,server,username,ssh_port FROM machine WHERE pk_machine='$thisMachine';"
 	R=$(RunSQL "$Q")
 	local machineName=$(Field 2 "$R")
 	local machineServer=$(Field 3 "$R")
-	local machinePort=$(Field 4 "$R")
-	local machineUser=$(Field 5 "$R")
+	local machineUser=$(Field 4 "$R")
+	local machinePort=$(Field 5 "$R")
 	local machineInfo=$R
 
 
@@ -1397,12 +1397,13 @@ startMiners() {
 
 		DeleteTemporaryFiles $machine
 
-		Q="SELECT pk_machine,name,server,ssh_port,username FROM machine WHERE pk_machine='$machine';"
+		Q="SELECT pk_machine,name,server,username,ssh_port FROM machine WHERE pk_machine='$machine';"
 		R=$(RunSQL "$Q")
 		local machineName=$(Field 2 "$R")
 		local machineServer=$(Field 3 "$R")
-		local machinePort=$(Field 4 "$R")
-		local machineUser=$(Field 5 "$R")
+		local machineUser=$(Field 4 "$R")
+		local machinePort=$(Field 5 "$R")
+
 		local machineInfo="$R"
 
 		if [[ "$machine" != "1" ]]; then
@@ -1472,8 +1473,8 @@ killMiners() {
 	for machine in $thisMachine; do
 		Q="SELECT pk_machine,name,server,username,ssh_port FROM machine WHERE pk_machine=$machine;"
 		R=$(RunSQL "$Q")
-		local user=$(Field 4 "$R")
 		local server=$(Field 3 "$R")
+		local user=$(Field 4 "$R")
 		local port=$(Field 5 "$R")
 		local machineInfo="$R"
 
